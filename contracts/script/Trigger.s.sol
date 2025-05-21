@@ -2,8 +2,8 @@
 pragma solidity 0.8.22;
 
 import {SimpleTrigger} from "contracts/WavsTrigger.sol";
-import {ITypes} from "interfaces/ITypes.sol";
-import {Common} from "script/Common.s.sol";
+import {ITypes} from "contracts/interfaces/ITypes.sol";
+import {Common} from "contracts/script/Common.s.sol";
 import {console} from "forge-std/console.sol";
 
 /// @dev Script to add a new trigger

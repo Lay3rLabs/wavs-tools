@@ -3,8 +3,8 @@ pragma solidity 0.8.22;
 
 import {SimpleTrigger} from "contracts/WavsTrigger.sol";
 import {SimpleSubmit} from "contracts/WavsSubmit.sol";
-import {ITypes} from "interfaces/ITypes.sol";
-import {Common} from "script/Common.s.sol";
+import {ITypes} from "contracts/interfaces/ITypes.sol";
+import {Common} from "contracts/script/Common.s.sol";
 import {console} from "forge-std/console.sol";
 
 /// @dev Script to show the result of a trigger

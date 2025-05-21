@@ -3,7 +3,7 @@ pragma solidity 0.8.22;
 
 import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 import {IWavsServiceHandler} from "@wavs/interfaces/IWavsServiceHandler.sol";
-import {ITypes} from "interfaces/ITypes.sol";
+import {ITypes} from "contracts/interfaces/ITypes.sol";
 
 contract SimpleSubmit is ITypes, IWavsServiceHandler {
     /// @notice Mapping of valid triggers

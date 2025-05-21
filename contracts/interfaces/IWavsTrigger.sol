@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.22;
 
-import {ITypes} from "interfaces/ITypes.sol";
+import {ITypes} from "contracts/interfaces/ITypes.sol";
 
 interface ISimpleTrigger is ITypes {
     /**

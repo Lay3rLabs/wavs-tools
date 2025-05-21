@@ -3,7 +3,7 @@ pragma solidity 0.8.22;
 
 import {Test} from "forge-std/Test.sol";
 import {SimpleTrigger} from "contracts/WavsTrigger.sol";
-import {ITypes} from "interfaces/ITypes.sol";
+import {ITypes} from "contracts/interfaces/ITypes.sol";
 
 contract TriggerTest is Test {
     SimpleTrigger public simpleTrigger;
