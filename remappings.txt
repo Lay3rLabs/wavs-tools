@@ -1,6 +1,6 @@
 @openzeppelin-contracts=lib/openzeppelin/contracts/
 forge-std=lib/forge-std/src
 @wavs=lib/@wavs/solidity/contracts
-contracts/=src/contracts
-common/=src/common
-interfaces/=src/interfaces
+contracts/=contracts/src/contracts
+common/=contracts/src/common
+interfaces/=contracts/src/interfaces
