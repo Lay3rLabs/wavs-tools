@@ -7,7 +7,8 @@ compiled/*.wasm
 .docker/*.log
 .env
 node_modules/
-lib/
+lib/forge-std
+lib/openzeppelin-contracts
 lcov.info
 internal/
 wavs:worker*.wit

@@ -9,5 +9,7 @@ ffi = false # false by default for security reasons
 fs_permissions = [{ access = "read-write", path = "./" },]
 
 remappings = [
+  "forge-std=lib/forge-std/src/",
+  "@openzeppelin=lib/openzeppelin-contracts/contracts/",
   "@wavs=node_modules/@wavs/solidity/contracts/",
 ]
