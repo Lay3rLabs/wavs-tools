@@ -1,29 +1,7 @@
-// src/interfaces/IStakeRegistry.sol
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 interface IStakeRegistry {
-    struct StakeUpdate {
-        uint32 updateBlockNumber;
-        uint96 stake;
-    }
-
-    function GetCurrentStake(bytes32 operatorId, uint8 quorumNumber) external view returns (uint96);
-    function GetLatestStakeUpdate(bytes32 operatorId, uint8 quorumNumber)
-        external
-        view
-        returns (uint256 blockNumber, uint256 stake);
-
-    /**
-     * @notice Returns the stake of an operator at a specific block number.
-     * @param operatorId ID of the operator.
-     * @param quorumNumber Quorum to query.
-     * @param blockNumber Block number to retrieve the stake from.
-     * @return Stake amount of the operator at the specified block.
-     */
-    function GetStakeAtBlockNumber(bytes32 operatorId, uint8 quorumNumber, uint32 blockNumber)
-        external
-        view
-        returns (uint96);
-
-    function UpdateOperators(address[] calldata operators) external;
+    function GetCurrentStake(bytes32 operatorId, uint8 quorumNumber) external view returns (uint256);
+    function GetLatestStakeUpdate(bytes32 operatorId, uint8 quorumNumber) external view returns (uint256 blockNumber, uint256 stake);
 }
