@@ -70,4 +70,64 @@ contract AvsReader {
     function getOperatorsInQuorum(uint8 quorumNumber) external view returns (address[] memory) {
         return IRegistryCoordinator(registryCoordinator).GetOperatorsInQuorum(quorumNumber);
     }
+
+    /**
+     * @notice Gets the current stake of multiple operators in the specified quorum.
+     * @param operators List of operator addresses to query.
+     * @param quorum The quorum number to check stake for.
+     * @return stakes Array of stakes corresponding to each operator in the input list.
+     */
+    function getCurrentStakes(address[] calldata operators, uint8 quorum)
+        external
+        view
+        returns (uint256[] memory stakes)
+    {
+        stakes = new uint256[](operators.length);
+        bytes32[] memory operatorIds = new bytes32[](operators.length);
+
+        for (uint256 i = 0; i < operators.length; i++) {
+            operatorIds[i] = IRegistryCoordinator(registryCoordinator).GetOperatorId(operators[i]);
+        }
+
+        for (uint256 i = 0; i < operators.length; i++) {
+            stakes[i] = IStakeRegistry(stakeRegistry).GetCurrentStake(operatorIds[i], quorum);
+        }
+    }
+
+    /**
+     * @notice Returns a list of quorums that the given operator is currently part of.
+     * @param operator Address of the operator to query.
+     * @return quorums Array of quorum numbers where the operator is registered.
+     */
+    function getQuorumsForOperator(address operator) external view returns (uint8[] memory) {
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
+        uint256 bitmap = IRegistryCoordinator(registryCoordinator).GetCurrentQuorumBitmap(operatorId);
+        uint8 quorumCount = IRegistryCoordinator(registryCoordinator).QuorumCount();
+
+        uint8[] memory quorums = new uint8[](quorumCount);
+        uint8 count;
+
+        for (uint8 i = 0; i < quorumCount; i++) {
+            if ((bitmap & (1 << i)) != 0) {
+                quorums[count++] = i;
+            }
+        }
+
+        assembly {
+            mstore(quorums, count)
+        } // resize array
+        return quorums;
+    }
+
+    /**
+     * @notice Returns the stake of a specific operator in a given quorum at a specific block.
+     * @param operator Address of the operator to query.
+     * @param quorum Quorum number to check stake in.
+     * @param blockNumber Block number to retrieve the stake from.
+     * @return Stake amount of the operator in the quorum at the specified block.
+     */
+    function getStakeAtBlock(address operator, uint8 quorum, uint32 blockNumber) external view returns (uint256) {
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
+        return IStakeRegistry(stakeRegistry).GetStakeAtBlockNumber(operatorId, quorum, blockNumber);
+    }
 }
