@@ -7,15 +7,13 @@ struct Operator {
 }
 
 interface IOperatorStateRetriever {
-    function GetOperatorState(
-        address registryCoordinator,
-        uint8[] calldata quorumNumbers,
-        uint32 blockNumber
-    ) external view returns (Operator[][] memory);
+    function GetOperatorState(address registryCoordinator, uint8[] calldata quorumNumbers, uint32 blockNumber)
+        external
+        view
+        returns (Operator[][] memory);
 
-    function GetOperatorState0(
-        address registryCoordinator,
-        bytes32 operatorId,
-        uint32 blockNumber
-    ) external view returns (uint256 quorumBitmap, Operator[][] memory stakes);
+    function GetOperatorState0(address registryCoordinator, bytes32 operatorId, uint32 blockNumber)
+        external
+        view
+        returns (uint256 quorumBitmap, Operator[][] memory stakes);
 }
