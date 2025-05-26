@@ -1,40 +1,24 @@
-interface IRegistryCoordinator {
-    function QuorumCount() external view returns (uint8);
-    function GetOperatorId(address operator) external view returns (bytes32);
-    function GetOperatorFromId(bytes32 operatorId) external view returns (address);
-    function GetOperatorStatus(address operator) external view returns (uint8); // 0 = never, 1 = reg, 2 = de-reg
-    function GetCurrentQuorumBitmap(bytes32 operatorId) external view returns (uint256);
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import "../interfaces/IRegistryCoordinator.sol";
+import "../interfaces/IStakeRegistry.sol";
+
+contract AvsReader {
+    address public immutable registryCoordinator;
+    address public immutable stakeRegistry;
+
+    constructor(address _registryCoordinator, address _stakeRegistry) {
+        registryCoordinator = _registryCoordinator;
+        stakeRegistry = _stakeRegistry;
+    }
+
+    function getQuorumCount() external view returns (uint8) {
+        return IRegistryCoordinator(registryCoordinator).QuorumCount();
+    }
+
+    function getCurrentStake(address operator, uint8 quorum) external view returns (uint256) {
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
+        return IStakeRegistry(stakeRegistry).GetCurrentStake(operatorId, quorum);
+    }
 }
-
-// IStakeRegistry.sol
-interface IStakeRegistry {
-    function GetCurrentStake(bytes32 operatorId, uint8 quorumNumber) external view returns (uint256);
-    function GetLatestStakeUpdate(bytes32 operatorId, uint8 quorumNumber) external view returns (StakeUpdate memory);
-}
-
-// IBLSApkRegistry.sol
-interface IBLSApkRegistry {
-    function OperatorToPubkeyHash(address operator) external view returns (bytes32);
-    function PubkeyHashToOperator(bytes32 pubkeyHash) external view returns (address);
-    function OperatorToPubkey(address operator) external view returns (G1Point memory);
-}
-
-struct G1Point {
-    uint256 X;
-    uint256 Y;
-}
-
-struct StakeUpdate {
-    uint256 blockNumber;
-    uint256 stake;
-}
-
-function getQuorumCount(IRegistryCoordinator registry)
-    public
-    view
-    returns (uint8)
-{
-    return registry.QuorumCount();
-}
-
-
