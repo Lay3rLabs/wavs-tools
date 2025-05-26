@@ -1,12 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-struct Operator {
-    address operator;
-    uint256 stake;
-}
-
 interface IOperatorStateRetriever {
+    struct Operator {
+        address operator;
+        bytes32 operatorId;
+        uint96 stake;
+    }
+
     function GetOperatorState(address registryCoordinator, uint8[] calldata quorumNumbers, uint32 blockNumber)
         external
         view
