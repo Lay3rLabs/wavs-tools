@@ -34,7 +34,7 @@ prometheus = "http://localhost:9090"
 # == Ethereum chains ==
 
 # Mainnet
-[default.chains.evm.evmereum]
+[default.chains.evm.ethereum]
 chain_id = "1"
 ws_endpoint = "wss://eth.drpc.org"
 http_endpoint = "https://eth.drpc.org"
