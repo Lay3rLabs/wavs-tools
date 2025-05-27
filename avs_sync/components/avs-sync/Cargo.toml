@@ -8,3 +8,22 @@ repository.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+wavs-wasi-chain = { workspace = true }
+wstd = { workspace = true }
+
+alloy-sol-macro = { workspace = true }
+alloy-sol-types = { workspace = true }
+
+alloy-primitives = "0.8.25"
+primitive-types = "0.13.1"
+
+alloy-network = "0.11.1"
+alloy-provider = { version = "0.11.1", default-features = false, features = ["rpc-api"] }
+alloy-rpc-types = "0.11.1"
+alloy-transport-http = { version = "0.11.1", default-features = false }
+
+hex = "0.4.3"
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+url = "2.3.1"
