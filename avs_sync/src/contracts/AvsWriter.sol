@@ -1,16 +1,21 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../interfaces/IStakeRegistry.sol";
+import "../interfaces/IECDSAStakeRegistry.sol";
 
 contract AvsWriter {
-    IStakeRegistry public immutable stakeRegistry;
+    IECDSAStakeRegistry public immutable ecdsaStakeRegistry;
 
-    constructor(address _stakeRegistry) {
-        stakeRegistry = IStakeRegistry(_stakeRegistry);
+    constructor(address _ecdsaStakeRegistryAddress) {
+        ecdsaStakeRegistry = IECDSAStakeRegistry(_ecdsaStakeRegistryAddress);
     }
 
+    /**
+     * @notice Calls updateOperators on the ECDSAStakeRegistry contract.
+     * @dev This should be called when operator stakes change significantly.
+     * @param operators List of operator addresses to update.
+     */
     function updateOperators(address[] calldata operators) external {
-        stakeRegistry.UpdateOperators(operators);
+        ecdsaStakeRegistry.updateOperators(operators);
     }
 }
