@@ -24,4 +24,6 @@ interface IStakeRegistry {
         external
         view
         returns (uint96);
+
+    function UpdateOperators(address[] calldata operators) external;
 }
