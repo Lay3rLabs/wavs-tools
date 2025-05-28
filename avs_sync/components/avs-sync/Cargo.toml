@@ -7,6 +7,12 @@ authors.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "wavs:worker"
+
 [dependencies]
 wavs-wasi-chain = { workspace = true }
 wstd = { workspace = true }
@@ -27,3 +33,5 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
 url = "2.3.1"
+
+wit-bindgen = { workspace = true }
