@@ -11,7 +11,8 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [package.metadata.component]
-package = "wavs:worker"
+package = "component:avs-sync"
+target = "wavs:worker/layer-trigger-world@0.4.0-beta.4"
 
 [dependencies]
 wavs-wasi-chain = { workspace = true }
@@ -20,7 +21,7 @@ wstd = { workspace = true }
 alloy-sol-macro = { workspace = true }
 alloy-sol-types = { workspace = true }
 
-alloy-primitives = "0.8.25"
+alloy-primitives = "0.8.13"
 primitive-types = "0.13.1"
 
 alloy-network = "0.11.1"
