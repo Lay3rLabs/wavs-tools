@@ -8,18 +8,15 @@ generate!({
     path: "../../../../../WAVS/wit/wavs_worker.wit"
 });
 
-use exports::run;
-use layer_types::{TriggerAction, TriggerData, WasmResponse};
+use layer_types::{LogLevel, TriggerAction, TriggerData, WasmResponse};
 use wstd::runtime::block_on;
 
 struct Component;
 
 impl Guest for Component {
     fn run(trigger_action: TriggerAction) -> Result<Option<WasmResponse>, String> {
-        use layer_types::LogLevel;
-        
         host::log(LogLevel::Info, &format!("AVS Sync triggered: {:?}", trigger_action.config.service_id));
-        
+
         block_on(async move {
             match trigger_action.data {
                 TriggerData::Cron(cron_data) => {
