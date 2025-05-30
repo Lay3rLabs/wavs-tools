@@ -823,6 +823,7 @@ dependencies = [
  "url",
  "wavs-wasi-chain",
  "wit-bindgen",
+ "wit-bindgen-rt 0.42.1",
  "wstd",
 ]
 
