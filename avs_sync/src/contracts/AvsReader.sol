@@ -18,7 +18,7 @@ contract AvsReader {
 
     /// @notice Returns the total number of quorums.
     function getQuorumCount() external view returns (uint8) {
-        return IRegistryCoordinator(registryCoordinator).QuorumCount();
+        return IRegistryCoordinator(registryCoordinator).quorumCount();
     }
 
     /// @notice Returns list of operator addresses per quorum.
@@ -29,7 +29,7 @@ contract AvsReader {
     {
         // Call the original function that returns Operator[][] structs
         IOperatorStateRetriever.Operator[][] memory operatorsWithStake = IOperatorStateRetriever(operatorStateRetriever)
-            .GetOperatorState(registryCoordinator, quorumNumbers, uint32(block.number));
+            .getOperatorState(registryCoordinator, quorumNumbers, uint32(block.number));
 
         // Convert to an array of arrays of addresses only
         address[][] memory result = new address[][](operatorsWithStake.length);
@@ -46,14 +46,14 @@ contract AvsReader {
 
     /// @notice Checks if an operator is registered.
     function isOperatorRegistered(address operator) external view returns (bool) {
-        uint8 status = IRegistryCoordinator(registryCoordinator).GetOperatorStatus(operator);
+        uint8 status = IRegistryCoordinator(registryCoordinator).getOperatorStatus(operator);
         return status == 1; // 1 = REGISTERED
     }
 
     /// @notice Gets current stake of an operator in a specific quorum.
     function getCurrentStake(address operator, uint8 quorum) external view returns (uint256) {
-        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
-        return IStakeRegistry(stakeRegistry).GetCurrentStake(operatorId, quorum);
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).getOperatorId(operator);
+        return IStakeRegistry(stakeRegistry).getCurrentStake(operatorId, quorum);
     }
 
     /// @notice Gets latest stake update for an operator in a specific quorum.
@@ -62,13 +62,13 @@ contract AvsReader {
         view
         returns (uint256 blockNumber, uint256 stake)
     {
-        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
-        return IStakeRegistry(stakeRegistry).GetLatestStakeUpdate(operatorId, quorum);
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).getOperatorId(operator);
+        return IStakeRegistry(stakeRegistry).getLatestStakeUpdate(operatorId, quorum);
     }
 
     /// @notice Gets all operators in a given quorum.
     function getOperatorsInQuorum(uint8 quorumNumber) external view returns (address[] memory) {
-        return IRegistryCoordinator(registryCoordinator).GetOperatorsInQuorum(quorumNumber);
+        return IRegistryCoordinator(registryCoordinator).getOperatorsInQuorum(quorumNumber);
     }
 
     /**
@@ -86,11 +86,11 @@ contract AvsReader {
         bytes32[] memory operatorIds = new bytes32[](operators.length);
 
         for (uint256 i = 0; i < operators.length; i++) {
-            operatorIds[i] = IRegistryCoordinator(registryCoordinator).GetOperatorId(operators[i]);
+            operatorIds[i] = IRegistryCoordinator(registryCoordinator).getOperatorId(operators[i]);
         }
 
         for (uint256 i = 0; i < operators.length; i++) {
-            stakes[i] = IStakeRegistry(stakeRegistry).GetCurrentStake(operatorIds[i], quorum);
+            stakes[i] = IStakeRegistry(stakeRegistry).getCurrentStake(operatorIds[i], quorum);
         }
     }
 
@@ -100,9 +100,9 @@ contract AvsReader {
      * @return quorums Array of quorum numbers where the operator is registered.
      */
     function getQuorumsForOperator(address operator) external view returns (uint8[] memory) {
-        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
-        uint256 bitmap = IRegistryCoordinator(registryCoordinator).GetCurrentQuorumBitmap(operatorId);
-        uint8 quorumCount = IRegistryCoordinator(registryCoordinator).QuorumCount();
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).getOperatorId(operator);
+        uint256 bitmap = IRegistryCoordinator(registryCoordinator).getCurrentQuorumBitmap(operatorId);
+        uint8 quorumCount = IRegistryCoordinator(registryCoordinator).quorumCount();
 
         uint8[] memory quorums = new uint8[](quorumCount);
         uint8 count;
@@ -127,7 +127,7 @@ contract AvsReader {
      * @return Stake amount of the operator in the quorum at the specified block.
      */
     function getStakeAtBlock(address operator, uint8 quorum, uint32 blockNumber) external view returns (uint256) {
-        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).GetOperatorId(operator);
-        return IStakeRegistry(stakeRegistry).GetStakeAtBlockNumber(operatorId, quorum, blockNumber);
+        bytes32 operatorId = IRegistryCoordinator(registryCoordinator).getOperatorId(operator);
+        return IStakeRegistry(stakeRegistry).getStakeAtBlockNumber(operatorId, quorum, blockNumber);
     }
 }

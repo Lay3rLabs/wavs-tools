@@ -8,12 +8,12 @@ interface IOperatorStateRetriever {
         uint96 stake;
     }
 
-    function GetOperatorState(address registryCoordinator, uint8[] calldata quorumNumbers, uint32 blockNumber)
+    function getOperatorState(address registryCoordinator, uint8[] calldata quorumNumbers, uint32 blockNumber)
         external
         view
         returns (Operator[][] memory);
 
-    function GetOperatorState0(address registryCoordinator, bytes32 operatorId, uint32 blockNumber)
+    function getOperatorState0(address registryCoordinator, bytes32 operatorId, uint32 blockNumber)
         external
         view
         returns (uint256 quorumBitmap, Operator[][] memory stakes);

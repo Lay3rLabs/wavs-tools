@@ -7,8 +7,8 @@ interface IStakeRegistry {
         uint96 stake;
     }
 
-    function GetCurrentStake(bytes32 operatorId, uint8 quorumNumber) external view returns (uint96);
-    function GetLatestStakeUpdate(bytes32 operatorId, uint8 quorumNumber)
+    function getCurrentStake(bytes32 operatorId, uint8 quorumNumber) external view returns (uint96);
+    function getLatestStakeUpdate(bytes32 operatorId, uint8 quorumNumber)
         external
         view
         returns (uint256 blockNumber, uint256 stake);
@@ -20,10 +20,10 @@ interface IStakeRegistry {
      * @param blockNumber Block number to retrieve the stake from.
      * @return Stake amount of the operator at the specified block.
      */
-    function GetStakeAtBlockNumber(bytes32 operatorId, uint8 quorumNumber, uint32 blockNumber)
+    function getStakeAtBlockNumber(bytes32 operatorId, uint8 quorumNumber, uint32 blockNumber)
         external
         view
         returns (uint96);
 
-    function UpdateOperators(address[] calldata operators) external;
+    function updateOperators(address[] calldata operators) external;
 }

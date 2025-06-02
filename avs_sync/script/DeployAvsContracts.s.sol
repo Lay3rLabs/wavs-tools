@@ -2,8 +2,8 @@
 pragma solidity ^0.8.20;
 
 import "forge-std/Script.sol";
-import "../contracts/AvsReader.sol";
-import "../contracts/AvsWriter.sol";
+import "../src/contracts/AvsReader.sol";
+import "../src/contracts/AvsWriter.sol";
 
 contract DeployAvsContracts is Script {
     // Replace these with actual addresses from testnet
