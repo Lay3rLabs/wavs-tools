@@ -62,6 +62,7 @@ test:
 setup: check-requirements
 	@forge install
 	@npm install
+	@git submodule update --init --recursive
 
 ## start-all: starting anvil and WAVS with docker compose
 start-all: clean-docker setup-env
