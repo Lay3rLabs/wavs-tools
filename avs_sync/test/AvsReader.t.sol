@@ -12,11 +12,7 @@ contract AvsReaderTest is Test {
     address constant OPERATOR_STATE_RETRIEVER = address(0x3);
 
     function setUp() public {
-        avsReader = new AvsReader(
-            REGISTRY_COORDINATOR,
-            STAKE_REGISTRY,
-            OPERATOR_STATE_RETRIEVER
-        );
+        avsReader = new AvsReader(REGISTRY_COORDINATOR, STAKE_REGISTRY, OPERATOR_STATE_RETRIEVER);
     }
 
     function test_Constructor() public view {

@@ -10,4 +10,5 @@ fs_permissions = [{ access = "read-write", path = "./" }]
 remappings = [
     "@eigenlayer-middleware/=../lib/eigenlayer-middleware/",
     "forge-std/=../lib/forge-std/src/",
+    "@wavs=../node_modules/@wavs/solidity/contracts",
 ]
