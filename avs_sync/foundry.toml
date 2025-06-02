@@ -1,13 +1,13 @@
 [profile.default]
 src = 'src'
 out = 'out'
-libs = ['lib', '../lib']
-solidity_version = '0.8.22'
+libs = ['../lib']
+solidity_version = '0.8.27'
 evm_version = 'shanghai'
 via_ir = true
 fs_permissions = [{ access = "read-write", path = "./" }]
 
 remappings = [
     "@eigenlayer-middleware/=../lib/eigenlayer-middleware/",
-    "forge-std/=lib/forge-std/src/",
+    "forge-std/=../lib/forge-std/src/",
 ]
