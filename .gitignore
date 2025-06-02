@@ -1,0 +1,16 @@
+/target
+out/
+cache/
+broadcast/
+compiled/*.wasm
+.docker/*.json
+.docker/*.log
+.env
+node_modules/
+lib/forge-std
+lib/openzeppelin-contracts
+lcov.info
+internal/
+wavs:worker*.wit
+wavs:worker*.wasm
+.nodes
