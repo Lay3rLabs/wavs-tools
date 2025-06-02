@@ -17,11 +17,7 @@ contract DeployAvsContracts is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy AvsReader
-        AvsReader avsReader = new AvsReader(
-            REGISTRY_COORDINATOR,
-            STAKE_REGISTRY,
-            OPERATOR_STATE_RETRIEVER
-        );
+        AvsReader avsReader = new AvsReader(REGISTRY_COORDINATOR, STAKE_REGISTRY, OPERATOR_STATE_RETRIEVER);
         console.log("AvsReader deployed at:", address(avsReader));
 
         // Deploy AvsWriter
