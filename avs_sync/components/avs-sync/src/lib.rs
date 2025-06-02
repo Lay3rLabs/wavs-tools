@@ -17,7 +17,7 @@ use std::{
     fs::File,
     io::{Read, Write},
 };
-use wavs_wasi_chain::decode_event_log_data;
+use wavs_wasi_utils::decode_event_log_data;
 use wstd::http::{Client, IntoBody, Request};
 use wstd::io::AsyncRead;
 use wstd::runtime::block_on;

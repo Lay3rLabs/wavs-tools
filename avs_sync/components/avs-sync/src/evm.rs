@@ -4,8 +4,7 @@ use alloy_primitives::{Address, TxKind, U256};
 use alloy_provider::{Provider, RootProvider};
 use alloy_rpc_types::TransactionInput;
 use alloy_sol_types::{sol, SolCall};
-use wavs_wasi_chain::ethereum::new_eth_provider;
-use wstd::runtime::block_on;
+use wavs_wasi_utils::evm::new_evm_provider;
 
 sol! {
     interface IAvsReader {
@@ -20,6 +19,7 @@ sol! {
     }
 }
 
+#[allow(dead_code)]
 pub struct AvsContracts {
     pub reader_address: Address,
     pub writer_address: Address,
@@ -35,7 +35,7 @@ impl AvsContracts {
         let chain_config = get_evm_chain_config(chain_name)
             .ok_or_else(|| format!("Failed to get chain config for: {}", chain_name))?;
 
-        let provider = new_eth_provider::<Ethereum>(
+        let provider = new_evm_provider::<Ethereum>(
             chain_config.http_endpoint.ok_or_else(|| "No HTTP endpoint configured".to_string())?,
         );
 
@@ -51,7 +51,7 @@ impl AvsContracts {
             ..Default::default()
         };
 
-        let result = self.provider.call(&tx).await.map_err(|e| e.to_string())?;
+        let result = self.provider.call(tx).await.map_err(|e| e.to_string())?;
 
         // For arrays of addresses, we need to decode manually from the result bytes
         // This is a simplified decode - in practice you'd properly parse the ABI response
@@ -79,7 +79,7 @@ impl AvsContracts {
             ..Default::default()
         };
 
-        let result = self.provider.call(&tx).await.map_err(|e| e.to_string())?;
+        let result = self.provider.call(tx).await.map_err(|e| e.to_string())?;
 
         // Simple decode for u8 - just take the last byte
         if !result.is_empty() {

@@ -29,7 +29,7 @@ build: _build_forge wasi-build
 
 ## wasi-build: building WAVS wasi components | WASI_BUILD_DIR
 wasi-build:
-	@./script/build_components.sh $(WASI_BUILD_DIR)
+	@./scripts/build_components.sh $(WASI_BUILD_DIR)
 
 ## wasi-exec: executing the WAVS wasi component(s) | COMPONENT_FILENAME, COIN_MARKET_CAP_ID
 wasi-exec: pull-image

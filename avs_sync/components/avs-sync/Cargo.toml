@@ -15,20 +15,20 @@ package = "component:avs-sync"
 target = "wavs:worker/layer-trigger-world@0.4.0-beta.4"
 
 [dependencies]
-wavs-wasi-chain = { workspace = true }
+wavs-wasi-utils = { workspace = true }
 wstd = { workspace = true }
 
+alloy-network = { workspace = true }
+alloy-provider = { workspace = true }
+alloy-rpc-types = { workspace = true }
+alloy-transport-http = { workspace = true }
+alloy-primitives = { workspace = true }
 alloy-sol-macro = { workspace = true }
 alloy-sol-types = { workspace = true }
+
 wit-bindgen-rt = { workspace = true }
 
-alloy-primitives = "0.8.13"
 primitive-types = "0.13.1"
-
-alloy-network = "0.11.1"
-alloy-provider = { version = "0.11.1", default-features = false, features = ["rpc-api"] }
-alloy-rpc-types = "0.11.1"
-alloy-transport-http = { version = "0.11.1", default-features = false }
 
 hex = "0.4.3"
 serde = { workspace = true, features = ["derive"] }
