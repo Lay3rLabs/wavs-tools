@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../interfaces/IECDSAStakeRegistry.sol";
+import "eigenlayer-middleware/src/interfaces/IECDSAStakeRegistry.sol";
 
 contract AvsWriter {
     IECDSAStakeRegistry public immutable ecdsaStakeRegistry;

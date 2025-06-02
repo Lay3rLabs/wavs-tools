@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "../interfaces/IRegistryCoordinator.sol";
-import "../interfaces/IStakeRegistry.sol";
-import "../interfaces/IOperatorStateRetriever.sol";
+import "eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
+import "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+import "eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
 contract AvsReader {
     address public immutable registryCoordinator;
@@ -28,8 +28,8 @@ contract AvsReader {
         returns (address[][] memory)
     {
         // Call the original function that returns Operator[][] structs
-        IOperatorStateRetriever.Operator[][] memory operatorsWithStake = IOperatorStateRetriever(operatorStateRetriever)
-            .getOperatorState(registryCoordinator, quorumNumbers, uint32(block.number));
+        OperatorStateRetriever.Operator[][] memory operatorsWithStake = OperatorStateRetriever(operatorStateRetriever)
+            .getOperatorState(IRegistryCoordinator(registryCoordinator), quorumNumbers, uint32(block.number));
 
         // Convert to an array of arrays of addresses only
         address[][] memory result = new address[][](operatorsWithStake.length);
