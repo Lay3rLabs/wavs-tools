@@ -27,7 +27,8 @@ contract AvsReader {
         view
         returns (address[][] memory)
     {
-        // Convert uint8[] to bytes
+        // Convert uint8[] to bytes - this is how the interace expects it
+        // https://github.com/Lay3rLabs/eigenlayer-middleware/blob/08e16bde45b16f87d2042f05df73fbce0d156c1a/src/OperatorStateRetriever.sol#L60-L72
         bytes memory quorumBytes = abi.encodePacked(quorumNumbers);
 
         // Call the original function that returns Operator[][] structs
