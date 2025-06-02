@@ -8,6 +8,6 @@ via_ir = true
 fs_permissions = [{ access = "read-write", path = "./" },]
 
 remappings = [
-    "eigenlayer-middleware/=../lib/eigenlayer-middleware/"
+    "@eigenlayer-middleware/=../lib/eigenlayer-middleware/"
 ]
 

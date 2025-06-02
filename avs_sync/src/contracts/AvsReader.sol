@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import "eigenlayer-middleware/src/interfaces/ISlashingRegistryCoordinator.sol";
-import "eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
-import "eigenlayer-middleware/src/OperatorStateRetriever.sol";
+import "@eigenlayer-middleware/src/interfaces/ISlashingRegistryCoordinator.sol";
+import "@eigenlayer-middleware/src/interfaces/IStakeRegistry.sol";
+import "@eigenlayer-middleware/src/OperatorStateRetriever.sol";
 
 contract AvsReader {
     address public immutable registryCoordinator;
