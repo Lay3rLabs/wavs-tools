@@ -1,5 +1,5 @@
 use alloy_network::Ethereum;
-use alloy_primitives::{Address, U256};
+use alloy_primitives::Address;
 use alloy_provider::Provider;
 use alloy_sol_macro::sol;
 use anyhow::Result;
@@ -35,56 +35,6 @@ sol!(
             "inputs": [{"internalType": "bytes32", "name": "operatorId", "type": "bytes32"}],
             "name": "getCurrentQuorumBitmap",
             "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ]"#
-);
-
-sol!(
-    #[allow(missing_docs)]
-    #[sol(rpc)]
-    IStakeRegistry,
-    r#"[
-        {
-            "inputs": [
-                {"internalType": "bytes32", "name": "operatorId", "type": "bytes32"},
-                {"internalType": "uint8", "name": "quorumNumber", "type": "uint8"}
-            ],
-            "name": "getCurrentStake",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {"internalType": "bytes32", "name": "operatorId", "type": "bytes32"},
-                {"internalType": "uint8", "name": "quorumNumber", "type": "uint8"}
-            ],
-            "name": "getLatestStakeUpdate",
-            "outputs": [
-                {
-                    "components": [
-                        {"internalType": "uint32", "name": "updateBlockNumber", "type": "uint32"},
-                        {"internalType": "uint32", "name": "nextUpdateBlockNumber", "type": "uint32"},
-                        {"internalType": "uint96", "name": "stake", "type": "uint96"}
-                    ],
-                    "internalType": "struct IStakeRegistry.StakeUpdate",
-                    "name": "",
-                    "type": "tuple"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [
-                {"internalType": "bytes32", "name": "operatorId", "type": "bytes32"},
-                {"internalType": "uint8", "name": "quorumNumber", "type": "uint8"},
-                {"internalType": "uint32", "name": "blockNumber", "type": "uint32"}
-            ],
-            "name": "getStakeAtBlockNumber",
-            "outputs": [{"internalType": "uint96", "name": "", "type": "uint96"}],
             "stateMutability": "view",
             "type": "function"
         }
@@ -131,7 +81,6 @@ sol!(
 pub struct AvsReader<P> {
     registry_coordinator:
         ISlashingRegistryCoordinator::ISlashingRegistryCoordinatorInstance<P, Ethereum>,
-    stake_registry: IStakeRegistry::IStakeRegistryInstance<P, Ethereum>,
     operator_state_retriever: OperatorStateRetriever::OperatorStateRetrieverInstance<P, Ethereum>,
 }
 
@@ -141,7 +90,6 @@ where
 {
     pub fn new(
         registry_coordinator_address: Address,
-        stake_registry_address: Address,
         operator_state_retriever_address: Address,
         provider: P,
     ) -> Self {
@@ -151,10 +99,6 @@ where
                     registry_coordinator_address,
                     provider.clone(),
                 ),
-            stake_registry: IStakeRegistry::IStakeRegistryInstance::new(
-                stake_registry_address,
-                provider.clone(),
-            ),
             operator_state_retriever: OperatorStateRetriever::OperatorStateRetrieverInstance::new(
                 operator_state_retriever_address,
                 provider,
@@ -207,29 +151,5 @@ where
         } else {
             Ok(operators[0].clone())
         }
-    }
-
-    /// Gets the current stake of multiple operators in the specified quorum
-    pub async fn get_current_stakes(
-        &self,
-        operators: Vec<Address>,
-        quorum: u8,
-    ) -> Result<Vec<U256>> {
-        let mut stakes = Vec::with_capacity(operators.len());
-
-        // Get operator IDs first
-        let mut operator_ids = Vec::with_capacity(operators.len());
-        for operator in &operators {
-            let operator_id = self.registry_coordinator.getOperatorId(*operator).call().await?;
-            operator_ids.push(operator_id);
-        }
-
-        // Get stakes for each operator
-        for operator_id in operator_ids {
-            let stake = self.stake_registry.getCurrentStake(operator_id, quorum).call().await?;
-            stakes.push(stake.into());
-        }
-
-        Ok(stakes)
     }
 }

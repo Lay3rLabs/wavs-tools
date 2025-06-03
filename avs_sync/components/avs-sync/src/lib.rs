@@ -3,7 +3,7 @@ mod avs_reader;
 mod bindings;
 
 use alloy_network::Ethereum;
-use alloy_primitives::{Address, U256};
+use alloy_primitives::Address;
 use alloy_provider::Provider;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
@@ -13,9 +13,6 @@ use bindings::{
     Guest, TriggerAction,
 };
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
 use wavs_wasi_utils::evm::new_evm_provider;
 use wstd::runtime::block_on;
 
@@ -27,23 +24,16 @@ use crate::bindings::{
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ComponentInput {
     pub registry_coordinator_address: String,
-    pub stake_registry_address: String,
     pub operator_state_retriever_address: String,
     pub chain_name: String,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq)]
-pub struct OperatorStakeSnapshot {
-    pub block_height: u64,
-    pub timestamp: u64,
-    pub operators: HashMap<Address, HashMap<u8, U256>>, // operator -> quorum -> stake
-}
-
 #[derive(Debug, Serialize, Deserialize)]
-pub struct SyncResult {
-    pub operators_to_update: Vec<Address>,
+pub struct UpdateOperatorsForQuorumData {
+    pub operators_per_quorum: Vec<Vec<Address>>, // address[][] - operators for each quorum
+    pub quorum_numbers: Vec<u8>,                 // bytes - quorum identifiers
     pub total_operators: usize,
-    pub quorums_processed: u8,
+    pub block_height: u64,
 }
 
 struct Component;
@@ -53,15 +43,12 @@ impl Guest for Component {
         // Decode the trigger event
         let ComponentInput {
             registry_coordinator_address,
-            stake_registry_address,
             operator_state_retriever_address,
             chain_name,
         } = match action.data {
             TriggerData::Cron(_) => {
                 let registry_coordinator_address = host::config_var("registry_coordinator_address")
                     .ok_or("registry_coordinator_address not configured")?;
-                let stake_registry_address = host::config_var("stake_registry_address")
-                    .ok_or("stake_registry_address not configured")?;
                 let operator_state_retriever_address =
                     host::config_var("operator_state_retriever_address")
                         .ok_or("operator_state_retriever_address not configured")?;
@@ -70,7 +57,6 @@ impl Guest for Component {
 
                 Ok(ComponentInput {
                     registry_coordinator_address,
-                    stake_registry_address,
                     operator_state_retriever_address,
                     chain_name,
                 })
@@ -84,7 +70,6 @@ impl Guest for Component {
             LogLevel::Info,
             &format!("Registry coordinator: {}", registry_coordinator_address),
         );
-        host::log(LogLevel::Info, &format!("Stake registry: {}", stake_registry_address));
         host::log(
             LogLevel::Info,
             &format!("Operator state retriever: {}", operator_state_retriever_address),
@@ -94,46 +79,47 @@ impl Guest for Component {
             let registry_coordinator_address = registry_coordinator_address
                 .parse()
                 .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
-            let stake_registry_address = stake_registry_address
-                .parse()
-                .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
             let operator_state_retriever_address = operator_state_retriever_address
                 .parse()
                 .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
 
-            let maybe_sync_result = perform_avs_sync(
+            let update_data = perform_avs_sync(
                 chain_name,
                 registry_coordinator_address,
-                stake_registry_address,
                 operator_state_retriever_address,
             )
             .await
             .map_err(|e| e.to_string())?;
 
-            if let Some(sync_result) = maybe_sync_result {
-                if sync_result.operators_to_update.is_empty() {
-                    host::log(LogLevel::Info, "No operators need updating");
-                    return Ok(None);
+            host::log(
+                LogLevel::Info,
+                &format!(
+                    "AVS sync completed: {} total operators across {} quorums at block {}",
+                    update_data.total_operators,
+                    update_data.quorum_numbers.len(),
+                    update_data.block_height
+                ),
+            );
+
+            // Log operators per quorum
+            for (i, operators) in update_data.operators_per_quorum.iter().enumerate() {
+                if i < update_data.quorum_numbers.len() {
+                    host::log(
+                        LogLevel::Info,
+                        &format!(
+                            "Quorum {}: {} operators",
+                            update_data.quorum_numbers[i],
+                            operators.len()
+                        ),
+                    );
                 }
-
-                host::log(
-                    LogLevel::Info,
-                    &format!(
-                        "AVS sync completed: {}/{} operators need updating across {} quorums",
-                        sync_result.operators_to_update.len(),
-                        sync_result.total_operators,
-                        sync_result.quorums_processed
-                    ),
-                );
-
-                // Return just the list of operators that need updating
-                let response_data = serde_json::to_vec(&sync_result.operators_to_update)
-                    .map_err(|e| e.to_string())?;
-                return Ok(Some(WasmResponse { payload: response_data, ordering: None }));
             }
 
-            host::log(LogLevel::Info, "No quorums found or no operators to process");
-            Ok(None)
+            // Return the data needed for updateOperatorsForQuorum
+            let response_data =
+                serde_json::to_vec(&(update_data.operators_per_quorum, update_data.quorum_numbers))
+                    .map_err(|e| e.to_string())?;
+            Ok(Some(WasmResponse { payload: response_data, ordering: None }))
         })
     }
 }
@@ -141,9 +127,8 @@ impl Guest for Component {
 async fn perform_avs_sync(
     chain_name: String,
     registry_coordinator_address: Address,
-    stake_registry_address: Address,
     operator_state_retriever_address: Address,
-) -> Result<Option<SyncResult>> {
+) -> Result<UpdateOperatorsForQuorumData> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
 
@@ -155,171 +140,61 @@ async fn perform_avs_sync(
     let block_height = provider.get_block_number().await?;
 
     // Create the AVS reader
-    let avs_reader = AvsReader::new(
-        registry_coordinator_address,
-        stake_registry_address,
-        operator_state_retriever_address,
-        provider,
-    );
+    let avs_reader =
+        AvsReader::new(registry_coordinator_address, operator_state_retriever_address, provider);
 
     // Get the number of quorums
     let quorum_count = avs_reader.get_quorum_count().await?;
     host::log(LogLevel::Info, &format!("Found {} quorums", quorum_count));
 
-    // Start with the empty snapshot
-    let mut current_operators = HashMap::new();
-    let timestamp = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_secs();
-    let current_snapshot =
-        OperatorStakeSnapshot { block_height, timestamp, operators: current_operators.clone() };
-
     if quorum_count == 0 {
-        host::log(LogLevel::Info, "No quorums found, saving empty snapshot");
-        save_snapshot(&current_snapshot, &chain_name)?;
-        return Ok(None);
+        return Ok(UpdateOperatorsForQuorumData {
+            operators_per_quorum: Vec::new(),
+            quorum_numbers: Vec::new(),
+            total_operators: 0,
+            block_height,
+        });
     }
+
+    // Collect operators for each quorum
+    let mut operators_per_quorum = Vec::new();
+    let mut quorum_numbers = Vec::new();
+    let mut total_unique_operators = std::collections::HashSet::new();
 
     for quorum in 0..quorum_count {
         host::log(LogLevel::Debug, &format!("Processing quorum {}", quorum));
 
-        let operators = avs_reader.get_operators_in_quorum(quorum).await?;
+        let mut operators = avs_reader.get_operators_in_quorum(quorum).await?;
         host::log(
             LogLevel::Debug,
             &format!("Found {} operators in quorum {}", operators.len(), quorum),
         );
 
-        if operators.is_empty() {
-            continue;
+        // Sort in ascending order
+        operators.sort_by(|a, b| a.cmp(b));
+
+        // Add to unique operators count
+        for operator in &operators {
+            total_unique_operators.insert(*operator);
         }
 
-        let stakes = avs_reader.get_current_stakes(operators.clone(), quorum).await?;
-
-        for (operator, stake) in operators.iter().zip(stakes.iter()) {
-            current_operators.entry(*operator).or_insert_with(HashMap::new).insert(quorum, *stake);
-        }
+        // Add quorum data
+        operators_per_quorum.push(operators);
+        quorum_numbers.push(quorum);
     }
 
-    let total_operators = current_operators.len();
+    let total_operators = total_unique_operators.len();
     host::log(
         LogLevel::Info,
         &format!("Found {} unique operators across all quorums", total_operators),
     );
 
-    if total_operators == 0 {
-        host::log(LogLevel::Info, "No operators found across all quorums, saving empty snapshot");
-        save_snapshot(&current_snapshot, &chain_name)?;
-        return Ok(None);
-    }
-
-    // Load previous snapshot from filesystem
-    let previous_snapshot = load_snapshot(&chain_name);
-
-    // Determine which operators need updating
-    let operators_to_update = if let Some(prev_snapshot) = previous_snapshot {
-        determine_operators_to_update(&current_snapshot, &prev_snapshot)
-    } else {
-        // No previous snapshot - save current state and do nothing this run
-        host::log(LogLevel::Info, "No previous snapshot found, saving current state for next run");
-
-        save_snapshot(&current_snapshot, &chain_name)?;
-
-        return Ok(None);
-    };
-
-    save_snapshot(&current_snapshot, &chain_name)?;
-
-    Ok(Some(SyncResult { operators_to_update, total_operators, quorums_processed: quorum_count }))
-}
-
-fn get_snapshot_filename(chain_name: &str) -> String {
-    format!("avs_snapshot_{}.json", chain_name)
-}
-
-fn load_snapshot(chain_name: &str) -> Option<OperatorStakeSnapshot> {
-    let snapshot_filename = get_snapshot_filename(chain_name);
-    let snapshot_path = Path::new(&snapshot_filename);
-
-    if !snapshot_path.exists() {
-        host::log(LogLevel::Info, "No previous snapshot found");
-        return None;
-    }
-
-    match fs::read_to_string(snapshot_path) {
-        Ok(data) => match serde_json::from_str(&data) {
-            Ok(snapshot) => {
-                host::log(
-                    LogLevel::Debug,
-                    &format!("Successfully loaded snapshot from {}", snapshot_filename),
-                );
-                Some(snapshot)
-            }
-            Err(e) => {
-                host::log(
-                    LogLevel::Warn,
-                    &format!("Failed to deserialize previous snapshot: {}", e),
-                );
-                None
-            }
-        },
-        Err(e) => {
-            host::log(LogLevel::Warn, &format!("Failed to read snapshot file: {}", e));
-            None
-        }
-    }
-}
-
-fn save_snapshot(snapshot: &OperatorStakeSnapshot, chain_name: &str) -> Result<()> {
-    let snapshot_filename = get_snapshot_filename(chain_name);
-    let snapshot_path = Path::new(&snapshot_filename);
-
-    let serialized = serde_json::to_string_pretty(snapshot)
-        .map_err(|e| anyhow!("Failed to serialize snapshot: {}", e))?;
-
-    fs::write(snapshot_path, serialized)
-        .map_err(|e| anyhow!("Failed to write snapshot file {}: {}", snapshot_filename, e))?;
-
-    host::log(LogLevel::Debug, &format!("Successfully saved snapshot to {}", snapshot_filename));
-
-    Ok(())
-}
-
-fn determine_operators_to_update(
-    current: &OperatorStakeSnapshot,
-    previous: &OperatorStakeSnapshot,
-) -> Vec<Address> {
-    let mut operators_to_update = Vec::new();
-
-    // Check all current operators
-    for (operator, current_stakes) in &current.operators {
-        match previous.operators.get(operator) {
-            Some(previous_stakes) => {
-                // Operator existed before, check if stakes changed
-                if current_stakes != previous_stakes {
-                    operators_to_update.push(*operator);
-                    host::log(LogLevel::Debug, &format!("Operator {} stakes changed", operator));
-                }
-            }
-            None => {
-                // New operator
-                operators_to_update.push(*operator);
-                host::log(LogLevel::Debug, &format!("New operator {} detected", operator));
-            }
-        }
-    }
-
-    // Check for operators that were removed (existed in previous but not in current)
-    for operator in previous.operators.keys() {
-        if !current.operators.contains_key(operator) {
-            operators_to_update.push(*operator);
-            host::log(LogLevel::Debug, &format!("Operator {} was removed", operator));
-        }
-    }
-
-    // Sort operators for consistent ordering (matching Go implementation)
-    operators_to_update.sort_by(|a, b| a.cmp(b));
-
-    host::log(LogLevel::Info, &format!("{} operators need updating", operators_to_update.len()));
-
-    operators_to_update
+    Ok(UpdateOperatorsForQuorumData {
+        operators_per_quorum,
+        quorum_numbers,
+        total_operators,
+        block_height,
+    })
 }
 
 export!(Component with_types_in bindings);

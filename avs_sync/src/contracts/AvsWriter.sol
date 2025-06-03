@@ -20,8 +20,11 @@ contract AvsWriter is IWavsServiceHandler {
     ) external {
         _serviceManager.validate(envelope, signatureData);
 
-        address[] memory operators = abi.decode(envelope.payload, (address[]));
+        (address[][] memory operatorsPerQuorum, bytes quorumNumbers) =
+            abi.decode(envelope.payload, (address[][], bytes));
 
-        _registryCoordinator.updateOperators(operators);
+        //TODO: how do we handle gas issues here?
+        //https://github.com/Layr-Labs/eigenlayer-middleware/blob/3fb5b61076475108bd87d4e6c7352fd60b46af1c/src/interfaces/ISlashingRegistryCoordinator.sol#L362-L363
+        _registryCoordinator.updateOperatorsForQuorum(operatorsPerQuorum, quorumNumbers);
     }
 }
