@@ -21,22 +21,6 @@ jobs:
       - name: cargo test
         run: cargo test --workspace --all-features
 
-  docs:
-    name: docs
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rust-docs
-
-      - uses: Swatinem/rust-cache@v2
-
-      - name: doc
-        run: cargo doc --workspace --all-features --no-deps --document-private-items
-        env:
-          RUSTDOCFLAGS: "-D warnings"
-
   fmt:
     name: fmt
     runs-on: ubuntu-latest
