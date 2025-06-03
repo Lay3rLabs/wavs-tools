@@ -2,7 +2,6 @@
 pragma solidity ^0.8.27;
 
 import "forge-std/Script.sol";
-import "../src/contracts/AvsReader.sol";
 import "../src/contracts/AvsWriter.sol";
 
 contract DeployAvsContracts is Script {
@@ -16,10 +15,6 @@ contract DeployAvsContracts is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
-
-        // Deploy AvsReader
-        AvsReader avsReader = new AvsReader(REGISTRY_COORDINATOR, STAKE_REGISTRY, OPERATOR_STATE_RETRIEVER);
-        console.log("AvsReader deployed at:", address(avsReader));
 
         // Deploy AvsWriter
         AvsWriter avsWriter =

@@ -1,11 +1,12 @@
+mod avs_reader;
 #[allow(warnings)]
 mod bindings;
 
 use alloy_network::Ethereum;
 use alloy_primitives::{Address, U256};
 use alloy_provider::Provider;
-use alloy_sol_macro::sol;
 use anyhow::{anyhow, Result};
+use avs_reader::AvsReader;
 use bindings::{
     export,
     wavs::worker::layer_types::{TriggerData, WasmResponse},
@@ -23,16 +24,11 @@ use crate::bindings::{
     wavs::worker::layer_types::LogLevel,
 };
 
-sol!(
-    #[allow(missing_docs)]
-    #[sol(rpc)]
-    AvsReader,
-    "../../out/AvsReader.sol/AvsReader.json"
-);
-
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ComponentInput {
-    pub reader_address: String,
+    pub registry_coordinator_address: String,
+    pub stake_registry_address: String,
+    pub operator_state_retriever_address: String,
     pub chain_name: String,
 }
 
@@ -55,29 +51,64 @@ struct Component;
 impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         // Decode the trigger event
-        let ComponentInput { reader_address, chain_name } = match action.data {
+        let ComponentInput {
+            registry_coordinator_address,
+            stake_registry_address,
+            operator_state_retriever_address,
+            chain_name,
+        } = match action.data {
             TriggerData::Cron(_) => {
-                let reader_address =
-                    host::config_var("reader_address").ok_or("reader_address not configured")?;
+                let registry_coordinator_address = host::config_var("registry_coordinator_address")
+                    .ok_or("registry_coordinator_address not configured")?;
+                let stake_registry_address = host::config_var("stake_registry_address")
+                    .ok_or("stake_registry_address not configured")?;
+                let operator_state_retriever_address =
+                    host::config_var("operator_state_retriever_address")
+                        .ok_or("operator_state_retriever_address not configured")?;
                 let chain_name =
                     host::config_var("chain_name").ok_or("chain_name not configured")?;
 
-                Ok(ComponentInput { reader_address, chain_name })
+                Ok(ComponentInput {
+                    registry_coordinator_address,
+                    stake_registry_address,
+                    operator_state_retriever_address,
+                    chain_name,
+                })
             }
             TriggerData::Raw(data) => serde_json::from_slice(&data).map_err(|e| e.to_string()),
             _ => return Err("Unsupported trigger data type".to_string()),
         }?;
 
         host::log(LogLevel::Info, &format!("Starting AVS sync for chain: {}", chain_name));
-        host::log(LogLevel::Info, &format!("Reader address: {}", reader_address));
+        host::log(
+            LogLevel::Info,
+            &format!("Registry coordinator: {}", registry_coordinator_address),
+        );
+        host::log(LogLevel::Info, &format!("Stake registry: {}", stake_registry_address));
+        host::log(
+            LogLevel::Info,
+            &format!("Operator state retriever: {}", operator_state_retriever_address),
+        );
 
         block_on(async move {
-            let reader_address = reader_address
+            let registry_coordinator_address = registry_coordinator_address
+                .parse()
+                .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
+            let stake_registry_address = stake_registry_address
+                .parse()
+                .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
+            let operator_state_retriever_address = operator_state_retriever_address
                 .parse()
                 .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
 
-            let maybe_sync_result =
-                perform_avs_sync(chain_name, reader_address).await.map_err(|e| e.to_string())?;
+            let maybe_sync_result = perform_avs_sync(
+                chain_name,
+                registry_coordinator_address,
+                stake_registry_address,
+                operator_state_retriever_address,
+            )
+            .await
+            .map_err(|e| e.to_string())?;
 
             if let Some(sync_result) = maybe_sync_result {
                 if sync_result.operators_to_update.is_empty() {
@@ -109,7 +140,9 @@ impl Guest for Component {
 
 async fn perform_avs_sync(
     chain_name: String,
-    reader_address: Address,
+    registry_coordinator_address: Address,
+    stake_registry_address: Address,
+    operator_state_retriever_address: Address,
 ) -> Result<Option<SyncResult>> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
@@ -120,10 +153,17 @@ async fn perform_avs_sync(
 
     // Get current block height
     let block_height = provider.get_block_number().await?;
-    let contract = AvsReader::AvsReaderInstance::new(reader_address, provider);
+
+    // Create the AVS reader
+    let avs_reader = AvsReader::new(
+        registry_coordinator_address,
+        stake_registry_address,
+        operator_state_retriever_address,
+        provider,
+    );
 
     // Get the number of quorums
-    let quorum_count = contract.getQuorumCount().call().await?;
+    let quorum_count = avs_reader.get_quorum_count().await?;
     host::log(LogLevel::Info, &format!("Found {} quorums", quorum_count));
 
     // Start with the empty snapshot
@@ -141,7 +181,7 @@ async fn perform_avs_sync(
     for quorum in 0..quorum_count {
         host::log(LogLevel::Debug, &format!("Processing quorum {}", quorum));
 
-        let operators = contract.getOperatorsInQuorum(quorum).call().await?;
+        let operators = avs_reader.get_operators_in_quorum(quorum).await?;
         host::log(
             LogLevel::Debug,
             &format!("Found {} operators in quorum {}", operators.len(), quorum),
@@ -151,7 +191,7 @@ async fn perform_avs_sync(
             continue;
         }
 
-        let stakes = contract.getCurrentStakes(operators.clone(), quorum).call().await?;
+        let stakes = avs_reader.get_current_stakes(operators.clone(), quorum).await?;
 
         for (operator, stake) in operators.iter().zip(stakes.iter()) {
             current_operators.entry(*operator).or_insert_with(HashMap::new).insert(quorum, *stake);
