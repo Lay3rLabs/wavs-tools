@@ -3,14 +3,14 @@ pragma solidity ^0.8.27;
 
 import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 import {IWavsServiceHandler} from "@wavs/interfaces/IWavsServiceHandler.sol";
-import {IECDSAStakeRegistry} from "@eigenlayer-middleware/src/interfaces/IECDSAStakeRegistry.sol";
+import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 
 contract AvsWriter is IWavsServiceHandler {
-    IECDSAStakeRegistry private _ecdsaStakeRegistry;
+    IRegistryCoordinator private _registryCoordinator;
     IWavsServiceManager private _serviceManager;
 
-    constructor(IWavsServiceManager serviceManager, IECDSAStakeRegistry ecdsaStakeRegistry) {
-        _ecdsaStakeRegistry = ecdsaStakeRegistry;
+    constructor(IWavsServiceManager serviceManager, IRegistryCoordinator registryCoordinator) {
+        _registryCoordinator = registryCoordinator;
         _serviceManager = serviceManager;
     }
 
@@ -22,6 +22,6 @@ contract AvsWriter is IWavsServiceHandler {
 
         address[] memory operators = abi.decode(envelope.payload, (address[]));
 
-        _ecdsaStakeRegistry.updateOperators(operators);
+        _registryCoordinator.updateOperators(operators);
     }
 }
