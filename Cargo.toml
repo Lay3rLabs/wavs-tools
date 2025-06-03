@@ -32,4 +32,5 @@ alloy-provider = { version = "0.15.10", default-features = false, features = [
     "rpc-api",
 ] }
 alloy-rpc-types = "0.15.10"
+alloy-contract = "0.15.10"
 alloy-transport-http = { version = "0.15.10", default-features = false }
