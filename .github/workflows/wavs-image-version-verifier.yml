@@ -9,21 +9,21 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-# jobs:
-#   script:
-#     runs-on: ubuntu-latest
-#     env:
-#       DEBUGGING: true
-#
-#     steps:
-#     - name: Checkout repository
-#       uses: actions/checkout@v4
-#
-#     - name: Install bash
-#       run: sudo apt-get install bash
-#
-#     - name: Make script executable
-#       run: chmod +x .github/single-wavs-image-verifier.bash
-#
-#     - name: Run script
-#       run: bash .github/single-wavs-image-verifier.bash
+jobs:
+  script:
+    runs-on: ubuntu-latest
+    env:
+      DEBUGGING: true
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Install bash
+      run: sudo apt-get install bash
+
+    - name: Make script executable
+      run: chmod +x .github/single-wavs-image-verifier.bash
+
+    - name: Run script
+      run: bash .github/single-wavs-image-verifier.bash
