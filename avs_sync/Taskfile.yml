@@ -1,1 +1,10 @@
 version: "3"
+
+tasks:
+  wasi-build:
+    cmds:
+      - |
+        echo "Building component: avs_sync"
+        cargo component build --release; cargo fmt
+        mkdir -p {{.COMPONENTS_DIR}}
+        cp target/wasm32-wasip1/release/*.wasm {{.COMPONENTS_DIR}}

@@ -11,6 +11,7 @@ vars:
   IPFS_GATEWAY: "http://localhost:8080"
   ANVIL_PORT: "8545"
   ENV_FILE: ".env"
+  COMPONENTS_DIR: "./components"
   SUDO:
     sh: |
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
