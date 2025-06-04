@@ -16,3 +16,4 @@ wavs:worker*.wasm
 .nodes
 avs_sync/src/contracts/abi/
 aggregator/
+.wavs/
