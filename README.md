@@ -1,15 +1,16 @@
 # WAVS Tools
 
-This repository is a monorepo for AVS services and tools.
+This repository is a monorepo for WAVS components and tools that can be used by projects to build various services, including AVS implementations.
 
 ## Directory Layout
 
-- **components/**: individual AVS services and tools  
-- **crates/**: shared Rust libraries  
-- **contracts/**: Solidity contracts, interfaces, and tests  
-- **docs/**: repository-wide and per-service documentation  
+- **avs_sync/**: AVS synchronization service example with contracts and WASI components
 - **deployment/**: Docker Compose setups and testnet scripts  
+- **docs/**: repository-wide documentation  
+- **lib/**: external library dependencies
 - **scripts/**: repo-wide utilities (setup, upgrade, etc.)  
+- **tools/**: development and build tools
+- **wit/**: WebAssembly Interface Type definitions
 - **Makefile**: top-level build, test, and docker commands  
 - **wavs.toml**: WAVS configuration  
 

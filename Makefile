@@ -25,11 +25,11 @@ ENV_FILE?=.env
 default: build
 
 ## build: building the project
-build: _build_forge wasi-build
+build: _build_forge build-abi wasi-build
 
-## wasi-build: building WAVS wasi components | WASI_BUILD_DIR
+## wasi-build: building WAVS wasi components
 wasi-build:
-	@./script/build_components.sh $(WASI_BUILD_DIR)
+	@cargo component build
 
 ## wasi-exec: executing the WAVS wasi component(s) | COMPONENT_FILENAME, COIN_MARKET_CAP_ID
 wasi-exec: pull-image
@@ -62,6 +62,7 @@ test:
 setup: check-requirements
 	@forge install
 	@npm install
+	@git submodule update --init --recursive
 
 ## start-all: starting anvil and WAVS with docker compose
 start-all: clean-docker setup-env
@@ -139,6 +140,15 @@ help: Makefile
 # helpers
 _build_forge:
 	@forge build
+
+## build-abi: build and copy specific ABI files from eigenlayer-middleware
+build-abi:
+	@echo "Building AVS Sync specific ABI files from eigenlayer-middleware..."
+	@cd lib/eigenlayer-middleware && forge build src/interfaces/ISlashingRegistryCoordinator.sol src/OperatorStateRetriever.sol
+	@mkdir -p avs_sync/src/contracts/abi
+	@cp -r lib/eigenlayer-middleware/out/ISlashingRegistryCoordinator.sol avs_sync/src/contracts/abi/
+	@cp -r lib/eigenlayer-middleware/out/OperatorStateRetriever.sol avs_sync/src/contracts/abi/
+	@echo "AVS Sync ABI files copied successfully"
 
 .PHONY: setup-env
 setup-env:
