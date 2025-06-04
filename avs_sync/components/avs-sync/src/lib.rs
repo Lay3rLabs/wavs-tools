@@ -171,7 +171,7 @@ async fn perform_avs_sync(
         );
 
         // Sort in ascending order
-        operators.sort_by(|a, b| a.cmp(b));
+        operators.sort();
 
         // Add to unique operators count
         for operator in &operators {
