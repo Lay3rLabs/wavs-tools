@@ -29,12 +29,8 @@ alloy-contract = { workspace = true }
 
 wit-bindgen-rt = { workspace = true }
 
-primitive-types = "0.13.1"
-
-hex = "0.4.3"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-url = "2.3.1"
 
 wit-bindgen = { workspace = true }
