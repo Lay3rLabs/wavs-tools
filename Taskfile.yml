@@ -1,0 +1,79 @@
+version: "3"
+
+vars:
+  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
+  ANVIL_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
+  IPFS_DOCKER_IMAGE: "ipfs/kubo:v0.34.1"
+  IPFS_CONTAINER_NAME: "ipfs"
+  AGGREGATOR_CONTAINER_NAME: "wavs-aggregator"
+  ANVIL_CONTAINER_NAME: "anvil"
+  IPFS_GATEWAY: "http://localhost:8080"
+  ANVIL_PORT: "8545"
+  ENV_FILE: ".env"
+  SUDO:
+    sh: |
+      if groups | grep -q docker; then echo ""; else echo "sudo"; fi
+  WAVS_CMD:
+    sh: |
+      ENV_FLAG=""
+      if test -f {{.ENV_FILE}}; then
+        ENV_FLAG="--env-file ./{{.ENV_FILE}}"
+      fi
+      echo "{{.SUDO}} docker run --rm --network host $ENV_FLAG -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} wavs-cli"
+
+includes:
+  service: ./avs_sync/Taskfile.yml
+
+tasks:
+  run-anvil:
+    desc: Start anvil with fork
+    cmds:
+      - task: stop-anvil # Clean up previous container
+      - |
+        docker run -d \
+          --name {{.ANVIL_CONTAINER_NAME}} \
+          -p {{.ANVIL_PORT}}:{{.ANVIL_PORT}} \
+          {{.ANVIL_DOCKER_IMAGE}} \
+          anvil --port {{.ANVIL_PORT}}
+  run-aggregator:
+    desc: Run WAVS Aggregator in Docker
+    cmds:
+      - task: stop-aggregator # Clean up previous container
+      - |
+        docker run -d \
+          --name wavs-aggregator \
+          --network host \
+          --stop-signal SIGKILL \
+          --env-file {{.ENV_FILE}} \
+          --user 1000:1000 \
+          -v $(pwd):/wavs \
+          {{.WAVS_DOCKER_IMAGE}} wavs-aggregator \
+          --log-level debug \
+          --host 0.0.0.0 \
+          --port 8001 \
+          --ipfs-gateway {{.IPFS_GATEWAY}}
+  run-ipfs:
+    desc: Run IPFS Kubo node with host networking
+    cmds:
+      - task: stop-ipfs # Clean up previous container
+      - |
+        docker run -d \
+          --name ipfs \
+          --network host \
+          --stop-signal SIGKILL \
+          --restart unless-stopped \
+          -p 4001:4001 \
+          -p 4001:4001/udp \
+          -p 8080:8080 \
+          -p 5001:5001 \
+          {{.IPFS_DOCKER_IMAGE}} daemon
+  stop-aggregator:
+    cmds:
+      - docker rm -f {{.AGGREGATOR_CONTAINER_NAME}} || true
+  stop-ipfs:
+    cmds:
+      - docker rm -f {{.IPFS_CONTAINER_NAME}} || true
+  stop-anvil:
+    desc: Stop and remove the Anvil container
+    cmds:
+      - docker rm -f {{.ANVIL_CONTAINER_NAME}} || true
