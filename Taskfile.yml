@@ -2,6 +2,7 @@ version: "3"
 
 vars:
   COMPONENTS_DIR: "./components"
+  RPC_URL: "127.0.0.1:8545"
   SUDO:
     sh: |
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
