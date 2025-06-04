@@ -6,76 +6,15 @@ use anyhow::Result;
 
 // Define the EigenLayer interface contracts
 sol!(
-    #[allow(missing_docs)]
     #[sol(rpc)]
     ISlashingRegistryCoordinator,
-    r#"[
-        {
-            "inputs": [],
-            "name": "quorumCount",
-            "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [{"internalType": "address", "name": "operator", "type": "address"}],
-            "name": "getOperatorStatus", 
-            "outputs": [{"internalType": "uint8", "name": "", "type": "uint8"}],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [{"internalType": "address", "name": "operator", "type": "address"}],
-            "name": "getOperatorId",
-            "outputs": [{"internalType": "bytes32", "name": "", "type": "bytes32"}],
-            "stateMutability": "view",
-            "type": "function"
-        },
-        {
-            "inputs": [{"internalType": "bytes32", "name": "operatorId", "type": "bytes32"}],
-            "name": "getCurrentQuorumBitmap",
-            "outputs": [{"internalType": "uint256", "name": "", "type": "uint256"}],
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ]"#
+    "../../out/ISlashingRegistryCoordinator.sol/ISlashingRegistryCoordinator.json"
 );
 
 sol!(
-    #[allow(missing_docs)]
     #[sol(rpc)]
     OperatorStateRetriever,
-    r#"[
-        {
-            "inputs": [
-                {"internalType": "contract IRegistryCoordinator", "name": "registryCoordinator", "type": "address"},
-                {"internalType": "bytes", "name": "quorumNumbers", "type": "bytes"},
-                {"internalType": "uint32", "name": "blockNumber", "type": "uint32"}
-            ],
-            "name": "getOperatorState",
-            "outputs": [
-                {
-                    "components": [
-                        {
-                            "components": [
-                                {"internalType": "address", "name": "operator", "type": "address"},
-                                {"internalType": "bytes32", "name": "operatorId", "type": "bytes32"},
-                                {"internalType": "uint96", "name": "stake", "type": "uint96"}
-                            ],
-                            "internalType": "struct IOperatorStateRetriever.Operator[]",
-                            "name": "operators",
-                            "type": "tuple[]"
-                        }
-                    ],
-                    "internalType": "struct IOperatorStateRetriever.OperatorStateInfo[]",
-                    "name": "",
-                    "type": "tuple[]"
-                }
-            ],
-            "stateMutability": "view",
-            "type": "function"
-        }
-    ]"#
+    "../../out/OperatorStateRetriever.sol/OperatorStateRetriever.json"
 );
 
 pub struct AvsReader<P> {
@@ -124,18 +63,18 @@ where
         // Call the operator state retriever
         let result = self
             .operator_state_retriever
-            .getOperatorState(*self.registry_coordinator.address(), quorum_bytes, block_number)
+            .getOperatorState_0(*self.registry_coordinator.address(), quorum_bytes, block_number)
             .call()
             .await?;
 
         // Extract operator addresses from the result
         let mut operator_addresses = Vec::new();
-        for quorum_info in result {
-            let mut quorum_operators = Vec::new();
-            for operator in quorum_info.operators {
-                quorum_operators.push(operator.operator);
+        for quorum_operators in result {
+            let mut operators_in_quorum = Vec::new();
+            for operator in quorum_operators {
+                operators_in_quorum.push(operator.operator);
             }
-            operator_addresses.push(quorum_operators);
+            operator_addresses.push(operators_in_quorum);
         }
 
         Ok(operator_addresses)
