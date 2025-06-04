@@ -3,6 +3,7 @@ version: "3"
 vars:
   COMPONENTS_DIR: "./components"
   RPC_URL: "127.0.0.1:8545"
+  MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
   SUDO:
     sh: |
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
@@ -33,3 +34,14 @@ tasks:
     cmds:
       - task: down
       - task: up
+
+  wavs-middleware:
+    desc: Run any wavs middleware command
+    cmds:
+      - |
+        docker run --rm --network host \
+          --env-file .env \
+          {{if .WAVS_SERVICE_MANAGER_ADDRESS}}-e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}{{end}} \
+          {{if .PAST_BLOCKS}}-e PAST_BLOCKS={{.PAST_BLOCKS}}{{end}} \
+          -v ./.nodes:/root/.nodes \
+          {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
