@@ -11,7 +11,7 @@ tasks:
   deploy:
     cmds:
       - |
-        task up
+        task restart
         ./script/create-deployer.sh
         task wavs-middleware -- deploy
         cd avs_sync
