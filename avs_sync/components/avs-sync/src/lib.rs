@@ -4,7 +4,6 @@ mod bindings;
 
 use alloy_network::Ethereum;
 use alloy_primitives::Address;
-use alloy_provider::Provider;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
 use bindings::{
@@ -18,7 +17,7 @@ use wstd::runtime::block_on;
 
 use crate::bindings::{
     host::{self, get_evm_chain_config},
-    wavs::worker::layer_types::LogLevel,
+    wavs::worker::layer_types::{BlockIntervalData, LogLevel},
 };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -26,6 +25,7 @@ pub struct ComponentInput {
     pub registry_coordinator_address: String,
     pub operator_state_retriever_address: String,
     pub chain_name: String,
+    pub block_height: u64,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -45,20 +45,20 @@ impl Guest for Component {
             registry_coordinator_address,
             operator_state_retriever_address,
             chain_name,
+            block_height,
         } = match action.data {
-            TriggerData::Cron(_) => {
+            TriggerData::BlockInterval(BlockIntervalData { block_height, chain_name }) => {
                 let registry_coordinator_address = host::config_var("registry_coordinator_address")
                     .ok_or("registry_coordinator_address not configured")?;
                 let operator_state_retriever_address =
                     host::config_var("operator_state_retriever_address")
                         .ok_or("operator_state_retriever_address not configured")?;
-                let chain_name =
-                    host::config_var("chain_name").ok_or("chain_name not configured")?;
 
                 Ok(ComponentInput {
                     registry_coordinator_address,
                     operator_state_retriever_address,
                     chain_name,
+                    block_height,
                 })
             }
             TriggerData::Raw(data) => serde_json::from_slice(&data).map_err(|e| e.to_string()),
@@ -85,6 +85,7 @@ impl Guest for Component {
 
             let update_data = perform_avs_sync(
                 chain_name,
+                block_height,
                 registry_coordinator_address,
                 operator_state_retriever_address,
             )
@@ -126,6 +127,7 @@ impl Guest for Component {
 
 async fn perform_avs_sync(
     chain_name: String,
+    block_height: u64,
     registry_coordinator_address: Address,
     operator_state_retriever_address: Address,
 ) -> Result<UpdateOperatorsForQuorumData> {
@@ -135,9 +137,6 @@ async fn perform_avs_sync(
     let provider = new_evm_provider::<Ethereum>(
         chain_config.http_endpoint.ok_or(anyhow!("No HTTP endpoint configured"))?,
     );
-
-    // Get current block height
-    let block_height = provider.get_block_number().await?;
 
     // Create the AVS reader
     let avs_reader =
@@ -164,7 +163,8 @@ async fn perform_avs_sync(
     for quorum in 0..quorum_count {
         host::log(LogLevel::Debug, &format!("Processing quorum {}", quorum));
 
-        let mut operators = avs_reader.get_operators_in_quorum(quorum).await?;
+        let mut operators =
+            avs_reader.get_operators_in_quorum(quorum, block_height.try_into()?).await?;
         host::log(
             LogLevel::Debug,
             &format!("Found {} operators in quorum {}", operators.len(), quorum),

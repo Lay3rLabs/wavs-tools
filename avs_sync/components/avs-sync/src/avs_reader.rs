@@ -55,10 +55,10 @@ where
     pub async fn get_operator_addrs_in_quorums_at_current_block(
         &self,
         quorum_numbers: Vec<u8>,
+        block_number: u32,
     ) -> Result<Vec<Vec<Address>>> {
         // Convert Vec<u8> to bytes
         let quorum_bytes = quorum_numbers.into();
-        let block_number = self.registry_coordinator.provider().get_block_number().await? as u32;
 
         // Call the operator state retriever
         let result = self
@@ -81,9 +81,15 @@ where
     }
 
     /// Gets all operators in a given quorum
-    pub async fn get_operators_in_quorum(&self, quorum_number: u8) -> Result<Vec<Address>> {
+    pub async fn get_operators_in_quorum(
+        &self,
+        quorum_number: u8,
+        block_number: u32,
+    ) -> Result<Vec<Address>> {
         let quorum_numbers = vec![quorum_number];
-        let operators = self.get_operator_addrs_in_quorums_at_current_block(quorum_numbers).await?;
+        let operators = self
+            .get_operator_addrs_in_quorums_at_current_block(quorum_numbers, block_number)
+            .await?;
 
         if operators.is_empty() {
             Ok(Vec::new())
