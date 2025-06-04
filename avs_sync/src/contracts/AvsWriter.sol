@@ -20,7 +20,7 @@ contract AvsWriter is IWavsServiceHandler {
     ) external {
         _serviceManager.validate(envelope, signatureData);
 
-        (address[][] memory operatorsPerQuorum, bytes quorumNumbers) =
+        (address[][] memory operatorsPerQuorum, bytes memory quorumNumbers) =
             abi.decode(envelope.payload, (address[][], bytes));
 
         //TODO: how do we handle gas issues here?
