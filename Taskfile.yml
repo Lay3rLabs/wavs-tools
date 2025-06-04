@@ -26,7 +26,7 @@ includes:
   avs_sync: ./avs_sync/Taskfile.yml
 
 tasks:
-  run-anvil:
+  run:anvil:
     desc: Start anvil with fork
     cmds:
       - task: stop-anvil
@@ -36,7 +36,7 @@ tasks:
           -p {{.ANVIL_PORT}}:{{.ANVIL_PORT}} \
           {{.ANVIL_DOCKER_IMAGE}} \
           anvil --port {{.ANVIL_PORT}}
-  run-aggregator:
+  run:aggregator:
     desc: Run WAVS Aggregator in Docker
     cmds:
       - task: stop-aggregator
@@ -53,7 +53,7 @@ tasks:
           --host 0.0.0.0 \
           --port 8001 \
           --ipfs-gateway {{.IPFS_GATEWAY}}
-  run-ipfs:
+  run:ipfs:
     desc: Run IPFS Kubo node with host networking
     cmds:
       - task: stop-ipfs
@@ -68,7 +68,7 @@ tasks:
           -p 8080:8080 \
           -p 5001:5001 \
           {{.IPFS_DOCKER_IMAGE}} daemon
-  run-wavs:
+  run:wavs:
     desc: Run WAVS instance in Docker
     cmds:
       - task: stop-wavs
@@ -84,16 +84,16 @@ tasks:
           --ipfs-gateway {{.IPFS_GATEWAY}} \
           --host 0.0.0.0 \
           --log-level info
-  stop-aggregator:
+  stop:aggregator:
     cmds:
       - docker rm -f {{.AGGREGATOR_CONTAINER_NAME}} || true
-  stop-ipfs:
+  stop:ipfs:
     cmds:
       - docker rm -f {{.IPFS_CONTAINER_NAME}} || true
-  stop-anvil:
+  stop:anvil:
     desc: Stop and remove the Anvil container
     cmds:
       - docker rm -f {{.ANVIL_CONTAINER_NAME}} || true
-  stop-wavs:
+  stop:wavs:
     cmds:
       - docker rm -f {{.WAVS_CONTAINER_NAME}} || true
