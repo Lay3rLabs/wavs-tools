@@ -18,7 +18,7 @@ contract DeployAvsContracts is Script {
 
         // Deploy AvsWriter
         AvsWriter avsWriter =
-            new AvsWriter(IWavsServiceManager(SERVICE_MANAGER), IECDSAStakeRegistry(ECDSA_STAKE_REGISTRY));
+            new AvsWriter(IWavsServiceManager(SERVICE_MANAGER), IRegistryCoordinator(REGISTRY_COORDINATOR));
         console.log("AvsWriter deployed at:", address(avsWriter));
 
         vm.stopBroadcast();
