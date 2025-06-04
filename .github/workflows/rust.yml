@@ -4,8 +4,8 @@ on:
   pull_request:
 
 jobs:
-  tests-stable:
-    name: Tests (Stable)
+  test:
+    name: Test Suite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout sources
@@ -18,30 +18,37 @@ jobs:
         with:
           cache-on-failure: true
 
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build ABI files
+        run: make build-abi
+
       - name: cargo test
         run: cargo test --workspace --all-features
 
-  fmt:
-    name: fmt
+  lints:
+    name: Lints
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: rustfmt
-      - name: fmt --check
+          components: rustfmt, clippy
+          
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+
+      - name: Build ABI files
+        run: make build-abi
+
+      - name: Run cargo fmt
         run: cargo fmt --all --check
 
-  clippy:
-    name: clippy
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy
-      - uses: Swatinem/rust-cache@v2
-      - name: clippy
-        run: cargo clippy --workspace --tests --all-features
+      - name: Run cargo clippy
+        run: cargo clippy --workspace --all-targets --all-features
         env:
           RUSTFLAGS: "-D warnings"
