@@ -22,7 +22,7 @@ vars:
       echo "{{.SUDO}} docker run --rm --network host $ENV_FLAG -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} wavs-cli"
 
 includes:
-  service: ./avs_sync/Taskfile.yml
+  avs_sync: ./avs_sync/Taskfile.yml
 
 tasks:
   run-anvil:
