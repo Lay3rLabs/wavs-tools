@@ -8,13 +8,13 @@ use anyhow::Result;
 sol!(
     #[sol(rpc)]
     ISlashingRegistryCoordinator,
-    "../../out/ISlashingRegistryCoordinator.sol/ISlashingRegistryCoordinator.json"
+    "../../src/contracts/abi/ISlashingRegistryCoordinator.sol/ISlashingRegistryCoordinator.json"
 );
 
 sol!(
     #[sol(rpc)]
     OperatorStateRetriever,
-    "../../out/OperatorStateRetriever.sol/OperatorStateRetriever.json"
+    "../../src/contracts/abi/OperatorStateRetriever.sol/OperatorStateRetriever.json"
 );
 
 pub struct AvsReader<P> {
