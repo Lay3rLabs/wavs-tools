@@ -20,12 +20,6 @@ contract DeployAvsContracts is Script {
         console.log("Service Manager:", serviceManager);
         console.log("Deployer:", vm.addr(deployerPrivateKey));
 
-        // Validate addresses
-        require(registryCoordinator != address(0), "REGISTRY_COORDINATOR cannot be zero address");
-        require(serviceManager != address(0), "SERVICE_MANAGER cannot be zero address");
-        require(registryCoordinator.code.length > 0, "REGISTRY_COORDINATOR is not a contract");
-        require(serviceManager.code.length > 0, "SERVICE_MANAGER is not a contract");
-
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy AvsWriter
@@ -34,7 +28,5 @@ contract DeployAvsContracts is Script {
 
         console.log("AvsWriter deployed at:", address(avsWriter));
         vm.stopBroadcast();
-
-        console.log("=== Deployment Complete ===");
     }
 }
