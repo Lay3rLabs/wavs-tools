@@ -24,7 +24,9 @@ jobs:
         working-directory: tests
 
       - name: Run tests and generate report
-        run: npm run test:report
+        id: tests
+        run: |
+          npm run test:report || echo "TESTS_FAILED=true" >> $GITHUB_ENV
         working-directory: tests
         continue-on-error: true
 
@@ -35,3 +37,7 @@ jobs:
           script: |
             const { commentTestResults } = require('./.github/scripts/comment-test-results.js');
             await commentTestResults({ github, context });
+
+      - name: Fail job if tests failed
+        if: env.TESTS_FAILED == 'true'
+        run: exit 1
