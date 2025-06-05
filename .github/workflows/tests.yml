@@ -28,28 +28,6 @@ jobs:
         working-directory: tests
         continue-on-error: true
 
-      - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: tests/.test-reports/
-
-      - name: Debug test reports
-        if: always()
-        run: |
-          echo "Listing test reports directory:"
-          ls -la tests/.test-reports/ || echo "Test reports directory not found"
-          echo "Checking if merged report exists:"
-          if [ -f "tests/.test-reports/merged-report.json" ]; then
-            echo "✅ Merged report found"
-            echo "File size: $(wc -c < tests/.test-reports/merged-report.json) bytes"
-          else
-            echo "❌ Merged report not found"
-            echo "Available files in tests/.test-reports/:"
-            find tests/.test-reports/ -type f 2>/dev/null || echo "No files found"
-          fi
-
       - name: Comment PR with test results
         uses: actions/github-script@v7
         if: github.event_name == 'pull_request' && always()
