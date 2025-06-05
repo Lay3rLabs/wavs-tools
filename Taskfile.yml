@@ -16,6 +16,8 @@ tasks:
   up:
     desc: Start all services with Docker Compose
     cmds:
+      - task clean-docker
+      - task setup-env
       - docker compose up -d
 
   down:
@@ -28,6 +30,18 @@ tasks:
     deps: [down]
     cmds:
       - task: up
+
+  clean-docker:
+    desc: "Remove unused docker containers"
+    cmds:
+      - |
+        {{.DOCKER_SUDO}} docker rm -v $(shell {{.DOCKER_SUDO}} docker ps -a --filter status=exited -q) > /dev/null 2>&1 || true
+
+  setup-env:
+    desc: "Create the .env file from .env.example if not yet created"
+    cmds:
+      - |
+        [ -f .env ] || cp .env.example .env
 
   wavs-middleware:
     desc: Run any wavs middleware command
