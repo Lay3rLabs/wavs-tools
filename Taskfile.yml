@@ -3,17 +3,11 @@ version: "3"
 vars:
   COMPONENTS_DIR: "./components"
   RPC_URL: "127.0.0.1:8545"
+  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
-  SUDO:
+  DOCKER_SUDO:
     sh: |
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
-  WAVS_CMD:
-    sh: |
-      ENV_FLAG=""
-      if test -f {{.ENV_FILE}}; then
-        ENV_FLAG="--env-file ./{{.ENV_FILE}}"
-      fi
-      echo "{{.SUDO}} docker run --rm --network host $ENV_FLAG -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} wavs-cli"
 
 includes:
   avs_sync: ./avs_sync/Taskfile.yml
@@ -31,17 +25,25 @@ tasks:
 
   restart:
     desc: Restart all services
+    deps: [down]
     cmds:
-      - task: down
       - task: up
 
   wavs-middleware:
     desc: Run any wavs middleware command
     cmds:
-      - |
-        docker run --rm --network host \
-          --env-file .env \
-          {{if .WAVS_SERVICE_MANAGER_ADDRESS}}-e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}{{end}} \
-          {{if .PAST_BLOCKS}}-e PAST_BLOCKS={{.PAST_BLOCKS}}{{end}} \
-          -v ./.nodes:/root/.nodes \
-          {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file .env
+        {{if .WAVS_SERVICE_MANAGER_ADDRESS}}-e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}{{end}}
+        {{if .PAST_BLOCKS}}-e PAST_BLOCKS={{.PAST_BLOCKS}}{{end}}
+        -v ./.nodes:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
+
+  wavs-cli:
+    desc: Run any wavs cli command
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file .env -v {{.PWD}}:/data {{.WAVS_DOCKER_IMAGE}}
+        wavs-cli {{.CLI_ARGS}}
