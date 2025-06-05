@@ -106,3 +106,14 @@ forge build
 # Run the solidity tests
 forge test
 ```
+
+# Running tests
+
+For now:
+
+1. `cd tests`
+2. `npm install`
+3. `npm run test:report:open`
+
+TODO: `task setup should install all required packages`
+TODO: `task test` etc.

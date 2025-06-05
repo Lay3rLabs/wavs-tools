@@ -1,0 +1,58 @@
+name: Tests
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        name: Install Node.js
+        with:
+          node-version: 21
+
+      - name: Install test dependencies
+        run: npm ci
+        working-directory: tests
+
+      - name: Run tests and generate report
+        id: tests
+        run: npm run test:report
+        working-directory: tests
+        continue-on-error: true
+
+      - name: Comment PR with test results
+        uses: actions/github-script@v7
+        if: github.event_name == 'pull_request' && always()
+        with:
+          script: |
+            const { commentTestResults } = require('./.github/scripts/comment-test-results.js');
+            await commentTestResults({ github, context });
+
+      - name: Check test results and fail if needed
+        if: always()
+        run: |
+          if [ -f tests/.test-reports/merged-report.json ]; then
+            failures=$(node -e "
+              const fs = require('fs');
+              const report = JSON.parse(fs.readFileSync('tests/.test-reports/merged-report.json', 'utf8'));
+              console.log(report.stats.failures || 0);
+            ")
+            if [ "$failures" -gt "0" ]; then
+              echo "Tests failed: $failures failure(s) found"
+              exit 1
+            else
+              echo "All tests passed"
+            fi
+          else
+            echo "Test report not found, assuming failure"
+            exit 1
+          fi

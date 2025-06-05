@@ -18,3 +18,4 @@ avs_sync/src/contracts/abi/
 aggregator/
 .wavs/
 components/
+tests/.test-reports
