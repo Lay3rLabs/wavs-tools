@@ -12,8 +12,8 @@ contract DeployAvsContracts is Script {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
 
         // Get addresses from environment variables
+        address serviceManager = vm.envAddress("WAVS_SERVICE_MANAGER_ADDRESS");
         address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR");
-        address serviceManager = vm.envAddress("SERVICE_MANAGER");
 
         console.log("=== Deploying AVS Contracts ===");
         console.log("Registry Coordinator:", registryCoordinator);

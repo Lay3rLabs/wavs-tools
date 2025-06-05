@@ -23,6 +23,7 @@ tasks:
     cmds:
       - source ./script/create-deployer.sh
       - task wavs-middleware -- deploy
+      - source ./script/get-service-manager.sh
 
   clean-docker:
     desc: "Remove unused docker containers"
