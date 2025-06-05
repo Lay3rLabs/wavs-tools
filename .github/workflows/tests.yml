@@ -25,8 +25,7 @@ jobs:
 
       - name: Run tests and generate report
         id: tests
-        run: |
-          npm run test:report || echo "TESTS_FAILED=true" >> $GITHUB_ENV
+        run: npm run test:report
         working-directory: tests
         continue-on-error: true
 
@@ -38,6 +37,22 @@ jobs:
             const { commentTestResults } = require('./.github/scripts/comment-test-results.js');
             await commentTestResults({ github, context });
 
-      - name: Fail job if tests failed
-        if: env.TESTS_FAILED == 'true'
-        run: exit 1
+      - name: Check test results and fail if needed
+        if: always()
+        run: |
+          if [ -f tests/.test-reports/merged-report.json ]; then
+            failures=$(node -e "
+              const fs = require('fs');
+              const report = JSON.parse(fs.readFileSync('tests/.test-reports/merged-report.json', 'utf8'));
+              console.log(report.stats.failures || 0);
+            ")
+            if [ "$failures" -gt "0" ]; then
+              echo "Tests failed: $failures failure(s) found"
+              exit 1
+            else
+              echo "All tests passed"
+            fi
+          else
+            echo "Test report not found, assuming failure"
+            exit 1
+          fi
