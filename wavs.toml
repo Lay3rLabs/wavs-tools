@@ -21,11 +21,9 @@
 log_level = ["info", "wavs=debug"]
 
 # Those configs are global and shared between wavs and aggregator
-jaeger = "http://localhost:4317"
-prometheus = "http://localhost:9090"
+# jaeger = "http://localhost:4317"
+# prometheus = "http://localhost:9090"
 
-# The IPFS gateway URL used to access IPFS content over HTTP.
-# ipfs_gateway = "https://ipfs.io/ipfs/"
 
 # ----------------------------
 # Chain configurations
@@ -97,8 +95,9 @@ gas_denom = "untrn"
 # WAVS specific settings
 # ----------------------------
 [wavs]
-# Registry domain
-registry_domain = "wa.dev"
+
+# The directory to store the data. Default is "/var/wavs"
+data = "~/wavs"
 
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",
@@ -111,12 +110,6 @@ cors_allowed_origins = [
 
 # The host to serve on. Default is localhost
 # host = "localhost"
-
-# The directory to store the data. Default is "/var/wavs"
-data = "~/wavs"
-
-# Active chain names to watch for triggers
-active_trigger_chains = ["local"]
 
 # WAVS-specific chain overrides (if needed)
 # Example:
@@ -134,25 +127,12 @@ data = "~/wavs/cli"
 
 # wavs_endpoint = "http://localhost:8000"
 
-# CLI-specific chain overrides
-[cli.chains.evm.local]
-aggregator_endpoint = "http://localhost:8001"
-
-[cli.chains.evm.local2]
-aggregator_endpoint = "http://localhost:8001"
-
-[cli.chains.evm.sepolia]
-aggregator_endpoint = "http://localhost:8001"
-
-[cli.chains.evm.holesky]
-aggregator_endpoint = "http://localhost:8001"
-
 # ----------------------------
 # Aggregator specific settings
 # ----------------------------
 [aggregator]
 # The directory to store the data. Default is "/var/wavs-aggregator"
-data = "~/wavs/aggregator"
+data = "~/wavs"
 
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",
