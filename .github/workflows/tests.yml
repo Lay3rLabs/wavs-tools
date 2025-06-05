@@ -42,8 +42,11 @@ jobs:
             const fs = require('fs');
             const path = require('path');
             
+            // Change to tests directory to match other steps
+            process.chdir('tests');
+            
             try {
-              const reportPath = 'tests/.test-reports/merged-report.json';
+              const reportPath = '.test-reports/merged-report.json';
               const report = JSON.parse(fs.readFileSync(reportPath, 'utf8'));
               
               const stats = report.stats;
