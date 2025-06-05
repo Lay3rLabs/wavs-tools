@@ -4,8 +4,6 @@ dotenv: [".env"]
 
 vars:
   COMPONENTS_DIR: "./compiled"
-  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
-  MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
   DOCKER_SUDO:
     sh: |
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
@@ -41,6 +39,8 @@ tasks:
 
   wavs-middleware:
     desc: Run any wavs middleware command
+    vars:
+      MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
     cmds:
       - |
         {{.DOCKER_SUDO}} docker run --rm --network host --env-file .env \
@@ -53,8 +53,10 @@ tasks:
 
   wavs-cli:
     desc: Run any wavs cli command
+    vars:
+      WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
-        --env-file .env -v {{.PWD}}:/data {{.WAVS_DOCKER_IMAGE}}
+        --env-file .env -w /data -v {{.PWD}}:/data {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
