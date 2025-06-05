@@ -46,13 +46,14 @@ tasks:
   wavs-middleware:
     desc: Run any wavs middleware command
     cmds:
-      - >
-        {{.DOCKER_SUDO}} docker run --rm --network host
-        --env-file .env
-        {{if .WAVS_SERVICE_MANAGER_ADDRESS}}-e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}{{end}}
-        {{if .PAST_BLOCKS}}-e PAST_BLOCKS={{.PAST_BLOCKS}}{{end}}
-        -v ./.nodes:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
+      - |
+        {{.DOCKER_SUDO}} docker run --rm --network host --env-file .env \
+        $(if [ -n "${WAVS_SERVICE_MANAGER_ADDRESS}" ]; then echo "-e WAVS_SERVICE_MANAGER_ADDRESS=${WAVS_SERVICE_MANAGER_ADDRESS}"; fi) \
+        $(if [ -n "${PAST_BLOCKS}" ]; then echo "-e PAST_BLOCKS=${PAST_BLOCKS}"; fi) \
+        -v ./.nodes:/root/.nodes {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
+    env:
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{env "WAVS_SERVICE_MANAGER_ADDRESS"}}'
+      PAST_BLOCKS: '{{default "500" (env "PAST_BLOCKS")}}'
 
   wavs-cli:
     desc: Run any wavs cli command

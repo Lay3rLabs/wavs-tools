@@ -1,55 +1,42 @@
 services:
+  wavs:
+    image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
+    container_name: "wavs"
+    stop_signal: SIGKILL
+    network_mode: "host"
+    env_file: "./.env"
+    ports:
+      - "8000:8000"
+    environment:
+      WAVS_HOME: "/wavs/packages/wavs"
+      WAVS_CLI_HOME: "/wavs/packages/cli"
+      WAVS_AGGREGATOR_HOME: "/wavs/packages/aggregator"
+    command: ["wavs"]
+    volumes:
+      - "./:/wavs"
+      - "./.docker:/root/wavs/cli/"
+
+  aggregator:
+    image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
+    depends_on: ["wavs"]
+    container_name: "wavs-aggregator"
+    stop_signal: SIGKILL
+    env_file: "./.env"
+    ports:
+      - "8001:8001"
+    command: ["wavs-aggregator"]
+    volumes:
+      - ".:/wavs"
+    network_mode: "host"
+
   ipfs:
-    image: ipfs/kubo:v0.34.1
-    container_name: ipfs
-    network_mode: host
-    restart: unless-stopped
+    image: "ipfs/kubo:v0.34.1"
+    container_name: "ipfs"
+    stop_signal: SIGKILL
+    network_mode: "host"
     ports:
       - "4001:4001"
       - "4001:4001/udp"
       - "8080:8080"
       - "5001:5001"
-    command: daemon
-    stop_signal: SIGKILL
-
-  anvil:
-    image: ghcr.io/foundry-rs/foundry:latest
-    container_name: anvil
-    network_mode: host
-    ports:
-      - "8545:8545"
-    command: anvil --port 8545
-
-  wavs:
-    image: ghcr.io/lay3rlabs/wavs:0.4.0-rc
-    container_name: wavs
-    network_mode: host
-    volumes:
-      - ./.wavs:/root/wavs
-    env_file:
-      - .env
-    command: >
-      wavs
-      --home /root/wavs
-      --ipfs-gateway http://localhost:8080
-      --host 0.0.0.0
-      --log-level info
-    restart: unless-stopped
-
-  wavs-aggregator:
-    image: ghcr.io/lay3rlabs/wavs:0.4.0-rc
-    container_name: wavs-aggregator
-    network_mode: host
-    user: "1000:1000"
-    volumes:
-      - .:/wavs
-    env_file:
-      - .env
-    command: >
-      wavs-aggregator
-      --log-level debug
-      --host 0.0.0.0
-      --port 8001
-      --ipfs-gateway http://localhost:8080
-    stop_signal: SIGKILL
-    restart: unless-stopped
+    command: ["daemon", "--offline"]
