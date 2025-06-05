@@ -9,7 +9,7 @@ import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 
 contract DeployAvsContracts is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
 
         // Get addresses from environment variables
         address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR");
