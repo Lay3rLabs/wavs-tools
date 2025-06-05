@@ -17,5 +17,5 @@ wavs:worker*.wasm
 avs_sync/src/contracts/abi/
 aggregator/
 .wavs/
-components/
+compiled/
 tests/.test-reports

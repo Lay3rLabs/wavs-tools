@@ -1,7 +1,9 @@
 version: "3"
 
+dotenv: [".env"]
+
 vars:
-  COMPONENTS_DIR: "./components"
+  COMPONENTS_DIR: "./compiled"
   WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
   DOCKER_SUDO:
