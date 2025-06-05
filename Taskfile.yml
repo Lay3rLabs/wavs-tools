@@ -2,7 +2,6 @@ version: "3"
 
 vars:
   COMPONENTS_DIR: "./components"
-  RPC_URL: "127.0.0.1:8545"
   WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
   DOCKER_SUDO:
@@ -15,27 +14,15 @@ includes:
 tasks:
   up:
     desc: Start all services with Docker Compose
+    deps: [clean-docker, setup-env]
     cmds:
-      - task clean-docker
-      - task setup-env
-      - docker compose up -d
-
-  down:
-    desc: Stop and remove all services
-    cmds:
-      - docker compose down
-
-  restart:
-    desc: Restart all services
-    deps: [down]
-    cmds:
-      - task: up
+      - sh ./script/start_all.sh
 
   clean-docker:
     desc: "Remove unused docker containers"
     cmds:
       - |
-        {{.DOCKER_SUDO}} docker rm -v $(shell {{.DOCKER_SUDO}} docker ps -a --filter status=exited -q) > /dev/null 2>&1 || true
+        {{.DOCKER_SUDO}} docker stop $({{.DOCKER_SUDO}} docker ps -q) 2>/dev/null || true
 
   setup-env:
     desc: "Create the .env file from .env.example if not yet created"
