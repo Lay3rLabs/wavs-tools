@@ -12,11 +12,17 @@ includes:
   avs_sync: ./avs_sync/Taskfile.yml
 
 tasks:
-  up:
-    desc: Start all services with Docker Compose
+  start:
+    desc: "Starts anvil and core services (like IPFS for example)"
     deps: [clean-docker, setup-env]
     cmds:
       - sh ./script/start_all.sh
+
+  setup:
+    desc: "Setup the middleware contracts"
+    cmds:
+      - source ./script/create-deployer.sh
+      - task wavs-middleware -- deploy
 
   clean-docker:
     desc: "Remove unused docker containers"

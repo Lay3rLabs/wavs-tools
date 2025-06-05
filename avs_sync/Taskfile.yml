@@ -11,8 +11,6 @@ tasks:
   deploy:
     cmds:
       - |
-        source ./script/create-deployer.sh
-        task wavs-middleware -- deploy
         cd avs_sync
         forge script script/DeployWriter.s.sol --rpc-url $(../script/get-rpc.sh) --broadcast
         cd ..
