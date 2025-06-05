@@ -12,5 +12,5 @@ tasks:
     cmds:
       - |
         cd avs_sync
-        forge script script/DeployWriter.s.sol --rpc-url $(../script/get-rpc.sh) --broadcast
+        forge script script/DeployAvsWriter.s.sol --rpc-url $(../script/get-rpc.sh) --broadcast
         cd ..

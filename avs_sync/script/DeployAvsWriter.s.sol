@@ -7,7 +7,7 @@ import {AvsWriter} from "../src/contracts/AvsWriter.sol";
 import {IRegistryCoordinator} from "@eigenlayer-middleware/src/interfaces/IRegistryCoordinator.sol";
 import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 
-contract DeployAvsContracts is Script {
+contract DeployAvsWriter is Script {
     function run() external {
         uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PK");
 
