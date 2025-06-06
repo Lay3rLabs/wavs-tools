@@ -53,7 +53,7 @@ async function commentTestResults({ github, context }) {
     }
     
 
-    comment += `\n##<details>${extractDetails(report)}</details>`
+    comment += `\n<details>\n${extractDetails(report)}\n</details>\n`;
 
     comment += `\n[📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
     
