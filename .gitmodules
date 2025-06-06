@@ -6,4 +6,4 @@
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
 [submodule "submodules/eigenlayer-middleware"]
 	path = submodules/eigenlayer-middleware
-	url = git@github.com:Lay3rLabs/eigenlayer-middleware.git
+	url = https://github.com/Lay3rLabs/eigenlayer-middleware.git
