@@ -22,8 +22,9 @@ async function commentTestResults({ github, context }) {
     const total = stats.tests;
     const duration = stats.duration;
     
-    let comment = `## 🧪 Test Results\n\n`;
-    comment += `**Summary:** ${passing}/${total} tests passing`;
+    let comment = `## 🧪 Test Results`;
+    comment += `[📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+    comment += `\n\n**Summary:** ${passing}/${total} tests passing`;
     
     if (failing > 0) {
       comment += ` (${failing} failed)`;
@@ -53,9 +54,8 @@ async function commentTestResults({ github, context }) {
     }
     
 
-    comment += `\n<details>\n${extractDetails(report)}\n</details>\n`;
+    comment += `\n<details>\n\n${extractDetails(report)}\n</details>\n`;
 
-    comment += `\n[📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
     
     await github.rest.issues.createComment({
       issue_number: context.issue.number,
