@@ -89,4 +89,9 @@ echo "🚀 Deploying service from: ${SERVICE_URL}..."
 
 task wavs-cli -- deploy-service --service-url ${SERVICE_URL} --log-level=debug --data /data/.docker --home /data --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY}
 
+# Register service specific operator
+SERVICE_INDEX=0 source ./script/avs-signing-key.sh
+export WAVS_SERVICE_MANAGER_ADDRESS=$(jq -r .addresses.WavsServiceManager ./.nodes/avs_deploy.json)
+task wavs-middleware -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
+
 echo "Component $COMPONENT_NAME deployed successfully"
