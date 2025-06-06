@@ -51,8 +51,8 @@ tasks:
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
-        --env-file .env -w /data -v {{.PWD}}:/data {{.WAVS_DOCKER_IMAGE}}
-        wavs-cli {{.CLI_ARGS}}
+        -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}}
+        wavs-cli service --json true --home /data --file /data/.docker/service.json {{.CLI_ARGS}}
 
   stop:
     desc: "Stop Anvil and Docker services started"
