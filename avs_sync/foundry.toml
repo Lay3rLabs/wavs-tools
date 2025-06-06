@@ -11,5 +11,5 @@ remappings = [
     "@eigenlayer-middleware/=../submodules/eigenlayer-middleware/",
     "forge-std/=../submodules/forge-std/src/",
     "@openzeppelin/contracts/=../submodules/openzeppelin-contracts/contracts/",
-    "@wavs=../node_modules/@wavs/solidity/contracts",
+    "@wavs=../submodules/wavs/contracts/solidity",
 ]

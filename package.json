@@ -1,5 +1,5 @@
 {
-  "name": "wavs-foundry-template",
+  "name": "wavs-tools",
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
@@ -26,7 +26,6 @@
     "@commitlint/config-conventional": "19.2.2",
     "@defi-wonderland/natspec-smells": "1.1.6",
     "@openzeppelin/contracts": "^5.2.0",
-    "@wavs/solidity": "^0.4.0-rc",
     "forge-std": "github:foundry-rs/forge-std#v1.9.6",
     "lint-staged": ">=10",
     "solhint-community": "4.0.0",

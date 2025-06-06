@@ -7,3 +7,6 @@
 [submodule "submodules/eigenlayer-middleware"]
 	path = submodules/eigenlayer-middleware
 	url = https://github.com/Lay3rLabs/eigenlayer-middleware.git
+[submodule "submodules/wavs"]
+	path = submodules/wavs
+	url = https://github.com/Lay3rLabs/WAVS.git
