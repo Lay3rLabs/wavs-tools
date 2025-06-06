@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function commentTestResults({ github, context }) {
+  const eventName = context.eventName || github.event_name;
   try {
     // The report path is relative to the tests directory
     const reportPath = path.join('tests', '.test-reports', 'merged-report.json');
@@ -63,8 +64,11 @@ async function commentTestResults({ github, context }) {
     comment += `\n<details>\n\n${extractDetails(report)}\n</details>\n`;
 
     
+    // Handle different event types - pull_request vs issue_comment
+    const issueNumber = context.issue?.number || github.event.issue?.number;
+    
     await github.rest.issues.createComment({
-      issue_number: context.issue.number,
+      issue_number: issueNumber,
       owner: context.repo.owner,
       repo: context.repo.repo,
       body: comment
@@ -76,8 +80,10 @@ async function commentTestResults({ github, context }) {
     console.error('Error processing test report:', error);
     
     // Post a fallback comment
+    const issueNumber = context.issue?.number || github.event.issue?.number;
+    
     await github.rest.issues.createComment({
-      issue_number: context.issue.number,
+      issue_number: issueNumber,
       owner: context.repo.owner,
       repo: context.repo.repo,
       body: '## 🧪 Test Results\n\n❌ Failed to generate test report. Check the workflow logs for details.'
