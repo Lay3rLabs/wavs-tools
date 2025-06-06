@@ -35,26 +35,8 @@ async function commentTestResults({ github, context }) {
       comment += `### ❌ Failed Tests\n`;
       
       // The mochawesome report structure has failures in results array
-      const failures = [];
+      const failures = extractFailures(report, failures);
       
-      function extractFailures(suites) {
-        suites.forEach(suite => {
-          if (suite.tests) {
-            suite.tests.forEach(test => {
-              if (test.state === 'failed') {
-                failures.push(test);
-              }
-            });
-          }
-          if (suite.suites) {
-            extractFailures(suite.suites);
-          }
-        });
-      }
-      
-      if (report.results) {
-        extractFailures(report.results);
-      }
       
       if (failures.length > 0) {
         failures.forEach(failure => {
@@ -70,15 +52,10 @@ async function commentTestResults({ github, context }) {
       comment += `### ✅ All tests passed!\n`;
     }
     
+
+    comment += `\n##<details>${extractDetails(report)}</details>`
+
     comment += `\n[📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
-
-    comment += `\n<details>
-
-      <summary>Tips for collapsed sections</summary>
-
-      ### You can add a header
-
-      </details>`
     
     await github.rest.issues.createComment({
       issue_number: context.issue.number,
@@ -103,6 +80,59 @@ async function commentTestResults({ github, context }) {
     // Re-throw the error so the workflow shows as failed
     throw error;
   }
+}
+
+function recurseSuites(suites, callback) {
+  suites.forEach(suite => {
+    callback(suite);
+    if (suite.suites) {
+      recurseSuites(suite.suites, callback);
+    }
+  });
+}
+
+function extractFailures(report) {
+  const failures = [];
+
+  if (report.results) {
+    recurseSuites(report.results, suite => {
+      if (suite.tests) {
+        suite.tests.forEach(test => {
+          if (test.state === 'failed') {
+            failures.push(test);
+          }
+        });
+      }
+    });
+  }
+
+  return failures;
+}
+
+function extractDetails(report) {
+  let details = '';
+
+  if (report.results) {
+    recurseSuites(report.results, suite => {
+      if (suite.tests) {
+        suite.tests.forEach(test => {
+          details += `### ${test.fullTitle}\n`;
+          details += `- **State:** ${test.state}\n`;
+          if (test.err && test.err.message) {
+            details += `- **Error:** \`${test.err.message}\`\n`;
+          }
+          if (test.duration) {
+            details += `- **Duration:** ${test.duration}ms\n`;
+          }
+          details += '\n';
+        });
+      }
+    });
+  } else {
+    details = 'No detailed test results available.';
+  }
+
+  return details;
 }
 
 module.exports = { commentTestResults };
