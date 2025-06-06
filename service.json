@@ -1,14 +1,57 @@
 {
-  "id": "0197467d-dae9-7ce1-a375-12b9f20d8bc4",
+  "id": "01974693-c8a4-7062-8434-f20d77b85c83",
   "name": "avs_sync",
   "workflows": {
-    "0197467d-dbf7-7713-b503-d9473895620a": {
-      "trigger": "unset",
-      "component": "unset",
-      "submit": "unset",
-      "aggregators": []
+    "01974693-c9b1-7070-8c1a-c2f469723bac": {
+      "trigger": {
+        "block_interval": {
+          "chain_name": "local",
+          "n_blocks": 100,
+          "start_block": null,
+          "end_block": null
+        }
+      },
+      "component": {
+        "source": {
+          "Registry": {
+            "registry": {
+              "digest": "a3bb6ca00623ac145903134d011571d942ec704d2bfdaf7643d7981f76a0b7e7",
+              "domain": "localhost:8090",
+              "version": "0.1.0",
+              "package": "example:avssync"
+            }
+          }
+        },
+        "permissions": {
+          "allowed_http_hosts": "none",
+          "file_system": false
+        },
+        "fuel_limit": null,
+        "time_limit_seconds": null,
+        "config": {},
+        "env_keys": []
+      },
+      "submit": {
+        "aggregator": {
+          "url": "http://127.0.0.1:8001"
+        }
+      },
+      "aggregators": [
+        {
+          "evm": {
+            "chain_name": "local",
+            "address": "0x130ec30b94f73317ded6215b39871fa48d33c19c",
+            "max_gas": null
+          }
+        }
+      ]
     }
   },
   "status": "active",
-  "manager": "unset"
+  "manager": {
+    "evm": {
+      "chain_name": "local",
+      "address": "0xd27d81c6e99e5841595ed5f35326fbd2e8a06a13"
+    }
+  }
 }
