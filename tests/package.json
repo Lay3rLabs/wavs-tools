@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "test": "mocha",
+        "test": "cd .. && mocha tests/src/**/*.test.ts --require tsx --reporter mochawesome --reporter-options reportDir=tests/.test-reports,reportFilename=test-report,json=true,overwrite=true",
         "test:watch": "mocha --watch",
         "test:report": "npm run test; npm run merge-test-reports",
         "test:report:open": "npm run test:report; opener .test-reports/merged-report.html",
@@ -16,6 +16,7 @@
         "mochawesome-merge": "^5.0.0",
         "opener": "^1.5.2",
         "tsx": "^4.19.4",
-        "typescript": "^5.8.3"
+        "typescript": "^5.8.3",
+        "wait-port": "^1.1.0"
     }
 }

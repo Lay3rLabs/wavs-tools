@@ -1,0 +1,6 @@
+version: '3'
+
+tasks:
+  start-backend:
+    desc: "Placeholder server"
+    cmd: npx serve -s . -l 3000
