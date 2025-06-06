@@ -13,7 +13,7 @@ contract DeployAvsWriter is Script {
 
         // Get addresses from environment variables
         address serviceManager = vm.envAddress("WAVS_SERVICE_MANAGER_ADDRESS");
-        address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR");
+        address registryCoordinator = vm.envAddress("REGISTRY_COORDINATOR_ADDRESS");
 
         console.log("=== Deploying AVS Contracts ===");
         console.log("Registry Coordinator:", registryCoordinator);

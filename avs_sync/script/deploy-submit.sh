@@ -3,7 +3,6 @@
 
 echo "Deploying avs_sync contracts..."
 
-export REGISTRY_COORDINATOR="0x53012C69A189cfA2D9d29eb6F19B32e0A2EA3490"
 cd "$COMPONENT_NAME"
 
 chmod +x ../script/get-rpc.sh
