@@ -23,7 +23,7 @@ async function commentTestResults({ github, context }) {
     const duration = stats.duration;
     
     let comment = `## 🧪 Test Results`;
-    comment += `[📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+    comment += ` [📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
     comment += `\n\n**Summary:** ${passing}/${total} tests passing`;
     
     if (failing > 0) {
