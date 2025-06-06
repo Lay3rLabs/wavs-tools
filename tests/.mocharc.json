@@ -5,5 +5,5 @@
   "recursive": true,
   "timeout": 5000,
   "reporter": "mochawesome",
-  "reporter-options": "reportDir=.test-reports,reportFilename=test-report,json=true,overwrite=true"
+  "reporter-options": "reportFilename=test-report,json=true,overwrite=true"
 }
