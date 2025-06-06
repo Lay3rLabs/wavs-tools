@@ -65,7 +65,6 @@ async function commentTestResults({ github, context }) {
 
     
     // Handle different event types - pull_request vs issue_comment
-    const issueNumber = context.issue?.number || github.event.issue?.number;
     
     await github.rest.issues.createComment({
       issue_number: issueNumber,
