@@ -28,7 +28,8 @@ export class BackendManager {
   async start(): Promise<void> {
     // change to root directory
     process.chdir(this.rootDirectory());
-    
+   
+    throw new Error('Backend start is not implemented yet');
     // Start the backend using task
     this.backendProcess = spawn('task', ['start-backend'], {
       stdio: 'pipe',
