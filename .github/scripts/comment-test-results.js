@@ -112,11 +112,12 @@ function extractFailures(report) {
 function extractDetails(report) {
   let details = '';
 
+
   if (report.results) {
     recurseSuites(report.results, suite => {
       if (suite.tests) {
         suite.tests.forEach(test => {
-          details += `### ${test.fullTitle}\n`;
+          details += `### ${renderIcon(test.state)} ${test.fullTitle}\n`;
           details += `- **State:** ${test.state}\n`;
           if (test.err && test.err.message) {
             details += `- **Error:** \`${test.err.message}\`\n`;
@@ -133,6 +134,19 @@ function extractDetails(report) {
   }
 
   return details;
+}
+
+function renderIcon(state) {
+  switch (state) {
+    case 'passed':
+      return '✅';
+    case 'failed':
+      return '❌';
+    case 'skipped':
+      return '⏭️';
+    default:
+      return '❓';
+  }
 }
 
 module.exports = { commentTestResults };
