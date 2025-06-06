@@ -76,13 +76,28 @@ WAVS_ENDPOINT=http://127.0.0.1:8000
 SERVICE_URL=${IPFS_URI}
 if [ -n "${WAVS_ENDPOINT}" ]; then
     echo "🔍 Checking WAVS service at ${WAVS_ENDPOINT}..."
-    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${WAVS_ENDPOINT}/app)
-    if [ "$HTTP_CODE" != "200" ]; then
-        echo "❌ WAVS service not reachable at ${WAVS_ENDPOINT}"
-        echo "💡 Re-try running in 1 second, if not then validate the wavs service is online / started."
+    
+    # Wait for service to be available (max 60 seconds)
+    TIMEOUT=60
+    ELAPSED=0
+    
+    while [ $ELAPSED -lt $TIMEOUT ]; do
+        HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${WAVS_ENDPOINT}/app)
+        if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ WAVS service is running"
+            break
+        fi
+        
+        echo "⏳ Waiting for WAVS service... (${ELAPSED}s/${TIMEOUT}s)"
+        sleep 2
+        ELAPSED=$((ELAPSED + 2))
+    done
+    
+    if [ $ELAPSED -ge $TIMEOUT ]; then
+        echo "❌ WAVS service not reachable at ${WAVS_ENDPOINT} after ${TIMEOUT}s"
+        echo "💡 Validate the wavs service is online / started."
         exit 1
     fi
-    echo "✅ WAVS service is running"
 fi
 
 echo "🚀 Deploying service from: ${SERVICE_URL}..."
