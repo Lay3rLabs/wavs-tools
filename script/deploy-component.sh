@@ -56,4 +56,37 @@ else
     exit 1
 fi
 
+# Upload to IPFS
+SERVICE_FILE=.docker/service.json source ./script/ipfs-upload.sh
+
+# Start Aggregator
+bash ./script/create-aggregator.sh 1
+
+IPFS_GATEWAY=${IPFS_GATEWAY} bash ./infra/aggregator-1/start.sh
+
+wget -q --header="Content-Type: application/json" --post-data="{\"uri\": \"${IPFS_URI}\"}" ${AGGREGATOR_URL}/register-service -O -
+
+# Start WAVS
+bash ./script/create-operator.sh 1
+
+IPFS_GATEWAY=${IPFS_GATEWAY} bash ./infra/wavs-1/start.sh
+
+# Check WAVS service if endpoint is provided
+WAVS_ENDPOINT=http://127.0.0.1:8000
+SERVICE_URL=${IPFS_URI}
+if [ -n "${WAVS_ENDPOINT}" ]; then
+    echo "🔍 Checking WAVS service at ${WAVS_ENDPOINT}..."
+    HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${WAVS_ENDPOINT}/app)
+    if [ "$HTTP_CODE" != "200" ]; then
+        echo "❌ WAVS service not reachable at ${WAVS_ENDPOINT}"
+        echo "💡 Re-try running in 1 second, if not then validate the wavs service is online / started."
+        exit 1
+    fi
+    echo "✅ WAVS service is running"
+fi
+
+echo "🚀 Deploying service from: ${SERVICE_URL}..."
+
+task wavs-cli -- deploy-service --service-url ${SERVICE_URL} --log-level=debug --data /data/.docker --home /data --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY}
+
 echo "Component $COMPONENT_NAME deployed successfully"

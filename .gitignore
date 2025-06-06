@@ -19,3 +19,4 @@ aggregator/
 .wavs/
 compiled/
 tests/.test-reports
+infra/
