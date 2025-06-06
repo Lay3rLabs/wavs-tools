@@ -35,7 +35,6 @@ export class BackendManager {
       // change to root directory
       process.chdir(this.rootDirectory());
     
-      throw new Error('Backend start is not implemented yet');
       // Start the backend using task
       this.backendProcess = spawn('task', ['start-backend'], {
         stdio: 'pipe',
