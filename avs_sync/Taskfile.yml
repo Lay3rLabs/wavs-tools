@@ -1,28 +1,27 @@
 version: "3"
 
+vars:
+  COMPONENT_NAME: avs_sync
+  COMPONENT_FILENAME: avs_sync.wasm
+  PKG_NAME: avssync
+  PKG_VERSION: 0.1.0
+
 tasks:
   wasi-build:
     cmds:
       - |
-        echo "Building component: avs_sync"
+        echo "Building component: {{.COMPONENT_NAME}}"
         cargo component build --release; cargo fmt
-        mkdir -p {{.COMPONENTS_DIR}}
-        cp target/wasm32-wasip1/release/*.wasm {{.COMPONENTS_DIR}}
+        mkdir -p ./compiled
+        cp target/wasm32-wasip1/release/*.wasm ./compiled
+
   deploy:
+    desc: "Deploy component"
     cmds:
+      - chmod +x ./script/deploy-component.sh
       - |
-        source ./script/deploy-middleware.sh
-        export REGISTRY_COORDINATOR="0x53012C69A189cfA2D9d29eb6F19B32e0A2EA3490"
-        cd avs_sync
-        forge script script/DeployAvsWriter.s.sol --rpc-url $(../script/get-rpc.sh) --broadcast
-        cd ..
-  deploy-service:
-    deps: ["wasi-build"]
-    cmds:
-      - |
-        export COMPONENT_FILENAME=avs_sync.wasm
-        export PKG_NAME="avssync"
-        export PKG_VERSION="0.1.0"
-        source script/upload-to-wasi-registry.sh || true
-        export AGGREGATOR_URL=http://127.0.0.1:8001
-        REGISTRY=${REGISTRY} source ./avs_sync/script/build-service.sh
+        export COMPONENT_NAME={{.COMPONENT_NAME}}
+        export COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
+        export PKG_NAME={{.PKG_NAME}}
+        export PKG_VERSION={{.PKG_VERSION}}
+        ./script/deploy-component.sh

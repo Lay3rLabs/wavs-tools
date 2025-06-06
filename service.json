@@ -1,8 +1,8 @@
 {
-  "id": "0197462d-2e35-7450-81fd-f105440a0fd2",
+  "id": "0197467d-dae9-7ce1-a375-12b9f20d8bc4",
   "name": "avs_sync",
   "workflows": {
-    "0197464c-4741-7433-9fed-015781983817": {
+    "0197467d-dbf7-7713-b503-d9473895620a": {
       "trigger": "unset",
       "component": "unset",
       "submit": "unset",
