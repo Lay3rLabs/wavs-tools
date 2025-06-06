@@ -35,7 +35,7 @@ async function commentTestResults({ github, context }) {
       comment += `### ❌ Failed Tests\n`;
       
       // The mochawesome report structure has failures in results array
-      const failures = extractFailures(report, failures);
+      const failures = extractFailures(report);
       
       
       if (failures.length > 0) {
