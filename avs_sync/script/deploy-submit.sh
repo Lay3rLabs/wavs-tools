@@ -6,6 +6,7 @@ echo "Deploying avs_sync contracts..."
 export REGISTRY_COORDINATOR="0x53012C69A189cfA2D9d29eb6F19B32e0A2EA3490"
 cd "$COMPONENT_NAME"
 
+chmod +x ../script/get-rpc.sh
 # Run the forge script and capture output to extract the address
 DEPLOY_OUTPUT=$(forge script script/DeployAvsWriter.s.sol --fork-url $(../script/get-rpc.sh) --broadcast 2>&1)
 
