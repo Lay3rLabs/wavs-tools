@@ -70,7 +70,15 @@ async function commentTestResults({ github, context }) {
       comment += `### ✅ All tests passed!\n`;
     }
     
-    comment += `\n[📊 View detailed report](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+    comment += `\n[📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
+
+    comment += `\n<details>
+
+      <summary>Tips for collapsed sections</summary>
+
+      ### You can add a header
+
+      </details>`
     
     await github.rest.issues.createComment({
       issue_number: context.issue.number,

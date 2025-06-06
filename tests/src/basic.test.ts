@@ -29,7 +29,7 @@ describe('Basic tests', function() {
 
   describe('Backend Health', function() {
     it('should confirm backend is running', async function() {
-      assert(backendManager.isRunning(), 'Backend should be running');
+      backendManager.assertRunning();
     });
   });
 });

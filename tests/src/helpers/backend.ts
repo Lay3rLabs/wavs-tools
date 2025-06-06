@@ -6,6 +6,7 @@ import waitPort from 'wait-port';
 export class BackendManager {
   private backendProcess: ChildProcess | null;
   private port: number;
+  public error: any | undefined;
 
   constructor() {
     this.backendProcess = null;
@@ -25,43 +26,47 @@ export class BackendManager {
     throw new Error('Could not find the root directory of the repository');
   }
 
+  // Due to https://github.com/mochajs/mocha/issues/4392
+  // this always "succeeds", all interactions should require calling `assertRunning()` 
+  // specifically see https://github.com/mochajs/mocha/issues/4392#issuecomment-797500518
   async start(): Promise<void> {
-    // change to root directory
-    process.chdir(this.rootDirectory());
-   
-    throw new Error('Backend start is not implemented yet');
-    // Start the backend using task
-    this.backendProcess = spawn('task', ['start-backend'], {
-      stdio: 'pipe',
-      detached: true
-    });
+    (async () => {
+      this.error = undefined;
+      // change to root directory
+      process.chdir(this.rootDirectory());
+    
+      throw new Error('Backend start is not implemented yet');
+      // Start the backend using task
+      this.backendProcess = spawn('task', ['start-backend'], {
+        stdio: 'pipe',
+        detached: true
+      });
 
-    // Handle process output for debugging
-    this.backendProcess.stdout?.on('data', (data: Buffer) => {
-      //console.log(`Backend stdout: ${data}`);
-    });
+      // Handle process output for debugging
+      this.backendProcess.stdout?.on('data', (data: Buffer) => {
+        //console.log(`Backend stdout: ${data}`);
+      });
 
-    this.backendProcess.stderr?.on('data', (data: Buffer) => {
-      //console.error(`Backend stderr: ${data}`);
-    });
+      this.backendProcess.stderr?.on('data', (data: Buffer) => {
+        //console.error(`Backend stderr: ${data}`);
+      });
 
-    this.backendProcess.on('error', (error: Error) => {
-      console.error(`Failed to start backend: ${error}`);
-      throw error;
-    });
+      this.backendProcess.on('error', (error: Error) => {
+        console.error(`Failed to start backend: ${error}`);
+        throw error;
+      });
 
-    // Wait for the backend to be ready
-    try {
+      // Wait for the backend to be ready
       await waitPort({
         host: 'localhost',
         port: this.port,
         timeout: 30000, // 30 second timeout
         output: 'silent'
       });
-    } catch (error) {
-      await this.stop();
-      throw error;
-    }
+    })().catch((error) => {
+      this.stop();
+      this.error = error;
+    })
   }
 
   async stop(): Promise<void> {
@@ -100,8 +105,13 @@ export class BackendManager {
     }
   }
 
-  isRunning(): boolean {
-    return this.backendProcess !== null && !this.backendProcess.killed;
+  assertRunning() {
+    if(this.error) {
+      throw this.error;
+    }
+    if (!this.backendProcess || this.backendProcess.killed) {
+      throw new Error('Backend process is not running');
+    }
   }
 }
 
