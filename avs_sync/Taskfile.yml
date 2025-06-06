@@ -11,7 +11,8 @@ tasks:
   deploy:
     cmds:
       - |
-        task setup
+        source ./script/deploy-middleware.sh
+        export REGISTRY_COORDINATOR="0x53012C69A189cfA2D9d29eb6F19B32e0A2EA3490"
         cd avs_sync
         forge script script/DeployAvsWriter.s.sol --rpc-url $(../script/get-rpc.sh) --broadcast
         cd ..

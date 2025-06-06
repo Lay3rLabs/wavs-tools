@@ -1,7 +1,14 @@
 {
-  "id": "019741ee-392e-76f1-b7cf-483b33e3d178",
+  "id": "0197462d-2e35-7450-81fd-f105440a0fd2",
   "name": "avs_sync",
-  "workflows": {},
+  "workflows": {
+    "0197464c-4741-7433-9fed-015781983817": {
+      "trigger": "unset",
+      "component": "unset",
+      "submit": "unset",
+      "aggregators": []
+    }
+  },
   "status": "active",
   "manager": "unset"
 }

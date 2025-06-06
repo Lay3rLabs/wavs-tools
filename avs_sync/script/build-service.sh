@@ -18,5 +18,5 @@ if [ -z "$DEPLOY_ENV" ]; then
     DEPLOY_ENV=$(sh ./script/get-deploy-status.sh)
 fi
 
-task wavs-cli -- service init --name avs_sync | jq  -r .service.id
-echo "Service ID: ${SERVICE_ID}"
+SERVICE_ID=$(task wavs-cli -- service --json=true init --name avs_sync | jq  -r .service.id)
+WORFKLOW_ID=$(task wavs-cli -- service --json=true workflow add | jq  -r .workflow_id)

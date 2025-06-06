@@ -18,13 +18,6 @@ tasks:
     cmds:
       - sh ./script/start_all.sh
 
-  setup:
-    desc: "Setup the middleware contracts"
-    cmds:
-      - source ./script/create-deployer.sh
-      - task wavs-middleware -- deploy
-      - source ./script/get-service-manager.sh
-
   clean-docker:
     desc: "Remove unused docker containers"
     cmds:
@@ -60,3 +53,9 @@ tasks:
         {{.DOCKER_SUDO}} docker run --rm --network host
         --env-file .env -w /data -v {{.PWD}}:/data {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
+
+  stop:
+    desc: "Stop Anvil and Docker services started"
+    cmds:
+      - docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans
+      - pkill -f "anvil --fork-url" || true
