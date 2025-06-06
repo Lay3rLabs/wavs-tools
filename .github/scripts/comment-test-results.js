@@ -19,6 +19,8 @@ async function commentTestResults({ github, context }) {
     const stats = report.stats;
     const passing = stats.passes;
     const failing = stats.failures;
+    const pending = stats.pending || 0;
+    const skipped = stats.skipped || 0;
     const total = stats.tests;
     const duration = stats.duration;
     
@@ -28,6 +30,10 @@ async function commentTestResults({ github, context }) {
     
     if (failing > 0) {
       comment += ` (${failing} failed)`;
+    }
+
+    if (pending > 0 || skipped > 0) {
+      comment += ` (${pending + skipped} skipped/pending)`;
     }
     
     comment += `\n**Duration:** ${duration}ms\n\n`;
@@ -143,6 +149,7 @@ function renderIcon(state) {
     case 'failed':
       return '❌';
     case 'skipped':
+    case 'pending':
       return '⏭️';
     default:
       return '❓';
