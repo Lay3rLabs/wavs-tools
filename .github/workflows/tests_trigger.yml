@@ -38,7 +38,7 @@ jobs:
         if: always()
         with:
           script: |
-            const { commentTestResults } = require('./.github/scripts/comment-test-results.js');
+            const { commentTestResults } = require('./.github/scripts/comment-test-results-updated.js');
             await commentTestResults({ github, context });
 
       - name: Check test results and fail if needed
