@@ -30,7 +30,7 @@ export class BackendManager {
   // this always "succeeds", all interactions should require calling `assertRunning()` 
   // specifically see https://github.com/mochajs/mocha/issues/4392#issuecomment-797500518
   async start(): Promise<void> {
-    (async () => {
+    try {
       this.error = undefined;
       // change to root directory
       process.chdir(this.rootDirectory());
@@ -62,10 +62,10 @@ export class BackendManager {
         timeout: 30000, // 30 second timeout
         output: 'silent'
       });
-    })().catch((error) => {
-      this.stop();
+    } catch (error) {
+      await this.stop();
       this.error = error;
-    })
+    }
   }
 
   async stop(): Promise<void> {
