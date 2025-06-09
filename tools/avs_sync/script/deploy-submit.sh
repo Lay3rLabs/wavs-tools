@@ -3,11 +3,11 @@
 
 echo "Deploying avs_sync contracts..."
 
-cd "$COMPONENT_NAME"
+cd "./tools/$COMPONENT_NAME"
 
-chmod +x ../script/get-rpc.sh
+chmod +x ../../script/get-rpc.sh
 # Run the forge script and capture output to extract the address
-DEPLOY_OUTPUT=$(forge script script/DeployAvsWriter.s.sol --fork-url $(../script/get-rpc.sh) --broadcast 2>&1)
+DEPLOY_OUTPUT=$(forge script script/DeployAvsWriter.s.sol --fork-url $(../../script/get-rpc.sh) --broadcast 2>&1)
 
 # Extract WAVS_SUBMIT_ADDRESS from the deployment output
 export WAVS_SUBMIT_ADDRESS=$(echo "$DEPLOY_OUTPUT" | grep -o "0x[a-fA-F0-9]\{40\}" | tail -1)
@@ -20,4 +20,4 @@ if [ -z "$WAVS_SUBMIT_ADDRESS" ]; then
 fi
 
 echo "AVS Writer deployed at: $WAVS_SUBMIT_ADDRESS"
-cd ..
+cd ../..

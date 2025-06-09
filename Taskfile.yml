@@ -9,7 +9,7 @@ vars:
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
 
 includes:
-  avs_sync: ./avs_sync/Taskfile.yml
+  avs_sync: ./tools/avs_sync/Taskfile.yml
 
 tasks:
   start:
@@ -80,3 +80,9 @@ tasks:
     cmds:
       - docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans
       - pkill -f "anvil --fork-url" || true
+
+  dos2unix:
+    cmds:
+      - dos2unix ./script/*
+      - find ./script/template -type f -exec dos2unix {} \;
+      - dos2unix ./tools/avs_sync/script/*

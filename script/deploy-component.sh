@@ -22,9 +22,9 @@ echo "Deploying middleware..."
 source ./script/deploy-middleware.sh
 
 # Call component-specific deployment script (this sets WAVS_SUBMIT_ADDRESS)
-if [ -f "./$COMPONENT_NAME/script/deploy-submit.sh" ]; then
+if [ -f "./tools/$COMPONENT_NAME/script/deploy-submit.sh" ]; then
     echo "Running component-specific contract deployment..."
-    source "./$COMPONENT_NAME/script/deploy-submit.sh"
+    source "./tools/$COMPONENT_NAME/script/deploy-submit.sh"
     
     if [ -z "${WAVS_SUBMIT_ADDRESS:-}" ]; then
         echo "ERROR: WAVS_SUBMIT_ADDRESS not set after running deploy-submit.sh"
@@ -32,7 +32,7 @@ if [ -f "./$COMPONENT_NAME/script/deploy-submit.sh" ]; then
     fi
     echo "Contract deployed at: $WAVS_SUBMIT_ADDRESS"
 else
-    echo "No component-specific deploy script found at ./$COMPONENT_NAME/script/deploy-submit.sh"
+    echo "No component-specific deploy script found at ./tools/$COMPONENT_NAME/script/deploy-submit.sh"
     exit 1
 fi
 
@@ -48,11 +48,11 @@ export WAVS_SUBMIT_ADDRESS="$WAVS_SUBMIT_ADDRESS"
 source script/upload-to-wasi-registry.sh || true
 
 # Call component-specific build script
-if [ -f "./$COMPONENT_NAME/script/build-service.sh" ]; then
+if [ -f "./tools/$COMPONENT_NAME/script/build-service.sh" ]; then
     echo "Running component-specific build script..."
-    REGISTRY=${REGISTRY} source "./$COMPONENT_NAME/script/build-service.sh"
+    REGISTRY=${REGISTRY} source "./tools/$COMPONENT_NAME/script/build-service.sh"
 else
-    echo "No component-specific build script found at ./$COMPONENT_NAME/script/build-service.sh"
+    echo "No component-specific build script found at ./tools/$COMPONENT_NAME/script/build-service.sh"
     exit 1
 fi
 
