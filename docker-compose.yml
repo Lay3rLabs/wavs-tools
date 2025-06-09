@@ -1,12 +1,3 @@
-###################################
-#
-# make start-all-local
-#
-###################################
-
-# docker volume rm $(docker volume ls -q -f "dangling=true")
-
-
 services:
   warg-server:
     image: "ghcr.io/reecepbcups/warg-registry:v0.9.3"

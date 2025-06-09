@@ -35,10 +35,10 @@ tasks:
     vars:
       MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
     cmds:
-      - |
-        {{.DOCKER_SUDO}} docker run --rm --network host --env-file .env \
-        $(if [ -n "${WAVS_SERVICE_MANAGER_ADDRESS}" ]; then echo "-e WAVS_SERVICE_MANAGER_ADDRESS=${WAVS_SERVICE_MANAGER_ADDRESS}"; fi) \
-        $(if [ -n "${PAST_BLOCKS}" ]; then echo "-e PAST_BLOCKS=${PAST_BLOCKS}"; fi) \
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host --env-file .env
+        $(if [ -n "${WAVS_SERVICE_MANAGER_ADDRESS}" ]; then echo "-e WAVS_SERVICE_MANAGER_ADDRESS=${WAVS_SERVICE_MANAGER_ADDRESS}"; fi)
+        $(if [ -n "${PAST_BLOCKS}" ]; then echo "-e PAST_BLOCKS=${PAST_BLOCKS}"; fi)
         -v ./.nodes:/root/.nodes {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
     env:
       WAVS_SERVICE_MANAGER_ADDRESS: '{{env "WAVS_SERVICE_MANAGER_ADDRESS"}}'
@@ -53,6 +53,27 @@ tasks:
         {{.DOCKER_SUDO}} docker run --rm --network host
         -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
+
+  upload-to-ipfs:
+    desc: "Upload service file to IPFS (local or via Pinata depending on deploy status)"
+    cmds:
+      - >
+        if [ "$(sh script/get-deploy-status.sh)" = "LOCAL" ]; then
+          curl -X POST "http://127.0.0.1:5001/api/v0/add?pin=true" \
+            -H "Content-Type: multipart/form-data" \
+            -F file=@${SERVICE_FILE} | jq -r .Hash;
+        else
+          if [ -z "${PINATA_API_KEY}" ]; then
+            echo "Error: PINATA_API_KEY is not set. Please set it to your Pinata API key -- https://app.pinata.cloud/developers/api-keys.";
+            exit 1;
+          fi;
+          curl -X POST --url https://uploads.pinata.cloud/v3/files \
+            --header "Authorization: Bearer ${PINATA_API_KEY}" \
+            --header "Content-Type: multipart/form-data" \
+            --form file=@${SERVICE_FILE} \
+            --form network=public \
+            --form name=service-$(date +"%b-%d-%Y").json | jq -r .data.cid;
+        fi
 
   stop:
     desc: "Stop Anvil and Docker services started"

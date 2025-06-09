@@ -6,7 +6,7 @@ export RPC_URL=`bash ./script/get-rpc.sh`
 # testnet: https://app.pinata.cloud/. set PINATA_API_KEY to JWT token in .env
 
 echo "Uploading to IPFS..."
-export ipfs_cid=`SERVICE_FILE=${SERVICE_FILE} make upload-to-ipfs`
+export ipfs_cid=`SERVICE_FILE=${SERVICE_FILE} task upload-to-ipfs`
 
 # LOCAL: http://127.0.0.1:8080
 # TESTNET: https://gateway.pinata.cloud/
