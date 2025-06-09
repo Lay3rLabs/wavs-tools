@@ -1,100 +1,111 @@
 use alloy_network::Ethereum;
-use alloy_primitives::Address;
+use alloy_primitives::{Address, U256};
 use alloy_provider::Provider;
+use alloy_rpc_types::Filter;
 use alloy_sol_macro::sol;
 use anyhow::Result;
 
-// Define the EigenLayer interface contracts
+// Define the ECDSAStakeRegistry interface based on your contract
 sol!(
     #[sol(rpc)]
-    ISlashingRegistryCoordinator,
-    "../../src/contracts/abi/ISlashingRegistryCoordinator.sol/ISlashingRegistryCoordinator.json"
-);
-
-sol!(
-    #[sol(rpc)]
-    OperatorStateRetriever,
-    "../../src/contracts/abi/OperatorStateRetriever.sol/OperatorStateRetriever.json"
+    ECDSAStakeRegistry,
+    "../../src/contracts/abi/ECDSAStakeRegistry.sol/ECDSAStakeRegistry.json"
 );
 
 pub struct AvsReader<P> {
-    registry_coordinator:
-        ISlashingRegistryCoordinator::ISlashingRegistryCoordinatorInstance<P, Ethereum>,
-    operator_state_retriever: OperatorStateRetriever::OperatorStateRetrieverInstance<P, Ethereum>,
+    ecdsa_stake_registry: ECDSAStakeRegistry::ECDSAStakeRegistryInstance<P, Ethereum>,
 }
 
 impl<P> AvsReader<P>
 where
     P: Provider<Ethereum> + Clone,
 {
-    pub fn new(
-        registry_coordinator_address: Address,
-        operator_state_retriever_address: Address,
-        provider: P,
-    ) -> Self {
+    pub fn new(ecdsa_stake_registry_address: Address, provider: P) -> Self {
         Self {
-            registry_coordinator:
-                ISlashingRegistryCoordinator::ISlashingRegistryCoordinatorInstance::new(
-                    registry_coordinator_address,
-                    provider.clone(),
-                ),
-            operator_state_retriever: OperatorStateRetriever::OperatorStateRetrieverInstance::new(
-                operator_state_retriever_address,
+            ecdsa_stake_registry: ECDSAStakeRegistry::ECDSAStakeRegistryInstance::new(
+                ecdsa_stake_registry_address,
                 provider,
             ),
         }
     }
 
-    /// Returns the total number of quorums
+    /// Returns 1 since ECDSAStakeRegistry has a single quorum (quorum 0)
     pub async fn get_quorum_count(&self) -> Result<u8> {
-        let result = self.registry_coordinator.quorumCount().call().await?;
-        Ok(result)
+        // ECDSAStakeRegistry has a single quorum (always 1)
+        Ok(1)
     }
 
-    /// Returns list of operator addresses per quorum
-    pub async fn get_operator_addrs_in_quorums_at_current_block(
+    /// Discovers all registered operators by querying OperatorRegistered events
+    pub async fn get_registered_operators(
         &self,
-        quorum_numbers: Vec<u8>,
-        block_number: u32,
-    ) -> Result<Vec<Vec<Address>>> {
-        // Convert Vec<u8> to bytes
-        let quorum_bytes = quorum_numbers.into();
-
-        // Call the operator state retriever
-        let result = self
-            .operator_state_retriever
-            .getOperatorState_0(*self.registry_coordinator.address(), quorum_bytes, block_number)
-            .call()
-            .await?;
-
-        // Extract operator addresses from the result
-        let mut operator_addresses = Vec::new();
-        for quorum_operators in result {
-            let mut operators_in_quorum = Vec::new();
-            for operator in quorum_operators {
-                operators_in_quorum.push(operator.operator);
-            }
-            operator_addresses.push(operators_in_quorum);
-        }
-
-        Ok(operator_addresses)
-    }
-
-    /// Gets all operators in a given quorum
-    pub async fn get_operators_in_quorum(
-        &self,
-        quorum_number: u8,
-        block_number: u32,
+        from_block: u64,
+        to_block: Option<u64>,
     ) -> Result<Vec<Address>> {
-        let quorum_numbers = vec![quorum_number];
-        let operators = self
-            .get_operator_addrs_in_quorums_at_current_block(quorum_numbers, block_number)
-            .await?;
+        // Create filter for OperatorRegistered events
+        // Event signature: OperatorRegistered(address operator, address serviceManager)
+        let event_signature = "OperatorRegistered(address,address)";
+        let topic0 = alloy_primitives::keccak256(event_signature.as_bytes());
 
-        if operators.is_empty() {
-            Ok(Vec::new())
-        } else {
-            Ok(operators[0].clone())
+        let filter = Filter::new()
+            .address(*self.ecdsa_stake_registry.address())
+            .from_block(from_block)
+            .to_block(to_block.unwrap_or(u64::MAX))
+            .event_signature(topic0);
+
+        let logs = self.ecdsa_stake_registry.provider().get_logs(&filter).await?;
+
+        let mut operators = Vec::new();
+        for log in logs {
+            if log.topics().len() >= 2 {
+                // The operator address is in topics[1] (first indexed parameter)
+                let operator_bytes = log.topics()[1].as_slice();
+                if operator_bytes.len() >= 20 {
+                    let operator = Address::from_slice(&operator_bytes[12..32]); // Last 20 bytes
+                    operators.push(operator);
+                }
+            }
         }
+
+        Ok(operators)
+    }
+
+    /// Gets all active operators (registered with non-zero weight)
+    pub async fn get_active_operators(
+        &self,
+        from_block: u64,
+        to_block: Option<u64>,
+    ) -> Result<Vec<Address>> {
+        let all_operators = self.get_registered_operators(from_block, to_block).await?;
+        let mut active_operators = Vec::new();
+
+        for operator in all_operators {
+            // Check if still registered
+            let is_registered = self.is_operator_registered(operator).await?;
+            if !is_registered {
+                continue;
+            }
+
+            // Check if has weight
+            let weight = self.get_operator_weight(operator).await?;
+            if !weight.is_zero() {
+                active_operators.push(operator);
+            }
+        }
+
+        Ok(active_operators)
+    }
+
+    /// Check if operator is registered
+    pub async fn is_operator_registered(&self, operator: Address) -> Result<bool> {
+        let is_registered = self.ecdsa_stake_registry.operatorRegistered(operator).call().await?;
+
+        Ok(is_registered)
+    }
+
+    /// Get operator weight (current)
+    pub async fn get_operator_weight(&self, operator: Address) -> Result<U256> {
+        let weight = self.ecdsa_stake_registry.getOperatorWeight(operator).call().await?;
+
+        Ok(weight)
     }
 }

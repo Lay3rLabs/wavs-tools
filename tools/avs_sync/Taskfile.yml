@@ -5,8 +5,13 @@ vars:
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
   PKG_VERSION: 0.1.0
-  REGISTRY_COORDINATOR_ADDRESS: 0xC908fAFAE29B5C9F0b5E0Da1d3025b8d6D42bfa0
-  OPERATOR_STATE_RETRIEVER_ADDRESS: 0xB4baAfee917fb4449f5ec64804217bccE9f46C67
+  # Post-deployment vars
+  RPC_URL: http://localhost:8545
+  SERVICE_JSON: .docker/service.json
+  ECDSA_STAKE_REGISTRY_ADDRESS:
+    sh: jq -r '.addresses.stakeRegistry' ./.nodes/avs_deploy.json
+  SERVICE_MANAGER:
+    sh: jq -r .addresses.WavsServiceManager ./.nodes/avs_deploy.json
 
 tasks:
   wasi-build:
@@ -26,6 +31,17 @@ tasks:
         export COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
         export PKG_NAME={{.PKG_NAME}}
         export PKG_VERSION={{.PKG_VERSION}}
-        export REGISTRY_COORDINATOR_ADDRESS={{.REGISTRY_COORDINATOR_ADDRESS}}
-        export OPERATOR_STATE_RETRIEVER_ADDRESS={{.OPERATOR_STATE_RETRIEVER_ADDRESS}}
+        export ECDSA_STAKE_REGISTRY_ADDRESS={{.ECDSA_STAKE_REGISTRY_ADDRESS}}
         ./script/deploy-component.sh
+
+  trigger:
+    desc: "Trigger the component"
+    cmds:
+      - cast rpc anvil_mine 100 --rpc-url http://localhost:8545
+
+  # Operator State Queries
+  list-operator:
+    cmds:
+      - |
+        export WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER}}
+        task wavs-middleware -- list_operator

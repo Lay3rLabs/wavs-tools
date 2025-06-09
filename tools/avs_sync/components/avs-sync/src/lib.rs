@@ -22,16 +22,16 @@ use crate::bindings::{
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ComponentInput {
-    pub registry_coordinator_address: String,
-    pub operator_state_retriever_address: String,
+    pub ecdsa_stake_registry_address: String,
     pub chain_name: String,
     pub block_height: u64,
+    pub lookback_blocks: Option<u64>, // How many blocks to look back for events
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UpdateOperatorsForQuorumData {
     pub operators_per_quorum: Vec<Vec<Address>>, // address[][] - operators for each quorum
-    pub quorum_numbers: Vec<u8>,                 // bytes - quorum identifiers
+    pub quorum_numbers: Vec<u8>, // bytes - quorum identifiers (always [0] for ECDSAStakeRegistry)
     pub total_operators: usize,
     pub block_height: u64,
 }
@@ -42,23 +42,25 @@ impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         // Decode the trigger event
         let ComponentInput {
-            registry_coordinator_address,
-            operator_state_retriever_address,
+            ecdsa_stake_registry_address,
             chain_name,
             block_height,
+            lookback_blocks,
         } = match action.data {
             TriggerData::BlockInterval(BlockIntervalData { block_height, chain_name }) => {
-                let registry_coordinator_address = host::config_var("registry_coordinator_address")
-                    .ok_or("registry_coordinator_address not configured")?;
-                let operator_state_retriever_address =
-                    host::config_var("operator_state_retriever_address")
-                        .ok_or("operator_state_retriever_address not configured")?;
+                let ecdsa_stake_registry_address = host::config_var("ecdsa_stake_registry_address")
+                    .ok_or("ecdsa_stake_registry_address not configured")?;
+
+                // Get lookback period (default 1000 blocks like your script)
+                let lookback_blocks = host::config_var("lookback_blocks")
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(1000u64);
 
                 Ok(ComponentInput {
-                    registry_coordinator_address,
-                    operator_state_retriever_address,
+                    ecdsa_stake_registry_address,
                     chain_name,
                     block_height,
+                    lookback_blocks: Some(lookback_blocks),
                 })
             }
             TriggerData::Raw(data) => serde_json::from_slice(&data).map_err(|e| e.to_string()),
@@ -68,26 +70,19 @@ impl Guest for Component {
         host::log(LogLevel::Info, &format!("Starting AVS sync for chain: {}", chain_name));
         host::log(
             LogLevel::Info,
-            &format!("Registry coordinator: {}", registry_coordinator_address),
-        );
-        host::log(
-            LogLevel::Info,
-            &format!("Operator state retriever: {}", operator_state_retriever_address),
+            &format!("ECDSA Stake Registry: {}", ecdsa_stake_registry_address),
         );
 
         block_on(async move {
-            let registry_coordinator_address = registry_coordinator_address
-                .parse()
-                .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
-            let operator_state_retriever_address = operator_state_retriever_address
+            let ecdsa_stake_registry_address = ecdsa_stake_registry_address
                 .parse()
                 .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
 
             let update_data = perform_avs_sync(
                 chain_name,
                 block_height,
-                registry_coordinator_address,
-                operator_state_retriever_address,
+                ecdsa_stake_registry_address,
+                lookback_blocks,
             )
             .await
             .map_err(|e| e.to_string())?;
@@ -95,26 +90,10 @@ impl Guest for Component {
             host::log(
                 LogLevel::Info,
                 &format!(
-                    "AVS sync completed: {} total operators across {} quorums at block {}",
-                    update_data.total_operators,
-                    update_data.quorum_numbers.len(),
-                    update_data.block_height
+                    "AVS sync completed: {} total operators in quorum 0 at block {}",
+                    update_data.total_operators, update_data.block_height
                 ),
             );
-
-            // Log operators per quorum
-            for (i, operators) in update_data.operators_per_quorum.iter().enumerate() {
-                if i < update_data.quorum_numbers.len() {
-                    host::log(
-                        LogLevel::Info,
-                        &format!(
-                            "Quorum {}: {} operators",
-                            update_data.quorum_numbers[i],
-                            operators.len()
-                        ),
-                    );
-                }
-            }
 
             // Return the data needed for updateOperatorsForQuorum
             let response_data =
@@ -128,8 +107,8 @@ impl Guest for Component {
 async fn perform_avs_sync(
     chain_name: String,
     block_height: u64,
-    registry_coordinator_address: Address,
-    operator_state_retriever_address: Address,
+    ecdsa_stake_registry_address: Address,
+    lookback_blocks: Option<u64>,
 ) -> Result<UpdateOperatorsForQuorumData> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
@@ -138,56 +117,49 @@ async fn perform_avs_sync(
         chain_config.http_endpoint.ok_or(anyhow!("No HTTP endpoint configured"))?,
     );
 
-    // Create the AVS reader
-    let avs_reader =
-        AvsReader::new(registry_coordinator_address, operator_state_retriever_address, provider);
+    // Create the AVS reader for ECDSAStakeRegistry
+    let avs_reader = AvsReader::new(ecdsa_stake_registry_address, provider);
 
-    // Get the number of quorums
+    // ECDSAStakeRegistry has only one quorum (quorum 0)
     let quorum_count = avs_reader.get_quorum_count().await?;
-    host::log(LogLevel::Info, &format!("Found {} quorums", quorum_count));
+    host::log(LogLevel::Info, &format!("ECDSAStakeRegistry has {} quorum", quorum_count));
 
-    if quorum_count == 0 {
-        return Ok(UpdateOperatorsForQuorumData {
-            operators_per_quorum: Vec::new(),
-            quorum_numbers: Vec::new(),
-            total_operators: 0,
-            block_height,
-        });
-    }
+    // Get operators by querying OperatorRegistered events (like your script)
+    let lookback = lookback_blocks.unwrap_or(1000);
+    let from_block = if block_height > lookback { block_height - lookback } else { 0 };
 
-    // Collect operators for each quorum
-    let mut operators_per_quorum = Vec::new();
-    let mut quorum_numbers = Vec::new();
-    let mut total_unique_operators = std::collections::HashSet::new();
-
-    for quorum in 0..quorum_count {
-        host::log(LogLevel::Debug, &format!("Processing quorum {}", quorum));
-
-        let mut operators =
-            avs_reader.get_operators_in_quorum(quorum, block_height.try_into()?).await?;
-        host::log(
-            LogLevel::Debug,
-            &format!("Found {} operators in quorum {}", operators.len(), quorum),
-        );
-
-        // Sort in ascending order
-        operators.sort();
-
-        // Add to unique operators count
-        for operator in &operators {
-            total_unique_operators.insert(*operator);
-        }
-
-        // Add quorum data
-        operators_per_quorum.push(operators);
-        quorum_numbers.push(quorum);
-    }
-
-    let total_operators = total_unique_operators.len();
     host::log(
         LogLevel::Info,
-        &format!("Found {} unique operators across all quorums", total_operators),
+        &format!(
+            "Querying OperatorRegistered events from block {} to {}",
+            from_block, block_height
+        ),
     );
+
+    let active_operators = avs_reader.get_active_operators(from_block, Some(block_height)).await?;
+
+    host::log(LogLevel::Info, &format!("Found {} active operators", active_operators.len()));
+
+    // Log each operator with their weight
+    for operator in &active_operators {
+        let weight = avs_reader.get_operator_weight(*operator).await?;
+        host::log(LogLevel::Debug, &format!("Operator {} weight: {}", operator, weight));
+    }
+
+    // Sort operators in ascending order (required by the contract)
+    let mut sorted_operators = active_operators;
+    sorted_operators.sort();
+
+    host::log(
+        LogLevel::Info,
+        &format!("Found {} active operators in quorum 0", sorted_operators.len()),
+    );
+
+    // ECDSAStakeRegistry only has quorum 0
+    let operators_per_quorum = vec![sorted_operators.clone()];
+    let quorum_numbers = vec![0u8];
+
+    let total_operators = sorted_operators.len();
 
     Ok(UpdateOperatorsForQuorumData {
         operators_per_quorum,
