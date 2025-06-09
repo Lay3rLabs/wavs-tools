@@ -5,6 +5,7 @@ vars:
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
   PKG_VERSION: 0.1.0
+  BLOCK_INTERVAL: 100
   # Post-deployment vars
   RPC_URL: http://localhost:8545
   SERVICE_JSON: .docker/service.json
@@ -32,16 +33,18 @@ tasks:
         export PKG_NAME={{.PKG_NAME}}
         export PKG_VERSION={{.PKG_VERSION}}
         export ECDSA_STAKE_REGISTRY_ADDRESS={{.ECDSA_STAKE_REGISTRY_ADDRESS}}
+        export BLOCK_INTERVAL={{.BLOCK_INTERVAL}}
         ./script/deploy-component.sh
 
   trigger:
     desc: "Trigger the component"
     cmds:
-      - cast rpc anvil_mine 100 --rpc-url http://localhost:8545
+      - cast rpc anvil_mine {{.CLI_ARGS}} --rpc-url http://localhost:8545
 
   # Operator State Queries
   list-operator:
     cmds:
       - |
+        export PAST_BLOCKS={{.CLI_ARGS}}
         export WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER}}
         task wavs-middleware -- list_operator

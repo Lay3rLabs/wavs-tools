@@ -25,7 +25,7 @@ pub struct ComponentInput {
     pub ecdsa_stake_registry_address: String,
     pub chain_name: String,
     pub block_height: u64,
-    pub lookback_blocks: Option<u64>, // How many blocks to look back for events
+    pub lookback_blocks: u64, // How many blocks to look back for events
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -51,16 +51,16 @@ impl Guest for Component {
                 let ecdsa_stake_registry_address = host::config_var("ecdsa_stake_registry_address")
                     .ok_or("ecdsa_stake_registry_address not configured")?;
 
-                // Get lookback period (default 1000 blocks like your script)
+                // Get lookback period
                 let lookback_blocks = host::config_var("lookback_blocks")
                     .and_then(|s| s.parse().ok())
-                    .unwrap_or(1000u64);
+                    .ok_or("lookback_blocks not configured")?;
 
                 Ok(ComponentInput {
                     ecdsa_stake_registry_address,
                     chain_name,
                     block_height,
-                    lookback_blocks: Some(lookback_blocks),
+                    lookback_blocks,
                 })
             }
             TriggerData::Raw(data) => serde_json::from_slice(&data).map_err(|e| e.to_string()),
@@ -108,7 +108,7 @@ async fn perform_avs_sync(
     chain_name: String,
     block_height: u64,
     ecdsa_stake_registry_address: Address,
-    lookback_blocks: Option<u64>,
+    lookback_blocks: u64,
 ) -> Result<UpdateOperatorsForQuorumData> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
@@ -124,9 +124,8 @@ async fn perform_avs_sync(
     let quorum_count = avs_reader.get_quorum_count().await?;
     host::log(LogLevel::Info, &format!("ECDSAStakeRegistry has {} quorum", quorum_count));
 
-    // Get operators by querying OperatorRegistered events (like your script)
-    let lookback = lookback_blocks.unwrap_or(1000);
-    let from_block = if block_height > lookback { block_height - lookback } else { 0 };
+    // Get operators by querying OperatorRegistered events
+    let from_block = block_height.saturating_sub(lookback_blocks);
 
     host::log(
         LogLevel::Info,
@@ -136,7 +135,7 @@ async fn perform_avs_sync(
         ),
     );
 
-    let active_operators = avs_reader.get_active_operators(from_block, Some(block_height)).await?;
+    let active_operators = avs_reader.get_active_operators(from_block, block_height).await?;
 
     host::log(LogLevel::Info, &format!("Found {} active operators", active_operators.len()));
 
