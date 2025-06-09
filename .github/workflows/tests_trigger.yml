@@ -54,7 +54,6 @@ jobs:
   #           } else {
   #             console.log('Skipping comment: PR is in draft mode and tests passed');
   #           }
-
   #     - name: Set test failure status
   #       if: always()
   #       run: |

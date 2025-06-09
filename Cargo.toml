@@ -1,5 +1,5 @@
 [workspace]
-members = ["avs_sync/components/avs-sync"]
+members = ["tools/avs_sync/components/avs-sync"]
 resolver = "2"
 
 [workspace.package]

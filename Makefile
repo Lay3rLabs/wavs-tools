@@ -19,10 +19,10 @@ setup: check-requirements
 ## build-abi: Build and copy specific ABI files from eigenlayer-middleware
 build-abi:
 	@echo "Building AVS Sync specific ABI files from eigenlayer-middleware..."
-	@cd lib/eigenlayer-middleware && forge build src/interfaces/ISlashingRegistryCoordinator.sol src/OperatorStateRetriever.sol
-	@mkdir -p avs_sync/src/contracts/abi
-	@cp -r lib/eigenlayer-middleware/out/ISlashingRegistryCoordinator.sol avs_sync/src/contracts/abi/
-	@cp -r lib/eigenlayer-middleware/out/OperatorStateRetriever.sol avs_sync/src/contracts/abi/
+	@cd submodules/eigenlayer-middleware && forge build src/interfaces/ISlashingRegistryCoordinator.sol src/OperatorStateRetriever.sol
+	@mkdir -p tools/avs_sync/src/contracts/abi
+	@cp -r submodules/eigenlayer-middleware/out/ISlashingRegistryCoordinator.sol tools/avs_sync/src/contracts/abi/
+	@cp -r submodules/eigenlayer-middleware/out/OperatorStateRetriever.sol tools/avs_sync/src/contracts/abi/
 	@echo "AVS Sync ABI files copied successfully"
 
 # System requirements check
