@@ -4,15 +4,13 @@ This repository is a monorepo for WAVS components and tools that can be used by 
 
 ## Directory Layout
 
-- **avs_sync/**: AVS synchronization service example with contracts and WASI components
-- **deployment/**: Docker Compose setups and testnet scripts  
-- **docs/**: repository-wide documentation  
-- **lib/**: external library dependencies
-- **scripts/**: repo-wide utilities (setup, upgrade, etc.)  
-- **tools/**: development and build tools
-- **wit/**: WebAssembly Interface Type definitions
-- **Makefile**: top-level build, test, and docker commands  
-- **wavs.toml**: WAVS configuration  
+- **backend/**: Docker Compose setups, telemetry, testnet scripts, and WAVS configuration
+- **submodules/**: External dependencies (eigenlayer-middleware, forge-std, openzeppelin-contracts)
+- **tests/**: Integration and end-to-end tests
+- **tools/**: Development tools and utilities
+  - **avs_sync/**: AVS synchronization service example with contracts and WASI components
+
+The WAVS configuration file (`wavs.toml`) is located in the `backend/` directory.
 
 ## System Requirements
 
