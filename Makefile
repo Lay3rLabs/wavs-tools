@@ -1,13 +1,3 @@
-# Define required tools
-CARGO=cargo
-
-# Docker image for wavs-cli, used in some setups (preserved for possible future use)
-DOCKER_IMAGE ?= ghcr.io/lay3rlabs/wavs:0.4.0-rc
-SUDO := $(shell if groups | grep -q docker; then echo ''; else echo 'sudo'; fi)
-
-# WAVS command template (not used directly but defined for future compatibility)
-WAVS_CMD ?= $(SUDO) docker run --rm --network host $$(test -f .env && echo "--env-file ./.env") -v $$(pwd):/data ${DOCKER_IMAGE} wavs-cli
-
 # Setup: Install dependencies
 ## setup: Install initial dependencies (forge, npm, submodules)
 setup: check-requirements
