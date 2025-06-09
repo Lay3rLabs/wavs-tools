@@ -23,8 +23,8 @@ jobs:
 
       - name: Run forge build
         run: forge build -vvv
-        working-directory: avs_sync
+        working-directory: tools/avs_sync
 
       - name: Run forge tests
         run: forge test -vvv
-        working-directory: avs_sync
+        working-directory: tools/avs_sync

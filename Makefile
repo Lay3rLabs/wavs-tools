@@ -145,9 +145,9 @@ _build_forge:
 build-abi:
 	@echo "Building AVS Sync specific ABI files from eigenlayer-middleware..."
 	@cd submodules/eigenlayer-middleware && forge build src/interfaces/ISlashingRegistryCoordinator.sol src/OperatorStateRetriever.sol
-	@mkdir -p avs_sync/src/contracts/abi
-	@cp -r submodules/eigenlayer-middleware/out/ISlashingRegistryCoordinator.sol avs_sync/src/contracts/abi/
-	@cp -r submodules/eigenlayer-middleware/out/OperatorStateRetriever.sol avs_sync/src/contracts/abi/
+	@mkdir -p tools/avs_sync/src/contracts/abi
+	@cp -r submodules/eigenlayer-middleware/out/ISlashingRegistryCoordinator.sol tools/avs_sync/src/contracts/abi/
+	@cp -r submodules/eigenlayer-middleware/out/OperatorStateRetriever.sol tools/avs_sync/src/contracts/abi/
 	@echo "AVS Sync ABI files copied successfully"
 
 .PHONY: setup-env
