@@ -1,0 +1,31 @@
+version: "3"
+
+vars:
+  COMPONENT_NAME: avs_sync
+  COMPONENT_FILENAME: avs_sync.wasm
+  PKG_NAME: avssync
+  PKG_VERSION: 0.1.0
+  REGISTRY_COORDINATOR_ADDRESS: 0xC908fAFAE29B5C9F0b5E0Da1d3025b8d6D42bfa0
+  OPERATOR_STATE_RETRIEVER_ADDRESS: 0xB4baAfee917fb4449f5ec64804217bccE9f46C67
+
+tasks:
+  wasi-build:
+    cmds:
+      - |
+        echo "Building component: {{.COMPONENT_NAME}}"
+        cargo component build --release; cargo fmt
+        mkdir -p ./compiled
+        cp target/wasm32-wasip1/release/*.wasm ./compiled
+
+  deploy:
+    desc: "Deploy component"
+    cmds:
+      - chmod +x ./script/deploy-component.sh
+      - |
+        export COMPONENT_NAME={{.COMPONENT_NAME}}
+        export COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
+        export PKG_NAME={{.PKG_NAME}}
+        export PKG_VERSION={{.PKG_VERSION}}
+        export REGISTRY_COORDINATOR_ADDRESS={{.REGISTRY_COORDINATOR_ADDRESS}}
+        export OPERATOR_STATE_RETRIEVER_ADDRESS={{.OPERATOR_STATE_RETRIEVER_ADDRESS}}
+        ./script/deploy-component.sh

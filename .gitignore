@@ -15,4 +15,8 @@ wavs:worker*.wit
 wavs:worker*.wasm
 .nodes
 avs_sync/src/contracts/abi/
+aggregator/
+.wavs/
+compiled/
 tests/.test-reports
+infra/
