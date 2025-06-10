@@ -3,7 +3,8 @@ mod avs_reader;
 mod bindings;
 
 use alloy_network::Ethereum;
-use alloy_primitives::Address;
+use alloy_primitives::{Address, Bytes};
+use alloy_sol_types::SolValue;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
 use bindings::{
@@ -95,11 +96,19 @@ impl Guest for Component {
                 ),
             );
 
+            if update_data.total_operators == 0 {
+                return Ok(None);
+            }
+
             // Return the data needed for updateOperatorsForQuorum
-            let response_data =
-                serde_json::to_vec(&(update_data.operators_per_quorum, update_data.quorum_numbers))
-                    .map_err(|e| e.to_string())?;
-            Ok(Some(WasmResponse { payload: response_data, ordering: None }))
+            Ok(Some(WasmResponse {
+                payload: (
+                    update_data.operators_per_quorum,
+                    Bytes::from(update_data.quorum_numbers),
+                )
+                    .abi_encode(),
+                ordering: None,
+            }))
         })
     }
 }

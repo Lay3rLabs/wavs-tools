@@ -21,5 +21,5 @@ task wavs-cli -- ${CMD} workflow trigger --id ${WORKFLOW_ID} set-block-interval 
 task wavs-cli -- ${CMD} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name ${SUBMIT_CHAIN} > /dev/null
 task wavs-cli -- ${CMD} workflow component --id ${WORKFLOW_ID} set-source-registry --domain ${REGISTRY} --package ${PKG_NAMESPACE}:${PKG_NAME} --version ${PKG_VERSION} > /dev/null
 task wavs-cli -- ${CMD} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
-task wavs-cli -- ${CMD} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks=${BLOCK_INTERVAL}" > /dev/null
+task wavs-cli -- ${CMD} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks=${PAST_BLOCKS}" > /dev/null
 task wavs-cli -- ${CMD} manager set-evm --chain-name ${SUBMIT_CHAIN} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null

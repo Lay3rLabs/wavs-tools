@@ -21,6 +21,8 @@ cp target/wasm32-wasip1/release/*.wasm "$COMPONENTS_DIR"
 echo "Deploying middleware..."
 source ./script/deploy-middleware.sh
 
+export ECDSA_STAKE_REGISTRY_ADDRESS=$(jq -r '.addresses.stakeRegistry' ./.nodes/avs_deploy.json)
+
 # Call component-specific deployment script (this sets WAVS_SUBMIT_ADDRESS)
 if [ -f "./tools/$COMPONENT_NAME/script/deploy-submit.sh" ]; then
     echo "Running component-specific contract deployment..."

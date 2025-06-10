@@ -6,11 +6,10 @@ vars:
   PKG_NAME: avssync
   PKG_VERSION: 0.1.0
   BLOCK_INTERVAL: 100
+  PAST_BLOCKS: 50000
   # Post-deployment vars
   RPC_URL: http://localhost:8545
   SERVICE_JSON: .docker/service.json
-  ECDSA_STAKE_REGISTRY_ADDRESS:
-    sh: jq -r '.addresses.stakeRegistry' ./.nodes/avs_deploy.json
   SERVICE_MANAGER:
     sh: jq -r .addresses.WavsServiceManager ./.nodes/avs_deploy.json
 
@@ -32,8 +31,8 @@ tasks:
         export COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
         export PKG_NAME={{.PKG_NAME}}
         export PKG_VERSION={{.PKG_VERSION}}
-        export ECDSA_STAKE_REGISTRY_ADDRESS={{.ECDSA_STAKE_REGISTRY_ADDRESS}}
         export BLOCK_INTERVAL={{.BLOCK_INTERVAL}}
+        export PAST_BLOCKS={{.PAST_BLOCKS}}
         ./script/deploy-component.sh
 
   trigger:
