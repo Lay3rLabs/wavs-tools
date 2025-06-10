@@ -3,7 +3,7 @@ mod avs_reader;
 mod bindings;
 
 use alloy_network::Ethereum;
-use alloy_primitives::{Address, Bytes};
+use alloy_primitives::{hex, Address, Bytes};
 use alloy_sol_types::SolValue;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
@@ -100,15 +100,14 @@ impl Guest for Component {
                 return Ok(None);
             }
 
+            let payload =
+                (update_data.operators_per_quorum, Bytes::from(update_data.quorum_numbers))
+                    .abi_encode();
+
+            host::log(LogLevel::Info, &format!("{}", hex::encode(&payload)));
+
             // Return the data needed for updateOperatorsForQuorum
-            Ok(Some(WasmResponse {
-                payload: (
-                    update_data.operators_per_quorum,
-                    Bytes::from(update_data.quorum_numbers),
-                )
-                    .abi_encode(),
-                ordering: None,
-            }))
+            Ok(Some(WasmResponse { payload, ordering: None }))
         })
     }
 }
