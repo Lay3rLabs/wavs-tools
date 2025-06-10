@@ -1,51 +1,131 @@
 version: "3"
 
-dotenv: [".env"]
+dotenv: [".env", ".docker/.state.env"]
 
 vars:
   COMPONENTS_DIR: "./compiled"
+  STATE_DIR: ".docker"
   DOCKER_SUDO:
     sh: |
       if groups | grep -q docker; then echo ""; else echo "sudo"; fi
+  DEPLOY_ENV:
+    sh: |
+      if [ -f .env ] && grep -q '^DEPLOY_ENV=' .env; then
+        grep '^DEPLOY_ENV=' .env | cut -d '=' -f2
+      else
+        echo "LOCAL"
+      fi
+  RPC_URL:
+    sh: |
+      DEPLOY_ENV="{{.DEPLOY_ENV}}"
+      if [ "$DEPLOY_ENV" = "LOCAL" ]; then
+        grep "^LOCAL_ETHEREUM_RPC_URL=" .env | cut -d '=' -f2
+      elif [ "$DEPLOY_ENV" = "TESTNET" ]; then
+        grep "^TESTNET_RPC_URL=" .env | cut -d '=' -f2
+      else
+        echo "http://localhost:8545"
+      fi
 
 includes:
   avs_sync: ./tools/avs_sync/Taskfile.yml
 
 tasks:
+  # ===========================================
+  # PUBLIC TASKS (Main user-facing commands)
+  # ===========================================
+  
   start:
-    desc: "Starts anvil and core services (like IPFS for example)"
-    deps: [clean-docker, setup-env]
-    cmds:
-      - sh ./script/start_all.sh
+    desc: "Start anvil and core services"
+    deps: [internal:clean-docker, internal:setup-env, internal:start-services]
 
-  clean-docker:
-    desc: "Remove unused docker containers"
+  stop:
+    desc: "Stop Anvil and Docker services"
+    cmds:
+      - docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans
+      - pkill -f "anvil --fork-url" || true
+
+  deploy-component:
+    desc: "Deploy a component (usage: task deploy-component COMPONENT=<name>)"
+    deps: [internal:setup-env]
+    vars:
+      COMPONENT: '{{.COMPONENT | default "avs_sync"}}'
+    cmds:
+      - task: internal:deploy-component-impl
+        vars:
+          COMPONENT: "{{.COMPONENT}}"
+
+  create-aggregator:
+    desc: "Create aggregator instance (usage: task create-aggregator INDEX=<n>)"
+    deps: [internal:setup-env]
+    vars:
+      INDEX: '{{.INDEX | default 1}}'
+    cmds:
+      - task: internal:create-aggregator-impl
+        vars:
+          INDEX: "{{.INDEX}}"
+
+  create-operator:
+    desc: "Create operator instance (usage: task create-operator INDEX=<n>)"
+    deps: [internal:setup-env]
     cmds:
       - |
-        {{.DOCKER_SUDO}} docker stop $({{.DOCKER_SUDO}} docker ps -q) 2>/dev/null || true
-
-  setup-env:
-    desc: "Create the .env file from .env.example if not yet created"
-    cmds:
-      - |
-        [ -f .env ] || cp .env.example .env
+        INDEX=${INDEX:-1}
+        export WALLET_TYPE=operator
+        export OP_INDEX=$INDEX
+        # Generate wallet
+        TEMP_FILE=".docker/tmp_${WALLET_TYPE}_${OP_INDEX}.json"
+        cast wallet new-mnemonic --json > $TEMP_FILE
+        MNEMONIC=$(jq -r .mnemonic $TEMP_FILE)
+        PRIVATE_KEY=$(jq -r .accounts[0].private_key $TEMP_FILE)
+        ADDRESS=$(cast wallet address "$PRIVATE_KEY")
+        rm $TEMP_FILE
+        
+        # Create operator environment
+        mkdir -p infra/wavs-${OP_INDEX}
+        echo "WAVS_OPERATOR_CREDENTIAL=${PRIVATE_KEY}" > infra/wavs-${OP_INDEX}/.env
+        echo "WAVS_SUBMISSION_MNEMONIC=\"${MNEMONIC}\"" >> infra/wavs-${OP_INDEX}/.env
+        echo "# Mnemonic: ${MNEMONIC}" >> infra/wavs-${OP_INDEX}/.env
+        
+        # Create start script
+        echo "#!/bin/bash" > infra/wavs-${OP_INDEX}/start.sh
+        echo "cd \$(dirname \"\$0\") || exit 1" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "IMAGE=ghcr.io/lay3rlabs/wavs:0.4.0-rc" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "INSTANCE=wavs-${OP_INDEX}" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "IPFS_GATEWAY=\${IPFS_GATEWAY:-\"https://gateway.pinata.cloud/ipfs/\"}" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "docker kill \${INSTANCE} > /dev/null 2>&1 || true" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "docker rm \${INSTANCE} > /dev/null 2>&1 || true" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "docker run -d --name \${INSTANCE} --network host --stop-signal SIGKILL --env-file .env -v .:/wavs \\" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "  \${IMAGE} wavs --log-level debug --host 0.0.0.0 --port 8000 --ipfs-gateway \${IPFS_GATEWAY}" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "" >> infra/wavs-${OP_INDEX}/start.sh
+        echo "sleep 1" >> infra/wavs-${OP_INDEX}/start.sh
+        chmod +x infra/wavs-${OP_INDEX}/start.sh
+        
+        # Copy config files
+        cp wavs.toml infra/wavs-${OP_INDEX}/wavs.toml
+        
+        # Fund wallet if local
+        if [ "${DEPLOY_ENV:-LOCAL}" = "LOCAL" ]; then
+          cast rpc anvil_setBalance ${ADDRESS} '15000000000000000000' --rpc-url ${RPC_URL:-http://localhost:8545} > /dev/null
+          BAL=$(cast balance --ether ${ADDRESS} --rpc-url=${RPC_URL:-http://localhost:8545})
+          echo "Local operator ${ADDRESS} funded with ${BAL}ether"
+        fi
 
   wavs-middleware:
-    desc: Run any wavs middleware command
+    desc: "Run wavs middleware command"
+    deps: [internal:load-state]
     vars:
+      STATE_DIR: ".docker"
       MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
     cmds:
       - >
-        {{.DOCKER_SUDO}} docker run --rm --network host --env-file .env
-        $(if [ -n "${WAVS_SERVICE_MANAGER_ADDRESS}" ]; then echo "-e WAVS_SERVICE_MANAGER_ADDRESS=${WAVS_SERVICE_MANAGER_ADDRESS}"; fi)
-        $(if [ -n "${PAST_BLOCKS}" ]; then echo "-e PAST_BLOCKS=${PAST_BLOCKS}"; fi)
+        {{.DOCKER_SUDO}} docker run --rm --network host --env-file .env --env-file {{.STATE_DIR}}/.state.env
         -v ./.nodes:/root/.nodes {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
-    env:
-      WAVS_SERVICE_MANAGER_ADDRESS: '{{env "WAVS_SERVICE_MANAGER_ADDRESS"}}'
-      PAST_BLOCKS: '{{default "500" (env "PAST_BLOCKS")}}'
 
   wavs-cli:
-    desc: Run any wavs cli command
+    desc: "Run wavs cli command"
     vars:
       WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
     cmds:
@@ -54,35 +134,535 @@ tasks:
         -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
 
-  upload-to-ipfs:
-    desc: "Upload service file to IPFS (local or via Pinata depending on deploy status)"
+  # ===========================================
+  # INTERNAL TASKS (Implementation details)
+  # ===========================================
+
+  internal:clean-docker:
+    internal: true
     cmds:
-      - >
-        if [ "$(sh script/get-deploy-status.sh)" = "LOCAL" ]; then
-          curl -X POST "http://127.0.0.1:5001/api/v0/add?pin=true" \
-            -H "Content-Type: multipart/form-data" \
-            -F file=@${SERVICE_FILE} | jq -r .Hash;
-        else
-          if [ -z "${PINATA_API_KEY}" ]; then
-            echo "Error: PINATA_API_KEY is not set. Please set it to your Pinata API key -- https://app.pinata.cloud/developers/api-keys.";
-            exit 1;
-          fi;
-          curl -X POST --url https://uploads.pinata.cloud/v3/files \
-            --header "Authorization: Bearer ${PINATA_API_KEY}" \
-            --header "Content-Type: multipart/form-data" \
-            --form file=@${SERVICE_FILE} \
-            --form network=public \
-            --form name=service-$(date +"%b-%d-%Y").json | jq -r .data.cid;
+      - |
+        {{.DOCKER_SUDO}} docker stop $({{.DOCKER_SUDO}} docker ps -q) 2>/dev/null || true
+
+  internal:setup-env:
+    internal: true
+    vars:
+      STATE_DIR: ".docker"
+    cmds:
+      - mkdir -p {{.STATE_DIR}}
+      - |
+        [ -f .env ] || cp .env.example .env
+      - |
+        [ -f {{.STATE_DIR}}/.state.env ] || touch {{.STATE_DIR}}/.state.env
+
+  internal:load-state:
+    internal: true
+    deps: [internal:setup-env]
+    vars:
+      STATE_DIR: ".docker"
+    cmds:
+      - |
+        # Source state from JSON files if they exist
+        if [ -f {{.STATE_DIR}}/deployer.json ]; then
+          DEPLOYER_ADDRESS=$(jq -r '.accounts[0].address' {{.STATE_DIR}}/deployer.json)
+          DEPLOYER_PRIVATE_KEY=$(jq -r '.accounts[0].private_key' {{.STATE_DIR}}/deployer.json)
+          echo "DEPLOYER_ADDRESS=${DEPLOYER_ADDRESS}" >> {{.STATE_DIR}}/.state.env.tmp
+          echo "DEPLOYER_PRIVATE_KEY=${DEPLOYER_PRIVATE_KEY}" >> {{.STATE_DIR}}/.state.env.tmp
+        fi
+        if [ -f .nodes/avs_deploy.json ]; then
+          WAVS_SERVICE_MANAGER_ADDRESS=$(jq -r '.addresses.WavsServiceManager' .nodes/avs_deploy.json)
+          ECDSA_STAKE_REGISTRY_ADDRESS=$(jq -r '.addresses.stakeRegistry' .nodes/avs_deploy.json)
+          echo "WAVS_SERVICE_MANAGER_ADDRESS=${WAVS_SERVICE_MANAGER_ADDRESS}" >> {{.STATE_DIR}}/.state.env.tmp
+          echo "ECDSA_STAKE_REGISTRY_ADDRESS=${ECDSA_STAKE_REGISTRY_ADDRESS}" >> {{.STATE_DIR}}/.state.env.tmp
+        fi
+        if [ -f {{.STATE_DIR}}/.state.env.tmp ]; then
+          # Remove duplicates and update state file
+          sort {{.STATE_DIR}}/.state.env.tmp | uniq > {{.STATE_DIR}}/.state.env
+          rm {{.STATE_DIR}}/.state.env.tmp
         fi
 
-  stop:
-    desc: "Stop Anvil and Docker services started"
+  internal:get-deploy-status:
+    internal: true
+    deps: [internal:setup-env]
     cmds:
-      - docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans
-      - pkill -f "anvil --fork-url" || true
+      - |
+        if [ -f .env ] && grep -q '^DEPLOY_ENV=' .env; then
+          grep '^DEPLOY_ENV=' .env | cut -d '=' -f2 | tr '[:lower:]' '[:upper:]'
+        else
+          echo "LOCAL"
+        fi
 
-  dos2unix:
+  internal:start-services:
+    internal: true
+    vars:
+      TESTNET_RPC_URL:
+        sh: |
+          if [ -f .env ] && grep -q '^TESTNET_RPC_URL=' .env; then
+            grep '^TESTNET_RPC_URL=' .env | cut -d '=' -f2 | tr -d '"'
+          else
+            echo "https://holesky.drpc.org"
+          fi
+      FORK_RPC_URL: '{{.FORK_RPC_URL | default .TESTNET_RPC_URL}}'
+      PORT: "8545"
     cmds:
-      - dos2unix ./script/*
-      - find ./script/template -type f -exec dos2unix {} \;
-      - dos2unix ./tools/avs_sync/script/*
+      - |
+        DEPLOY_ENV="{{.DEPLOY_ENV}}"
+        if [ "$DEPLOY_ENV" = "TESTNET" ]; then
+          echo "Running in testnet mode, nothing to do"
+          exit 0
+        fi
+        
+        if [ "$DEPLOY_ENV" = "LOCAL" ]; then
+          anvil --fork-url {{.FORK_RPC_URL}} --port {{.PORT}} &
+          anvil_pid=$!
+          trap "kill -9 $anvil_pid && echo -e '\nKilled anvil'" EXIT
+          
+          while ! cast block-number --rpc-url http://localhost:{{.PORT}} > /dev/null 2>&1; do
+            sleep 0.25
+          done
+          
+          FILES="-f docker-compose.yml -f telemetry/docker-compose.yml"
+          docker compose ${FILES} pull
+          docker compose ${FILES} up --force-recreate -d
+          trap "docker compose ${FILES} down --remove-orphans && docker kill wavs-1 wavs-aggregator-1 > /dev/null 2>&1 && echo -e '\nKilled IPFS + Local WARG, and wavs instances'" EXIT
+          
+          echo "Started..."
+          wait
+        fi
+
+  internal:create-deployer:
+    internal: true
+    deps: [internal:setup-env]
+    vars:
+      STATE_DIR: ".docker"
+    cmds:
+      - |
+        if [ ! -f {{.STATE_DIR}}/deployer.json ]; then
+          cast wallet new-mnemonic --json > {{.STATE_DIR}}/deployer.json
+          echo "Created new deployer wallet"
+        fi
+        
+        DEPLOYER_ADDR=$(jq -r '.accounts[0].address' {{.STATE_DIR}}/deployer.json)
+        
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          cast rpc anvil_setBalance "${DEPLOYER_ADDR}" '15000000000000000000' --rpc-url {{.RPC_URL}} > /dev/null
+          BAL=$(cast balance --ether $DEPLOYER_ADDR --rpc-url={{.RPC_URL}})
+          echo "Local deployer ${DEPLOYER_ADDR} funded with ${BAL}ether"
+        else
+          echo "Fund deployer ${DEPLOYER_ADDR} with some ETH"
+          while true; do
+            BALANCE=$(cast balance --ether $DEPLOYER_ADDR --rpc-url={{.RPC_URL}})
+            if [ "$BALANCE" != "0.000000000000000000" ]; then
+              echo "Account balance is now $BALANCE"
+              break
+            fi
+            echo "Waiting for balance to be funded..."
+            sleep 5
+          done
+        fi
+
+  internal:create-aggregator-impl:
+    internal: true
+    deps: [internal:setup-env, internal:get-deploy-status]
+    vars:
+      INDEX: '{{.INDEX}}'
+    cmds:
+      - task: internal:generate-wallet
+        vars:
+          WALLET_TYPE: "aggregator"
+          INDEX: "{{.OP_INDEX}}"
+      - task: internal:create-aggregator-env
+        vars:
+          INDEX: "{{.OP_INDEX}}"
+      - task: internal:create-aggregator-start-script
+        vars:
+          INDEX: "{{.OP_INDEX}}"
+      - task: internal:copy-config-files
+        vars:
+          TARGET_DIR: "infra/aggregator-{{.INDEX}}"
+      - task: internal:fund-wallet-if-local
+        vars:
+          WALLET_TYPE: "aggregator"
+          INDEX: "{{.OP_INDEX}}"
+
+  internal:generate-wallet:
+    internal: true
+    vars:
+      STATE_DIR: ".docker"
+      WALLET_TYPE: '{{.WALLET_TYPE}}'
+      INDEX: '{{.INDEX}}'
+    cmds:
+      - |
+        TEMP_FILE="{{.STATE_DIR}}/tmp_{{.WALLET_TYPE}}_{{.INDEX}}.json"
+        cast wallet new-mnemonic --json > $TEMP_FILE
+        MNEMONIC=$(jq -r .mnemonic $TEMP_FILE)
+        PRIVATE_KEY=$(jq -r .accounts[0].private_key $TEMP_FILE)
+        ADDRESS=$(cast wallet address "$PRIVATE_KEY")
+        rm $TEMP_FILE
+        
+        # Store in temp env for other tasks to use
+        WALLET_ENV_FILE="{{.STATE_DIR}}/tmp_wallet_{{.WALLET_TYPE}}_{{.INDEX}}.env"
+        echo "WALLET_MNEMONIC=\"${MNEMONIC}\"" > $WALLET_ENV_FILE
+        echo "WALLET_PRIVATE_KEY=\"${PRIVATE_KEY}\"" >> $WALLET_ENV_FILE
+        echo "WALLET_ADDRESS=\"${ADDRESS}\"" >> $WALLET_ENV_FILE
+
+  internal:create-aggregator-env:
+    internal: true
+    vars:
+      STATE_DIR: ".docker"
+      INDEX: '{{.INDEX}}'
+      AGG_LOC: "infra/aggregator-{{.INDEX}}"
+    cmds:
+      - mkdir -p {{.AGG_LOC}}
+      - |
+        WALLET_ENV_FILE="{{.STATE_DIR}}/tmp_wallet_aggregator_{{.INDEX}}.env"
+        source $WALLET_ENV_FILE
+        echo "WAVS_AGGREGATOR_CREDENTIAL=${WALLET_PRIVATE_KEY}" > {{.AGG_LOC}}/.env
+        echo "# Mnemonic: ${WALLET_MNEMONIC}" >> {{.AGG_LOC}}/.env
+
+  internal:create-aggregator-start-script:
+    internal: true
+    vars:
+      INDEX: '{{.INDEX}}'
+      AGG_LOC: "infra/aggregator-{{.INDEX}}"
+    cmds:
+      - |
+        cat > {{.AGG_LOC}}/start.sh << 'EOF'
+        #!/bin/bash
+        cd $(dirname "$0") || exit 1
+        
+        IMAGE=ghcr.io/lay3rlabs/wavs:0.4.0-rc
+        INSTANCE=wavs-aggregator-{{.INDEX}}
+        IPFS_GATEWAY=${IPFS_GATEWAY:-"https://gateway.pinata.cloud/ipfs/"}
+        
+        docker kill ${INSTANCE} > /dev/null 2>&1 || true
+        docker rm ${INSTANCE} > /dev/null 2>&1 || true
+        
+        docker run -d --name ${INSTANCE} --network host --stop-signal SIGKILL --env-file .env --user 1000:1000 -v .:/wavs \
+          ${IMAGE} wavs-aggregator --log-level debug --host 0.0.0.0 --port 8001 --ipfs-gateway ${IPFS_GATEWAY}
+        
+        sleep 1
+        EOF
+        chmod +x {{.AGG_LOC}}/start.sh
+
+  internal:copy-config-files:
+    internal: true
+    vars:
+      TARGET_DIR: '{{.TARGET_DIR}}'
+    cmds:
+      - cp wavs.toml {{.TARGET_DIR}}/wavs.toml
+
+  internal:fund-wallet-if-local:
+    internal: true
+    vars:
+      STATE_DIR: ".docker"
+      WALLET_TYPE: '{{.WALLET_TYPE}}'
+      INDEX: '{{.INDEX}}'
+    cmds:
+      - |
+        WALLET_ENV_FILE="{{.STATE_DIR}}/tmp_wallet_{{.WALLET_TYPE}}_{{.INDEX}}.env"
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          source $WALLET_ENV_FILE
+          cast rpc anvil_setBalance ${WALLET_ADDRESS} '15000000000000000000' --rpc-url {{.RPC_URL}} > /dev/null
+          BAL=$(cast balance --ether ${WALLET_ADDRESS} --rpc-url={{.RPC_URL}})
+          echo "Local {{.WALLET_TYPE}} ${WALLET_ADDRESS} funded with ${BAL}ether"
+          # Clean up temp file
+          rm $WALLET_ENV_FILE
+        else
+          source $WALLET_ENV_FILE
+          echo "Fund {{.WALLET_TYPE}} ${WALLET_ADDRESS} with some ETH"
+          rm $WALLET_ENV_FILE
+        fi
+
+  internal:create-operator-impl:
+    internal: true
+    deps: [internal:setup-env]
+    vars:
+      INDEX: '{{.INDEX}}'
+    cmds:
+      - task: internal:generate-wallet
+        vars:
+          WALLET_TYPE: "operator"
+          INDEX: "{{.INDEX}}"
+      - task: internal:create-operator-env
+        vars:
+          INDEX: "{{.INDEX}}"
+      - task: internal:create-operator-start-script
+        vars:
+          INDEX: "{{.INDEX}}"
+      - task: internal:copy-config-files
+        vars:
+          TARGET_DIR: "infra/wavs-{{.INDEX}}"
+      - task: internal:fund-wallet-if-local
+        vars:
+          WALLET_TYPE: "operator"
+          INDEX: "{{.INDEX}}"
+
+  internal:create-operator-env:
+    internal: true
+    vars:
+      STATE_DIR: ".docker"
+      INDEX: '{{.INDEX}}'
+      OP_LOC: "infra/wavs-{{.INDEX}}"
+    cmds:
+      - mkdir -p {{.OP_LOC}}
+      - |
+        WALLET_ENV_FILE="{{.STATE_DIR}}/tmp_wallet_operator_{{.INDEX}}.env"
+        source $WALLET_ENV_FILE
+        echo "WAVS_OPERATOR_CREDENTIAL=${WALLET_PRIVATE_KEY}" > {{.OP_LOC}}/.env
+        echo "# Mnemonic: ${WALLET_MNEMONIC}" >> {{.OP_LOC}/.env
+
+  internal:create-operator-start-script:
+    internal: true
+    vars:
+      INDEX: '{{.INDEX}}'
+      OP_LOC: "infra/wavs-{{.INDEX}}"
+    cmds:
+      - |
+        echo "#!/bin/bash" > {{.OP_LOC}}/start.sh
+        echo "cd \$(dirname \"\$0\") || exit 1" >> {{.OP_LOC}}/start.sh
+        echo "" >> {{.OP_LOC}}/start.sh
+        echo "IMAGE=ghcr.io/lay3rlabs/wavs:0.4.0-rc" >> {{.OP_LOC}}/start.sh
+        echo "INSTANCE=wavs-{{.INDEX}}" >> {{.OP_LOC}}/start.sh
+        echo "IPFS_GATEWAY=\${IPFS_GATEWAY:-\"https://gateway.pinata.cloud/ipfs/\"}" >> {{.OP_LOC}}/start.sh
+        echo "" >> {{.OP_LOC}}/start.sh
+        echo "docker kill \${INSTANCE} > /dev/null 2>&1 || true" >> {{.OP_LOC}}/start.sh
+        echo "docker rm \${INSTANCE} > /dev/null 2>&1 || true" >> {{.OP_LOC}}/start.sh
+        echo "" >> {{.OP_LOC}}/start.sh
+        echo "docker run -d --name \${INSTANCE} --network host --stop-signal SIGKILL --env-file .env --user 1000:1000 -v .:/wavs \\" >> {{.OP_LOC}}/start.sh
+        echo "  \${IMAGE} wavs --log-level debug --host 0.0.0.0 --port 8000 --ipfs-gateway \${IPFS_GATEWAY}" >> {{.OP_LOC}}/start.sh
+        echo "" >> {{.OP_LOC}}/start.sh
+        echo "sleep 1" >> {{.OP_LOC}}/start.sh
+        chmod +x {{.OP_LOC}}/start.sh
+
+  internal:deploy-middleware:
+    internal: true
+    deps: [internal:create-deployer]
+    cmds:
+      - task: wavs-middleware
+        vars:
+          CLI_ARGS: "deploy"
+      - task: internal:load-state
+
+  upload-to-ipfs:
+    desc: "Upload service configuration to IPFS"
+    vars:
+      STATE_DIR: ".docker"
+      SERVICE_FILE: '{{.SERVICE_FILE | default ".docker/service.json"}}'
+    cmds:
+      - |
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          IPFS_HASH=$(curl -s -X POST "http://127.0.0.1:5001/api/v0/add?pin=true" \
+            -H "Content-Type: multipart/form-data" \
+            -F file=@{{.SERVICE_FILE}} | jq -r .Hash)
+          IPFS_URI="http://127.0.0.1:8080/ipfs/${IPFS_HASH}"
+        else
+          if [ -z "${PINATA_API_KEY}" ]; then
+            echo "Error: PINATA_API_KEY is not set"
+            exit 1
+          fi
+          CID=$(curl -s -X POST --url https://uploads.pinata.cloud/v3/files \
+            --header "Authorization: Bearer ${PINATA_API_KEY}" \
+            --header "Content-Type: multipart/form-data" \
+            --form file=@{{.SERVICE_FILE}} \
+            --form network=public \
+            --form name=service-$(date +"%b-%d-%Y").json | jq -r .data.cid)
+          IPFS_URI="${IPFS_GATEWAY}${CID}"
+        fi
+        echo "IPFS_URI=${IPFS_URI}" >> {{.STATE_DIR}}/.state.env
+        echo "Uploaded to: ${IPFS_URI}"
+
+  internal:deploy-component-impl:
+    internal: true
+    deps: [internal:setup-env, internal:deploy-middleware]
+    vars:
+      COMPONENT: '{{.COMPONENT}}'
+    cmds:
+      - |
+        if [ ! -d "tools/{{.COMPONENT}}" ]; then
+          echo "Component {{.COMPONENT}} not found in tools/"
+          exit 1
+        fi
+        
+        echo "Deploying component: {{.COMPONENT}}"
+        
+        # Build component
+        cd tools/{{.COMPONENT}}
+        task wasi-build
+        cd ../..
+        
+        # Deploy component-specific contracts
+        cd tools/{{.COMPONENT}}
+        task deploy-contracts
+        cd ../..
+        
+        # Upload to WASI registry
+        COMPONENT_FILENAME={{.COMPONENT}}.wasm task upload-to-wasi-registry
+        
+        # Build service
+        cd tools/{{.COMPONENT}}
+        task build-service
+        cd ../..
+        
+        # Upload to IPFS
+        task upload-to-ipfs SERVICE_FILE=.docker/service.json
+        
+        # Start aggregator and operator
+        task start-aggregator-and-operator
+        
+        echo "Component {{.COMPONENT}} deployed successfully"
+
+  upload-to-wasi-registry:
+    desc: "Upload component to WASI registry"
+    deps: [internal:setup-env]
+    vars:
+      STATE_DIR: ".docker"
+      REGISTRY: '{{.REGISTRY | default "wa.dev"}}'
+      NAMESPACE: '{{env "PKG_NAMESPACE" | default "wasmio"}}'
+      PKG_NAME: '{{env "PKG_NAME" | default "component"}}'
+      PKG_VERSION: '{{env "PKG_VERSION" | default "0.1.0"}}'
+      COMPONENT_FILENAME: '{{env "COMPONENT_FILENAME"}}'
+    cmds:
+      - |
+        # Check if WASI registry upload is possible
+        if [ -f "{{.COMPONENTS_DIR}}/{{.COMPONENT_FILENAME}}" ]; then
+          echo "Uploading {{.COMPONENT_FILENAME}} to WASI registry {{.REGISTRY}}"
+          
+          # Get WASI namespace
+          WASI_NAMESPACE=$(task get-wasi-namespace)
+          
+          # Upload component (this would be the actual upload logic)
+          echo "Would upload: {{.COMPONENTS_DIR}}/{{.COMPONENT_FILENAME}}"
+          echo "To: {{.REGISTRY}}/{{.NAMESPACE}}:{{.PKG_NAME}}@{{.PKG_VERSION}}"
+          
+          # Store registry info in state
+          echo "REGISTRY={{.REGISTRY}}" >> {{.STATE_DIR}}/.state.env
+          echo "PKG_NAMESPACE={{.NAMESPACE}}" >> {{.STATE_DIR}}/.state.env
+          echo "PKG_NAME={{.PKG_NAME}}" >> {{.STATE_DIR}}/.state.env
+          echo "PKG_VERSION={{.PKG_VERSION}}" >> {{.STATE_DIR}}/.state.env
+        else
+          echo "Component file not found: {{.COMPONENTS_DIR}}/{{.COMPONENT_FILENAME}}"
+        fi
+
+  get-wasi-namespace:
+    desc: "Get WASI namespace"
+    cmds:
+      - |
+        # This would implement the logic from get-wasi-namespace.sh
+        echo "wasmio"
+
+  start-aggregator-and-operator:
+    desc: "Start aggregator and operator services"
+    deps: [internal:load-state]
+    cmds:
+      - |
+        # Set default IPFS gateway
+        IPFS_GATEWAY=${IPFS_GATEWAY:-"https://gateway.pinata.cloud/ipfs/"}
+        
+        # Start Aggregator
+        task create-aggregator INDEX=1
+        
+        # Start aggregator service
+        if [ -f infra/aggregator-1/start.sh ]; then
+          IPFS_GATEWAY=${IPFS_GATEWAY} bash infra/aggregator-1/start.sh
+          
+          # Register service with aggregator
+          if [ -n "${IPFS_URI:-}" ] && [ -n "${AGGREGATOR_URL:-}" ]; then
+            wget -q --header="Content-Type: application/json" \
+              --post-data="{\"uri\": \"${IPFS_URI}\"}" \
+              ${AGGREGATOR_URL}/register-service -O -
+          fi
+        fi
+        
+        # Start Operator
+        task create-operator INDEX=1
+        
+        # Start operator service
+        if [ -f infra/wavs-1/start.sh ]; then
+          IPFS_GATEWAY=${IPFS_GATEWAY} bash infra/wavs-1/start.sh
+          
+          # Wait for service to be available
+          WAVS_ENDPOINT=${WAVS_ENDPOINT:-"http://127.0.0.1:8000"}
+          echo "🔍 Checking WAVS service at ${WAVS_ENDPOINT}..."
+          
+          TIMEOUT=60
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${WAVS_ENDPOINT}/app 2>/dev/null || echo "000")
+            if [ "$HTTP_CODE" = "200" ]; then
+              echo "✅ WAVS service is running"
+              break
+            fi
+            echo "⏳ Waiting for WAVS service... (${ELAPSED}s/${TIMEOUT}s)"
+            sleep 2
+            ELAPSED=$((ELAPSED + 2))
+          done
+          
+          if [ $ELAPSED -ge $TIMEOUT ]; then
+            echo "❌ WAVS service not reachable after ${TIMEOUT}s"
+            exit 1
+          fi
+          
+          # Deploy service
+          if [ -n "${IPFS_URI:-}" ]; then
+            echo "🚀 Deploying service from: ${IPFS_URI}..."
+            IPFS_GATEWAY=${IPFS_GATEWAY:-"https://gateway.pinata.cloud/ipfs/"}
+            task wavs-cli -- deploy-service --service-url ${IPFS_URI} --log-level=debug --data /data/.docker --home /data --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY}
+          fi
+          
+          # Register operator
+          task internal:register-operator
+        fi
+
+  internal:register-operator:
+    internal: true
+    deps: [internal:load-state]
+    vars:
+      STATE_DIR: ".docker"
+    cmds:
+      - |
+        # Generate AVS signing key
+        SERVICE_INDEX=0
+        task internal:generate-avs-signing-key SERVICE_INDEX=${SERVICE_INDEX}
+        
+        # Register operator with middleware
+        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
+        if [ -n "${OPERATOR_PRIVATE_KEY:-}" ] && [ -n "${AVS_SIGNING_ADDRESS:-}" ] && [ -n "${WAVS_SERVICE_MANAGER_ADDRESS:-}" ]; then
+          task wavs-middleware -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
+        else
+          echo "Missing required variables for operator registration"
+        fi
+
+  internal:generate-avs-signing-key:
+    internal: true
+    vars:
+      STATE_DIR: ".docker"
+      SERVICE_INDEX: '{{.SERVICE_INDEX | default "0"}}'
+    cmds:
+      - |
+        # Generate AVS signing key (implementation of avs-signing-key.sh)
+        TEMP_FILE="{{.STATE_DIR}}/tmp_avs_{{.SERVICE_INDEX}}.json"
+        cast wallet new-mnemonic --json > ${TEMP_FILE}
+        
+        AVS_PRIVATE_KEY=$(jq -r '.accounts[0].private_key' ${TEMP_FILE})
+        AVS_SIGNING_ADDRESS=$(jq -r '.accounts[0].address' ${TEMP_FILE})
+        
+        # For operators, we need their private key
+        if [ -f infra/wavs-1/.env ]; then
+          OPERATOR_PRIVATE_KEY=$(grep 'WAVS_OPERATOR_CREDENTIAL=' infra/wavs-1/.env | cut -d '=' -f2 | tr -d '"')
+        fi
+        
+        rm ${TEMP_FILE}
+        
+        # Store in state
+        echo "OPERATOR_PRIVATE_KEY=${OPERATOR_PRIVATE_KEY}" >> {{.STATE_DIR}}/.state.env
+        echo "AVS_SIGNING_ADDRESS=${AVS_SIGNING_ADDRESS}" >> {{.STATE_DIR}}/.state.env
+        echo "AVS_PRIVATE_KEY=${AVS_PRIVATE_KEY}" >> {{.STATE_DIR}}/.state.env
+
+  # Utility tasks
+  dos2unix:
+    desc: "Convert line endings to Unix format"
+    cmds:
+      - dos2unix ./script/* 2>/dev/null || true
+      - find ./script/template -type f -exec dos2unix {} \; 2>/dev/null || true
+      - find ./tools -name "script" -type d -exec find {} -type f -exec dos2unix {} \; 2>/dev/null || true

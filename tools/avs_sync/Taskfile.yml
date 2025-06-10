@@ -7,43 +7,173 @@ vars:
   PKG_VERSION: 0.1.0
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 50000
-  # Post-deployment vars
-  RPC_URL: http://localhost:8545
-  SERVICE_JSON: .docker/service.json
-  SERVICE_MANAGER:
-    sh: jq -r .addresses.WavsServiceManager ./.nodes/avs_deploy.json
+  PKG_NAMESPACE: "wavstools"
+  TRIGGER_CHAIN: "local"
+  SUBMIT_CHAIN: "local"
+  STATE_DIR: "../../.docker"
+  COMPILED_DIR: "../../compiled"
 
 tasks:
+  # ===========================================
+  # PUBLIC TASKS (Component-specific commands)
+  # ===========================================
+
   wasi-build:
+    desc: "Build WASI component"
     cmds:
       - |
         echo "Building component: {{.COMPONENT_NAME}}"
-        cargo component build --release; cargo fmt
-        mkdir -p ./compiled
-        cp target/wasm32-wasip1/release/*.wasm ./compiled
+        cargo component build --release
+        cargo fmt
+        mkdir -p {{.COMPILED_DIR}}
+        # Find the wasm file in the workspace target directory
+        find ../../target/wasm32-wasip1/release/ -name "*.wasm" -exec cp {} {{.COMPILED_DIR}}/ \;
 
   deploy:
-    desc: "Deploy component"
+    desc: "Deploy avs_sync component"
     cmds:
-      - chmod +x ./script/deploy-component.sh
       - |
-        export COMPONENT_NAME={{.COMPONENT_NAME}}
-        export COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
-        export PKG_NAME={{.PKG_NAME}}
-        export PKG_VERSION={{.PKG_VERSION}}
-        export BLOCK_INTERVAL={{.BLOCK_INTERVAL}}
-        export PAST_BLOCKS={{.PAST_BLOCKS}}
-        ./script/deploy-component.sh
+        ROOT_DIR=$(pwd | sed 's|/tools/avs_sync||')
+        cd ${ROOT_DIR}
+        task deploy-component COMPONENT={{.COMPONENT_NAME}}
 
   trigger:
-    desc: "Trigger the component"
+    desc: "Trigger component by mining blocks"
+    vars:
+      BLOCKS: '{{.CLI_ARGS | default "1"}}'
+      RPC_URL:
+        sh: |
+          if [ -f ../../.env ] && grep -q '^LOCAL_ETHEREUM_RPC_URL=' ../../.env; then
+            grep '^LOCAL_ETHEREUM_RPC_URL=' ../../.env | cut -d '=' -f2
+          else
+            echo "http://localhost:8545"
+          fi
     cmds:
-      - cast rpc anvil_mine {{.CLI_ARGS}} --rpc-url http://localhost:8545
+      - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.RPC_URL}}
 
-  # Operator State Queries
-  list-operator:
+  list-operators:
+    desc: "List operators (usage: task list-operators BLOCKS=<n>)"
+    vars:
+      BLOCKS: '{{.BLOCKS | default "50000"}}'
+    env:
+      PAST_BLOCKS: "{{.BLOCKS}}"
+    cmds:
+      - task: ../../wavs-middleware
+        vars:
+          CLI_ARGS: "list_operator"
+
+  # ===========================================
+  # INTERNAL TASKS (Implementation details)
+  # ===========================================
+
+  deploy-contracts:
+    desc: "Deploy avs_sync specific contracts"
+    deps: [internal:setup-component-env]
+    vars:
+      RPC_URL:
+        sh: |
+          if [ -f ../../.env ] && grep -q '^LOCAL_ETHEREUM_RPC_URL=' ../../.env; then
+            grep '^LOCAL_ETHEREUM_RPC_URL=' ../../.env | cut -d '=' -f2
+          else
+            echo "http://localhost:8545"
+          fi
     cmds:
       - |
-        export PAST_BLOCKS={{.CLI_ARGS}}
-        export WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER}}
-        task wavs-middleware -- list_operator
+        echo "Deploying avs_sync contracts..."
+
+        # Load environment variables from state file
+        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
+
+        # Export required environment variables for forge
+        export WAVS_SERVICE_MANAGER_ADDRESS
+        export ECDSA_STAKE_REGISTRY_ADDRESS
+
+        # Run the forge script and capture output to extract the address
+        DEPLOY_OUTPUT=$(forge script script/DeployAvsWriter.s.sol --fork-url {{.RPC_URL}} --broadcast --private-key $DEPLOYER_PRIVATE_KEY 2>&1)
+
+        # Extract WAVS_SUBMIT_ADDRESS from the deployment output
+        export WAVS_SUBMIT_ADDRESS=$(echo "$DEPLOY_OUTPUT" | grep "AvsWriter deployed at:" | grep -o "0x[a-fA-F0-9]\{40\}")
+
+        if [ -z "$WAVS_SUBMIT_ADDRESS" ]; then
+            echo "ERROR: Could not extract WAVS_SUBMIT_ADDRESS from deployment output"
+            echo "Deployment output:"
+            echo "$DEPLOY_OUTPUT"
+            exit 1
+        fi
+
+        echo "AVS Writer deployed at: $WAVS_SUBMIT_ADDRESS"
+        echo "WAVS_SUBMIT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> {{.STATE_DIR}}/.state.env
+        echo "AVS_SYNC_CONTRACT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> {{.STATE_DIR}}/.state.env
+
+  build-service:
+    desc: "Build avs_sync service configuration"
+    deps: [internal:setup-component-env]
+    vars:
+      CMD: "service --json true --home /data --file /data/.docker/service.json"
+    cmds:
+      - |
+        # Load environment variables
+        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
+
+        # Set default aggregator URL if not provided
+        AGGREGATOR_URL=${AGGREGATOR_URL:-"http://127.0.0.1:8001"}
+
+        # Build service configuration using root task context
+        SERVICE_ID=$(task -d ../../ wavs-cli -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+        WORKFLOW_ID=$(task -d ../../ wavs-cli -- {{.CMD}} workflow add | jq -r .workflow_id)
+
+        # Configure workflow
+        task -d ../../ wavs-cli -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+        task -d ../../ wavs-cli -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+        # Set component from digest (hash of the component file)
+        COMPONENT_HASH=$(sha256sum ../../compiled/{{.COMPONENT_FILENAME}} | cut -d' ' -f1)
+        task -d ../../ wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest ${COMPONENT_HASH} > /dev/null
+        task -d ../../ wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+        task -d ../../ wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+        task -d ../../ wavs-cli -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
+
+        echo "Service configuration built successfully"
+
+  internal:setup-component-env:
+    internal: true
+    cmds:
+      - |
+        # Ensure component state directory exists
+        mkdir -p {{.STATE_DIR}}
+
+        # Create component-specific state file if needed
+        COMPONENT_STATE_FILE="{{.STATE_DIR}}/{{.COMPONENT_NAME}}.env"
+        if [ ! -f "$COMPONENT_STATE_FILE" ]; then
+          cat > "$COMPONENT_STATE_FILE" << EOF
+        # Component: {{.COMPONENT_NAME}}
+        COMPONENT_NAME={{.COMPONENT_NAME}}
+        COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
+        PKG_NAME={{.PKG_NAME}}
+        PKG_VERSION={{.PKG_VERSION}}
+        PKG_NAMESPACE={{.PKG_NAMESPACE}}
+        BLOCK_INTERVAL={{.BLOCK_INTERVAL}}
+        PAST_BLOCKS={{.PAST_BLOCKS}}
+        TRIGGER_CHAIN={{.TRIGGER_CHAIN}}
+        SUBMIT_CHAIN={{.SUBMIT_CHAIN}}
+        EOF
+        fi
+
+  # ===========================================
+  # UTILITY TASKS
+  # ===========================================
+
+  clean:
+    desc: "Clean build artifacts"
+    cmds:
+      - cargo clean
+      - rm -rf {{.COMPILED_DIR}}/{{.COMPONENT_FILENAME}} 2>/dev/null || true
+
+  test:
+    desc: "Run component tests"
+    cmds:
+      - cargo test
+
+  fmt:
+    desc: "Format code"
+    cmds:
+      - cargo fmt
