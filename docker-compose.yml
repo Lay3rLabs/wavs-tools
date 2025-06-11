@@ -1,6 +1,6 @@
 services:
   warg-server:
-    image: "ghcr.io/reecepbcups/warg-registry:v0.9.3"
+    image: "ghcr.io/reecepbcups/warg-registry:${WARG_REGISTRY_DOCKER_TAG:-v0.9.3}"
     container_name: "warg-server"
     platform: linux/amd64
     environment:

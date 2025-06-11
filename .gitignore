@@ -21,3 +21,4 @@ compiled/
 tests/.test-reports
 infra/
 .docker/
+.claude/

@@ -1,17 +1,18 @@
 version: "3"
 
 vars:
+  ROOT: ../../
   COMPONENT_NAME: avs_sync
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
-  PKG_VERSION: 0.1.0
+  PKG_VERSION: 0.2.0
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 50000
-  PKG_NAMESPACE: "wavstools"
+  PKG_NAMESPACE: "example"
   TRIGGER_CHAIN: "local"
   SUBMIT_CHAIN: "local"
-  STATE_DIR: "../../.docker"
-  COMPILED_DIR: "../../compiled"
+  STATE_DIR: ".docker"
+  COMPILED_DIR: "./compiled"
 
 tasks:
   # ===========================================
@@ -23,31 +24,76 @@ tasks:
     cmds:
       - |
         echo "Building component: {{.COMPONENT_NAME}}"
-        cargo component build --release
-        cargo fmt
-        mkdir -p {{.COMPILED_DIR}}
-        # Find the wasm file in the workspace target directory
-        find ../../target/wasm32-wasip1/release/ -name "*.wasm" -exec cp {} {{.COMPILED_DIR}}/ \;
+        
+        # Create compiled directory
+        mkdir -p ./compiled
+
+        # Check if WASM file already exists
+        if [ -f "./compiled/{{.COMPONENT_FILENAME}}" ]; then
+          echo "WASM file {{.COMPONENT_FILENAME}} already exists, skipping build"
+        else
+          echo "Building WASM component..."
+          
+          # Navigate to component directory and build
+          cd ./tools/{{.COMPONENT_NAME}}
+          cargo component build --release
+          cargo fmt
+          
+          # Find the wasm file in the workspace target directory and copy it
+          TARGET_DIR="../../target/wasm32-wasip1/release"
+          if [ -d "$TARGET_DIR" ]; then
+            find "$TARGET_DIR" -name "*.wasm" -exec cp {} "../../compiled/" \;
+            echo "✅ WASM component built and copied to ../../compiled/"
+          else
+            echo "❌ Target directory not found: $TARGET_DIR"
+            exit 1
+          fi
+        fi
 
   deploy:
-    desc: "Deploy avs_sync component"
+    desc: "Complete avs_sync deployment - does everything automatically"
     cmds:
       - |
-        ROOT_DIR=$(pwd | sed 's|/tools/avs_sync||')
-        cd ${ROOT_DIR}
-        task deploy-component COMPONENT={{.COMPONENT_NAME}}
+        echo "🚀 Starting complete avs_sync deployment..."
+        
+        # Step 1: Build WASM
+        echo "📦 Step 1: Building WASM component..."
+        task avs_sync:wasi-build
+        
+        # Step 2: Ensure environment and middleware
+        echo "🔧 Step 2: Setting up environment and middleware..."
+        task avs_sync:ensure-middleware
+        
+        # Step 3: Deploy contracts
+        echo "📄 Step 3: Deploying contracts..."
+        task avs_sync:deploy-contracts
+        
+        # Step 4: Upload to WASI registry
+        echo "📤 Step 4: Uploading to WASI registry..."
+        task avs_sync:upload-to-registry
+        
+        # Step 5: Build service configuration
+        echo "⚙️ Step 5: Building service configuration..."
+        task avs_sync:build-service
+        
+        # Step 6: Upload service to IPFS
+        echo "☁️ Step 6: Uploading service to IPFS..."
+        task avs_sync:upload-service-to-ipfs
+        
+        # Step 7: Start aggregator and operator services
+        echo "🔄 Step 7: Starting aggregator and operator services..."
+        task start-aggregator-and-operator
+        
+        echo "✅ Complete avs_sync deployment finished!"
+        echo "🎉 Your component is deployed and running!"
+
 
   trigger:
     desc: "Trigger component by mining blocks"
     vars:
       BLOCKS: '{{.CLI_ARGS | default "1"}}'
       RPC_URL:
-        sh: |
-          if [ -f ../../.env ] && grep -q '^LOCAL_ETHEREUM_RPC_URL=' ../../.env; then
-            grep '^LOCAL_ETHEREUM_RPC_URL=' ../../.env | cut -d '=' -f2
-          else
-            echo "http://localhost:8545"
-          fi
+        sh: task get-rpc-url
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.RPC_URL}}
 
@@ -58,93 +104,181 @@ tasks:
     env:
       PAST_BLOCKS: "{{.BLOCKS}}"
     cmds:
-      - task: ../../wavs-middleware
-        vars:
-          CLI_ARGS: "list_operator"
+      - task wavs-middleware CLI_ARGS="list_operator"
+
+  ensure-middleware:
+    desc: "Ensure WAVS middleware is deployed and deployer is funded"
+    cmds:
+      - |
+        # Initialize environment first
+        task init-environment
+        
+        # Fund deployer if needed
+        task avs_sync:fund-deployer
+        
+        # Check if middleware is already deployed by looking for state
+        if [ ! -f ./.docker/.state.env ] || ! grep -q "WAVS_SERVICE_MANAGER_ADDRESS" ./.docker/.state.env; then
+          echo "🚀 Deploying WAVS middleware first..."
+          task deploy-middleware
+        else
+          echo "✅ WAVS middleware already deployed"
+        fi
+
+  fund-deployer:
+    desc: "Fund the deployer wallet if needed"
+    cmds:
+      - |
+        # Load state to get deployer address
+        [ -f ./.docker/.state.env ] && source ./.docker/.state.env
+        
+        if [ -z "$DEPLOYER_ADDRESS" ]; then
+          echo "❌ DEPLOYER_ADDRESS not found in state"
+          exit 1
+        fi
+        
+        # Check current balance
+        BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url http://localhost:8545)
+        echo "Current deployer balance: ${BALANCE} ETH"
+        
+        # Fund if balance is less than 1 ETH
+        if (( $(echo "$BALANCE < 1.0" | bc -l) )); then
+          echo "💰 Funding deployer with 15 ETH..."
+          cast rpc anvil_setBalance "${DEPLOYER_ADDRESS}" '15000000000000000000' --rpc-url http://localhost:8545 > /dev/null
+          NEW_BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url http://localhost:8545)
+          echo "✅ Deployer funded. New balance: ${NEW_BALANCE} ETH"
+        else
+          echo "✅ Deployer already has sufficient balance"
+        fi
 
   # ===========================================
-  # INTERNAL TASKS (Implementation details)
+  # DEPLOYMENT TASKS
   # ===========================================
 
   deploy-contracts:
     desc: "Deploy avs_sync specific contracts"
-    deps: [internal:setup-component-env]
+    deps: [setup-component-env]
     vars:
       RPC_URL:
-        sh: |
-          if [ -f ../../.env ] && grep -q '^LOCAL_ETHEREUM_RPC_URL=' ../../.env; then
-            grep '^LOCAL_ETHEREUM_RPC_URL=' ../../.env | cut -d '=' -f2
-          else
-            echo "http://localhost:8545"
-          fi
+        sh: task get-rpc-url
     cmds:
       - |
         echo "Deploying avs_sync contracts..."
 
         # Load environment variables from state file
-        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
+        [ -f ./.docker/.state.env ] && source ./.docker/.state.env
 
         # Export required environment variables for forge
         export WAVS_SERVICE_MANAGER_ADDRESS
         export ECDSA_STAKE_REGISTRY_ADDRESS
 
-        # Run the forge script and capture output to extract the address
-        DEPLOY_OUTPUT=$(forge script script/DeployAvsWriter.s.sol --fork-url {{.RPC_URL}} --broadcast --private-key $DEPLOYER_PRIVATE_KEY 2>&1)
+        # Verify required environment variables are set
+        if [ -z "$DEPLOYER_PRIVATE_KEY" ]; then
+          echo "❌ ERROR: DEPLOYER_PRIVATE_KEY not set"
+          exit 1
+        fi
+        
+        if [ -z "$WAVS_SERVICE_MANAGER_ADDRESS" ]; then
+          echo "❌ ERROR: WAVS_SERVICE_MANAGER_ADDRESS not set"
+          exit 1
+        fi
+        
+        if [ -z "$ECDSA_STAKE_REGISTRY_ADDRESS" ]; then
+          echo "❌ ERROR: ECDSA_STAKE_REGISTRY_ADDRESS not set"
+          exit 1
+        fi
+
+        echo "Using RPC URL: {{.RPC_URL}}"
+        echo "Service Manager: $WAVS_SERVICE_MANAGER_ADDRESS"
+        echo "Stake Registry: $ECDSA_STAKE_REGISTRY_ADDRESS"
+
+        # Change to avs_sync directory and run forge script
+        cd tools/avs_sync
+        
+        echo "Running forge script..."
+        
+        # Run forge script and capture output
+        set +e
+        DEPLOY_OUTPUT=$(WAVS_SERVICE_MANAGER_ADDRESS="$WAVS_SERVICE_MANAGER_ADDRESS" \
+          ECDSA_STAKE_REGISTRY_ADDRESS="$ECDSA_STAKE_REGISTRY_ADDRESS" \
+          forge script script/DeployAvsWriter.s.sol --fork-url {{.RPC_URL}} --broadcast --private-key $DEPLOYER_PRIVATE_KEY 2>&1)
+        FORGE_EXIT_CODE=$?
+        set -e
+        
+        echo "Forge script completed with exit code: $FORGE_EXIT_CODE"
+        
+        # Navigate back to root
+        cd ../..
 
         # Extract WAVS_SUBMIT_ADDRESS from the deployment output
-        export WAVS_SUBMIT_ADDRESS=$(echo "$DEPLOY_OUTPUT" | grep "AvsWriter deployed at:" | grep -o "0x[a-fA-F0-9]\{40\}")
+        WAVS_SUBMIT_ADDRESS=$(echo "$DEPLOY_OUTPUT" | grep "AvsWriter deployed at:" | grep -o "0x[a-fA-F0-9]\{40\}")
 
         if [ -z "$WAVS_SUBMIT_ADDRESS" ]; then
             echo "ERROR: Could not extract WAVS_SUBMIT_ADDRESS from deployment output"
             echo "Deployment output:"
             echo "$DEPLOY_OUTPUT"
+            echo "Exit code: $FORGE_EXIT_CODE"
             exit 1
         fi
 
         echo "AVS Writer deployed at: $WAVS_SUBMIT_ADDRESS"
-        echo "WAVS_SUBMIT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> {{.STATE_DIR}}/.state.env
-        echo "AVS_SYNC_CONTRACT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> {{.STATE_DIR}}/.state.env
+        echo "WAVS_SUBMIT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> ./.docker/.state.env
+        echo "AVS_SYNC_CONTRACT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> ./.docker/.state.env
 
   build-service:
     desc: "Build avs_sync service configuration"
-    deps: [internal:setup-component-env]
+    deps: [setup-component-env]
     vars:
       CMD: "service --json true --home /data --file /data/.docker/service.json"
     cmds:
       - |
         # Load environment variables
-        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
+        [ -f ./.docker/.state.env ] && source ./.docker/.state.env
 
-        # Set default aggregator URL if not provided
-        AGGREGATOR_URL=${AGGREGATOR_URL:-"http://127.0.0.1:8001"}
+        # Validate required environment variables
+        if [ -z "$AGGREGATOR_URL" ]; then
+          echo "ERROR: AGGREGATOR_URL not set, using default: http://127.0.0.1:8001"
+          AGGREGATOR_URL="http://127.0.0.1:8001"
+        fi
 
-        # Build service configuration using root task context
-        SERVICE_ID=$(task -d ../../ wavs-cli -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
-        WORKFLOW_ID=$(task -d ../../ wavs-cli -- {{.CMD}} workflow add | jq -r .workflow_id)
+        # Build service configuration
+        SERVICE_ID=$(task wavs-cli -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+        WORKFLOW_ID=$(task wavs-cli -- {{.CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        task -d ../../ wavs-cli -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
-        task -d ../../ wavs-cli -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
-        # Set component from digest (hash of the component file)
-        COMPONENT_HASH=$(sha256sum ../../compiled/{{.COMPONENT_FILENAME}} | cut -d' ' -f1)
-        task -d ../../ wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest ${COMPONENT_HASH} > /dev/null
-        task -d ../../ wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
-        task -d ../../ wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
-        task -d ../../ wavs-cli -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
+        task wavs-cli -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+        task wavs-cli -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+
+        # Set component from WASI registry
+        # Load package info from state
+        [ -f ./.docker/.state.env ] && source ./.docker/.state.env
+
+        # Verify all required variables are set
+        if [ -z "$REGISTRY" ] || [ -z "$PKG_NAMESPACE" ] || [ -z "$PKG_NAME" ] || [ -z "$PKG_VERSION" ]; then
+          echo "ERROR: Missing required variables:"
+          echo "  REGISTRY: $REGISTRY"
+          echo "  PKG_NAMESPACE: $PKG_NAMESPACE"
+          echo "  PKG_NAME: $PKG_NAME"
+          exit 1
+        fi
+
+        echo "Using WASI package: ${PKG_NAMESPACE}:${PKG_NAME}@${PKG_VERSION} from ${REGISTRY}"
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-registry --domain ${REGISTRY} --package ${PKG_NAMESPACE}:${PKG_NAME} --version ${PKG_VERSION} > /dev/null
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+        task wavs-cli -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
 
         echo "Service configuration built successfully"
 
-  internal:setup-component-env:
-    internal: true
+  setup-component-env:
+    desc: "Setup component environment"
     cmds:
       - |
         # Ensure component state directory exists
-        mkdir -p {{.STATE_DIR}}
+        mkdir -p ./.docker
 
-        # Create component-specific state file if needed
-        COMPONENT_STATE_FILE="{{.STATE_DIR}}/{{.COMPONENT_NAME}}.env"
-        if [ ! -f "$COMPONENT_STATE_FILE" ]; then
-          cat > "$COMPONENT_STATE_FILE" << EOF
+        # Always create fresh component-specific state file
+        COMPONENT_STATE_FILE="./.docker/{{.COMPONENT_NAME}}.env"
+        cat > "$COMPONENT_STATE_FILE" << EOF
         # Component: {{.COMPONENT_NAME}}
         COMPONENT_NAME={{.COMPONENT_NAME}}
         COMPONENT_FILENAME={{.COMPONENT_FILENAME}}
@@ -156,6 +290,158 @@ tasks:
         TRIGGER_CHAIN={{.TRIGGER_CHAIN}}
         SUBMIT_CHAIN={{.SUBMIT_CHAIN}}
         EOF
+
+  upload-to-registry:
+    desc: "Upload component to WASI registry"
+    deps: [setup-component-env]
+    vars:
+      RPC_URL:
+        sh: task get-rpc-url
+      DEPLOY_ENV:
+        sh: |
+          if [ -f ./.env ] && grep -q '^DEPLOY_ENV=' ./.env; then
+            grep '^DEPLOY_ENV=' ./.env | cut -d '=' -f2
+          else
+            echo "LOCAL"
+          fi
+    cmds:
+      - |
+        # Get registry based on DEPLOY_ENV
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          REGISTRY=localhost:8090
+        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
+          REGISTRY=wa.dev
+        else
+          echo "Unknown DEPLOY_ENV: {{.DEPLOY_ENV}}"
+          exit 1
+        fi
+
+        # Get PKG_NAMESPACE based on DEPLOY_ENV
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          PKG_NAMESPACE="example"
+        else
+          read -p "Enter the PKG_NAMESPACE for ${REGISTRY}: " namespace
+          PKG_NAMESPACE="${namespace}"
+        fi
+
+        COMPONENT_PATH="./compiled/{{.COMPONENT_FILENAME}}"
+        if [ ! -f "$COMPONENT_PATH" ]; then
+          echo "❌ Component file not found: $COMPONENT_PATH"
+          exit 1
+        fi
+
+        # Determine protocol
+        PROTOCOL="https"
+        if [[ "$REGISTRY" == *"localhost"* ]] || [[ "$REGISTRY" == *"127.0.0.1"* ]]; then
+            PROTOCOL="http"
+        fi
+
+        PACKAGE_NAME="${PKG_NAMESPACE}:{{.PKG_NAME}}"
+        echo "📤 Uploading: $COMPONENT_PATH"
+        echo "   To: ${PROTOCOL}://${REGISTRY}/${PACKAGE_NAME}@{{.PKG_VERSION}}"
+
+        # Upload with proper error handling
+        set +e
+        output=$(warg publish release --registry ${PROTOCOL}://${REGISTRY} --name ${PKG_NAMESPACE}:{{.PKG_NAME}} --version {{.PKG_VERSION}} ${COMPONENT_PATH} 2>&1)
+        exit_code=$?
+        warg reset --registry ${PROTOCOL}://${REGISTRY}
+
+        if [[ $exit_code -ne 0 ]]; then
+            if [[ "$output" =~ "failed to prove inclusion" ]]; then
+                echo "✅ Package uploaded to local registry successfully..."
+                echo "   (This is expected for local registries)"
+            elif [[ "$output" =~ "already released" ]]; then
+                echo "✅ Package already exists in registry - using existing version"
+            elif [[ "$output" =~ "error sending request for url" ]]; then
+                echo "⚠️ Registry not available - check that you are running the registry locally"
+                echo "${output}"
+            else
+                echo "⚠️ Upload error: ${output}"
+            fi
+        else
+            echo "✅ Package uploaded successfully"
+        fi
+        set -e
+
+        # Store registry info in state for service configuration
+        {
+          echo "REGISTRY=${REGISTRY}"
+          echo "PKG_NAMESPACE=${PKG_NAMESPACE}"
+          echo "PKG_NAME={{.PKG_NAME}}"
+          echo "PKG_VERSION={{.PKG_VERSION}}"
+        } >> "./.docker/.state.env"
+
+  upload-service-to-ipfs:
+    desc: "Upload service configuration to IPFS"
+    vars:
+      DEPLOY_ENV:
+        sh: |
+          if [ -f ./.env ] && grep -q '^DEPLOY_ENV=' ./.env; then
+            grep '^DEPLOY_ENV=' ./.env | cut -d '=' -f2
+          else
+            echo "LOCAL"
+          fi
+    cmds:
+      - |
+        SERVICE_FILE="./.docker/service.json"
+        if [ -z "$SERVICE_FILE" ] || [ ! -f "$SERVICE_FILE" ]; then
+          echo "❌ SERVICE_FILE not set or does not exist: '$SERVICE_FILE'"
+          exit 1
+        fi
+
+        echo "📄 SERVICE_FILE: $SERVICE_FILE"
+        echo "🌍 DEPLOY_ENV: {{.DEPLOY_ENV}}"
+
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          # Use Docker IPFS instance via HTTP API
+          echo "📤 Uploading to Docker IPFS instance..."
+          
+          # Check if IPFS container is running
+          if ! curl -s --connect-timeout 5 http://localhost:5001/api/v0/version > /dev/null; then
+            echo "❌ IPFS not running on localhost:5001"
+            echo "💡 Start IPFS with: docker-compose up -d ipfs"
+            echo "⚠️ Skipping IPFS upload - deployment will continue without service deployment"
+            echo "IPFS_URI=" >> "./.docker/.state.env"
+            return 0
+          fi
+          
+          # Upload to IPFS using HTTP API
+          ipfs_response=$(curl -s -X POST \
+            -F "file=@${SERVICE_FILE}" \
+            "http://localhost:5001/api/v0/add?only-hash=false&recursive=false&quiet=true")
+          
+          if [ $? -eq 0 ] && [ -n "$ipfs_response" ]; then
+            ipfs_cid=$(echo "$ipfs_response" | jq -r '.Hash' 2>/dev/null || echo "$ipfs_response" | tail -1)
+            if [ -n "$ipfs_cid" ] && [ "$ipfs_cid" != "null" ]; then
+              echo "✅ Uploaded to IPFS: $ipfs_cid"
+              echo "IPFS_URI=ipfs://$ipfs_cid" >> "./.docker/.state.env"
+            else
+              echo "❌ Failed to extract IPFS hash from response: $ipfs_response"
+              # Determine state file path
+              if [ "$(basename $(pwd))" = "avs_sync" ]; then
+                STATE_FILE="{{.ROOT}}.docker/.state.env"
+              else
+                STATE_FILE="./.docker/.state.env"
+              fi
+              echo "IPFS_URI=" >> "$STATE_FILE"
+            fi
+          else
+            echo "❌ Failed to upload to IPFS"
+            echo "IPFS_URI=" >> "./.docker/.state.env"
+          fi
+        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
+          if [ -z "$PINATA_API_KEY" ]; then
+            echo "❌ PINATA_API_KEY not set"
+            exit 1
+          fi
+          ipfs_cid=$(curl -s -X POST https://api.pinata.cloud/pinning/pinFileToIPFS \
+            -H "Authorization: Bearer $PINATA_API_KEY" \
+            -F "file=@${SERVICE_FILE}" | jq -r '.IpfsHash')
+          echo "✅ Uploaded to IPFS: $ipfs_cid"
+          echo "IPFS_URI=ipfs://$ipfs_cid" >> "./.docker/.state.env"
+        else
+          echo "❌ Unknown DEPLOY_ENV: {{.DEPLOY_ENV}}"
+          exit 1
         fi
 
   # ===========================================
@@ -166,7 +452,7 @@ tasks:
     desc: "Clean build artifacts"
     cmds:
       - cargo clean
-      - rm -rf {{.COMPILED_DIR}}/{{.COMPONENT_FILENAME}} 2>/dev/null || true
+      - rm -f {{.ROOT}}compiled/{{.COMPONENT_FILENAME}} 2>/dev/null || true
 
   test:
     desc: "Run component tests"

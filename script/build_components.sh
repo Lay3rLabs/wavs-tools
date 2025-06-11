@@ -1,27 +1,46 @@
 #!/bin/bash
 #
-# Called from the Makefile to build all (or some) components
+# Build all components with Taskfiles
 #
-# ./script/build_components.sh [WASI_BUILD_DIR]
+# ./script/build_components.sh [COMPONENT_DIR]
 #
-# WASI_BUILD_DIR: the directory to build the component in
-# e.g. ./script/build_components.sh components/golang-evm-price-oracle
+# COMPONENT_DIR: specific component to build (optional)
+# e.g. ./script/build_components.sh avs_sync
 #
+
+set -e
+
+cd $(git rev-parse --show-toplevel) || exit 1
 
 # Extract arguments
-WASI_BUILD_DIR="$1"
+COMPONENT_DIR="$1"
 
 RECIPE="wasi-build"
-MAKEFILE_DIRS=`find components/* -maxdepth 1 -name "Makefile" -o -name "makefile"`
+TASKFILE_DIRS=$(find tools/* -maxdepth 1 -name "Taskfile.yml" 2>/dev/null || true)
 
-for makefile_path in $MAKEFILE_DIRS; do
-    if grep -q "^${RECIPE}:" "$makefile_path" 2>/dev/null; then
-        if [ "$WASI_BUILD_DIR" != "" ] && [[ "$makefile_path" != *"$WASI_BUILD_DIR"* ]]; then
+if [ -z "$TASKFILE_DIRS" ]; then
+    echo "No Taskfile.yml found in tools/*"
+    exit 0
+fi
+
+for taskfile_path in $TASKFILE_DIRS; do
+    if grep -q "^  ${RECIPE}:" "$taskfile_path" 2>/dev/null; then
+        parent_dir=$(dirname "$taskfile_path")
+        component_name=$(basename "$parent_dir")
+        
+        if [ "$COMPONENT_DIR" != "" ] && [ "$component_name" != "$COMPONENT_DIR" ]; then
             continue
-        fi;
-        parent_dir=$(dirname "$makefile_path")
-        make -s -C "$parent_dir" $RECIPE
+        fi
+        
+        echo "Building component: $component_name"
+        cd "$parent_dir"
+        task $RECIPE
+        cd - > /dev/null
     else
-        echo "Recipe '$RECIPE' not found in $dir"
-    fi;
+        parent_dir=$(dirname "$taskfile_path")
+        component_name=$(basename "$parent_dir")
+        echo "Recipe '$RECIPE' not found in $component_name/Taskfile.yml"
+    fi
 done
+
+echo "Component build complete"
