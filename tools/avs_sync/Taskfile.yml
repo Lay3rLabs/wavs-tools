@@ -5,10 +5,10 @@ vars:
   COMPONENT_NAME: avs_sync
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
-  PKG_VERSION: 0.2.3
+  PKG_VERSION: 0.5.1
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
-  PKG_NAMESPACE: "example"
+  PKG_NAMESPACE: "wavstools"
   TRIGGER_CHAIN: "local"
   SUBMIT_CHAIN: "local"
   STATE_DIR: ".docker"
@@ -313,7 +313,7 @@ tasks:
 
         # Get PKG_NAMESPACE based on DEPLOY_ENV
         if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          PKG_NAMESPACE="example"
+          PKG_NAMESPACE="wavstools"
         else
           read -p "Enter the PKG_NAMESPACE for ${REGISTRY}: " namespace
           PKG_NAMESPACE="${namespace}"

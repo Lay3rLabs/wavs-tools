@@ -595,7 +595,7 @@ tasks:
 
         # Get PKG_NAMESPACE based on DEPLOY_ENV
         if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          export PKG_NAMESPACE="example"
+          export PKG_NAMESPACE="wavstools"
         else
           read -p "Enter the PKG_NAMESPACE for ${REGISTRY}: " namespace
           export PKG_NAMESPACE="${namespace}"
@@ -722,7 +722,7 @@ tasks:
                 DEPLOYER_PRIVATE_KEY="${DEPLOYER_PRIVATE_KEY}" \
                 WAVS_SERVICE_MANAGER_ADDRESS="${WAVS_SERVICE_MANAGER_ADDRESS}" \
                 ECDSA_STAKE_REGISTRY_ADDRESS="${ECDSA_STAKE_REGISTRY_ADDRESS}" \
-                -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --set-url
+                -- deploy-service --home /data --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --set-url
             elif [[ "${IPFS_URI}" == ipfs://* ]]; then
               # For IPFS URLs, use appropriate gateway
               if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
@@ -737,7 +737,7 @@ tasks:
                 DEPLOYER_PRIVATE_KEY="${DEPLOYER_PRIVATE_KEY}" \
                 WAVS_SERVICE_MANAGER_ADDRESS="${WAVS_SERVICE_MANAGER_ADDRESS}" \
                 ECDSA_STAKE_REGISTRY_ADDRESS="${ECDSA_STAKE_REGISTRY_ADDRESS}" \
-                -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY} --set-url
+                -- deploy-service --home /data --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY} --set-url
             else
               echo "❌ Unsupported service URL format: ${IPFS_URI}"
               exit 1

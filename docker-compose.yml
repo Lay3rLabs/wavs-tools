@@ -5,7 +5,7 @@ services:
     platform: linux/amd64
     environment:
       WARG_OPERATOR_KEY: ecdsa-p256:I+UlDo0HxyBBFeelhPPWmD+LnklOpqZDkrFP5VduASk=
-      WARG_NAMESPACE: example
+      WARG_NAMESPACE: wavstools
       WKG_REGISTRY: http://localhost:5000
       WARG_CONTENT_BASE_URL: http://localhost:8090
       WARG_LISTEN: 0.0.0.0:8090
@@ -17,7 +17,6 @@ services:
   ipfs:
     image: ipfs/kubo:v0.34.1
     container_name: ipfs
-    network_mode: host
     ports:
       - "4001:4001"
       - "4001:4001/udp"
