@@ -371,16 +371,16 @@ tasks:
     cmds:
       - mkdir -p {{.TARGET_DIR}}
       - |
-        # Generate wallet
-        TEMP_FILE="{{.STATE_DIR}}/tmp_{{.WALLET_TYPE}}_{{.INDEX}}.json"
-        cast wallet new-mnemonic --json > $TEMP_FILE
-        MNEMONIC=$(jq -r .mnemonic $TEMP_FILE)
-        PRIVATE_KEY=$(jq -r .accounts[0].private_key $TEMP_FILE)
-        ADDRESS=$(cast wallet address "$PRIVATE_KEY")
-        rm $TEMP_FILE
-
         # Create .env file
         if [ "{{.WALLET_TYPE}}" = "aggregator" ]; then
+          # Generate wallet for aggregator
+          TEMP_FILE="{{.STATE_DIR}}/tmp_{{.WALLET_TYPE}}_{{.INDEX}}.json"
+          cast wallet new-mnemonic --json > $TEMP_FILE
+          MNEMONIC=$(jq -r .mnemonic $TEMP_FILE)
+          PRIVATE_KEY=$(jq -r .accounts[0].private_key $TEMP_FILE)
+          ADDRESS=$(cast wallet address "$PRIVATE_KEY")
+          rm $TEMP_FILE
+          
           cat > {{.TARGET_DIR}}/.env << EOF
         # Mnemonic for reference: ${MNEMONIC}
         WAVS_AGGREGATOR_DATA=~/wavs/aggregator
@@ -388,9 +388,15 @@ tasks:
         WAVS_AGGREGATOR_HD_INDEX=0
         EOF
         else
+          # Use deployer key for operator to ensure contract ownership consistency
+          source {{.STATE_DIR}}/.state.env
+          # Get the mnemonic from the deployer.json file
+          DEPLOYER_MNEMONIC=$(jq -r .mnemonic {{.STATE_DIR}}/deployer.json)
+          ADDRESS="${DEPLOYER_ADDRESS}"
+          
           cat > {{.TARGET_DIR}}/.env << EOF
-        WAVS_SUBMISSION_MNEMONIC="${MNEMONIC}"
-        WAVS_CLI_EVM_CREDENTIAL="${PRIVATE_KEY}"
+        WAVS_SUBMISSION_MNEMONIC="${DEPLOYER_MNEMONIC}"
+        WAVS_CLI_EVM_CREDENTIAL="${DEPLOYER_PRIVATE_KEY}"
         EOF
         fi
 
