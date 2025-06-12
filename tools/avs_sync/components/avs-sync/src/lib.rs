@@ -67,7 +67,10 @@ impl Guest for Component {
             TriggerData::Raw(data) => serde_json::from_slice(&data).map_err(|e| e.to_string()),
             _ => return Err("Unsupported trigger data type".to_string()),
         }?;
-
+        host::log(
+            LogLevel::Info,
+            &format!("Params: lookback_blocks={}, block_height={}", lookback_blocks, block_height),
+        );
         host::log(LogLevel::Info, &format!("Starting AVS sync for chain: {}", chain_name));
         host::log(
             LogLevel::Info,

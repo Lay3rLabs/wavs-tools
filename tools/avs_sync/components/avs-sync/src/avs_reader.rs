@@ -1,3 +1,4 @@
+use crate::bindings::{host, wavs::worker::layer_types::LogLevel};
 use alloy_network::Ethereum;
 use alloy_primitives::{Address, U256};
 use alloy_provider::Provider;
@@ -54,42 +55,30 @@ where
 
         let logs = self.ecdsa_stake_registry.provider().get_logs(&filter).await?;
 
-        // Debug logging
-        println!(
-            "Event filter: from_block={}, to_block={:?}, address={}",
-            from_block,
-            to_block,
-            self.ecdsa_stake_registry.address()
+        host::log(
+            LogLevel::Info,
+            &format!(
+                "AVS Sync: Querying from block {} to {:?}, found {} OperatorRegistered events",
+                from_block,
+                to_block,
+                logs.len()
+            ),
         );
-        println!("Found {} logs for OperatorRegistered events", logs.len());
 
         let mut operators = Vec::new();
-        for (i, log) in logs.iter().enumerate() {
-            println!(
-                "Log {}: block={}, topics.len()={}",
-                i,
-                log.block_number.unwrap_or_default(),
-                log.topics().len()
-            );
-
+        for log in logs.iter() {
             if log.topics().len() >= 2 {
                 // The operator address is in topics[1] (first indexed parameter)
                 let operator_bytes = log.topics()[1].as_slice();
-                println!("  Topic[1]: {:?} (len={})", log.topics()[1], operator_bytes.len());
 
                 if operator_bytes.len() >= 20 {
                     let operator = Address::from_slice(&operator_bytes[12..32]); // Last 20 bytes
-                    println!("  Extracted operator: {}", operator);
                     operators.push(operator);
-                } else {
-                    println!("  Invalid operator bytes length: {}", operator_bytes.len());
                 }
-            } else {
-                println!("  Not enough topics: {}", log.topics().len());
             }
         }
 
-        println!("Total operators found: {}", operators.len());
+        host::log(LogLevel::Info, &format!("AVS Sync: Found {} total operators", operators.len()));
         Ok(operators)
     }
 

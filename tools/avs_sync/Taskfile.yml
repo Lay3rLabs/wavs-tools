@@ -5,7 +5,7 @@ vars:
   COMPONENT_NAME: avs_sync
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
-  PKG_VERSION: 0.2.2
+  PKG_VERSION: 0.2.3
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
   PKG_NAMESPACE: "example"
@@ -30,12 +30,12 @@ tasks:
 
         # Always build WASM component to ensure latest changes
         echo "Building WASM component..."
-        
+
         # Navigate to component directory and build
         cd ./tools/{{.COMPONENT_NAME}}
         cargo component build --release
         cargo fmt
-        
+
         # Find the wasm file in the workspace target directory and copy it
         TARGET_DIR="../../target/wasm32-wasip1/release"
         if [ -d "$TARGET_DIR" ]; then
