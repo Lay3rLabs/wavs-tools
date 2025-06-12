@@ -5,9 +5,9 @@ vars:
   COMPONENT_NAME: avs_sync
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
-  PKG_VERSION: 0.2.0
+  PKG_VERSION: 0.2.2
   BLOCK_INTERVAL: 100
-  PAST_BLOCKS: 50000
+  PAST_BLOCKS: 500
   PKG_NAMESPACE: "example"
   TRIGGER_CHAIN: "local"
   SUBMIT_CHAIN: "local"
@@ -24,30 +24,26 @@ tasks:
     cmds:
       - |
         echo "Building component: {{.COMPONENT_NAME}}"
-        
+
         # Create compiled directory
         mkdir -p ./compiled
 
-        # Check if WASM file already exists
-        if [ -f "./compiled/{{.COMPONENT_FILENAME}}" ]; then
-          echo "WASM file {{.COMPONENT_FILENAME}} already exists, skipping build"
+        # Always build WASM component to ensure latest changes
+        echo "Building WASM component..."
+        
+        # Navigate to component directory and build
+        cd ./tools/{{.COMPONENT_NAME}}
+        cargo component build --release
+        cargo fmt
+        
+        # Find the wasm file in the workspace target directory and copy it
+        TARGET_DIR="../../target/wasm32-wasip1/release"
+        if [ -d "$TARGET_DIR" ]; then
+          find "$TARGET_DIR" -name "*.wasm" -exec cp {} "../../compiled/" \;
+          echo "✅ WASM component built and copied to ../../compiled/"
         else
-          echo "Building WASM component..."
-          
-          # Navigate to component directory and build
-          cd ./tools/{{.COMPONENT_NAME}}
-          cargo component build --release
-          cargo fmt
-          
-          # Find the wasm file in the workspace target directory and copy it
-          TARGET_DIR="../../target/wasm32-wasip1/release"
-          if [ -d "$TARGET_DIR" ]; then
-            find "$TARGET_DIR" -name "*.wasm" -exec cp {} "../../compiled/" \;
-            echo "✅ WASM component built and copied to ../../compiled/"
-          else
-            echo "❌ Target directory not found: $TARGET_DIR"
-            exit 1
-          fi
+          echo "❌ Target directory not found: $TARGET_DIR"
+          exit 1
         fi
 
   deploy:
@@ -55,38 +51,37 @@ tasks:
     cmds:
       - |
         echo "🚀 Starting complete avs_sync deployment..."
-        
+
         # Step 1: Build WASM
         echo "📦 Step 1: Building WASM component..."
         task avs_sync:wasi-build
-        
+
         # Step 2: Ensure environment and middleware
         echo "🔧 Step 2: Setting up environment and middleware..."
         task avs_sync:ensure-middleware
-        
+
         # Step 3: Deploy contracts
         echo "📄 Step 3: Deploying contracts..."
         task avs_sync:deploy-contracts
-        
+
         # Step 4: Upload to WASI registry
         echo "📤 Step 4: Uploading to WASI registry..."
         task avs_sync:upload-to-registry
-        
+
         # Step 5: Build service configuration
         echo "⚙️ Step 5: Building service configuration..."
         task avs_sync:build-service
-        
+
         # Step 6: Upload service to IPFS
         echo "☁️ Step 6: Uploading service to IPFS..."
         task avs_sync:upload-service-to-ipfs
-        
+
         # Step 7: Start aggregator and operator services
         echo "🔄 Step 7: Starting aggregator and operator services..."
         task start-aggregator-and-operator
-        
+
         echo "✅ Complete avs_sync deployment finished!"
         echo "🎉 Your component is deployed and running!"
-
 
   trigger:
     desc: "Trigger component by mining blocks"
@@ -100,7 +95,7 @@ tasks:
   list-operators:
     desc: "List operators (usage: task list-operators BLOCKS=<n>)"
     vars:
-      BLOCKS: '{{.BLOCKS | default "50000"}}'
+      BLOCKS: '{{.BLOCKS | default "500"}}'
     env:
       PAST_BLOCKS: "{{.BLOCKS}}"
     cmds:
@@ -112,10 +107,10 @@ tasks:
       - |
         # Initialize environment first
         task init-environment
-        
+
         # Fund deployer if needed
         task avs_sync:fund-deployer
-        
+
         # Check if middleware is already deployed by looking for state
         if [ ! -f ./.docker/.state.env ] || ! grep -q "WAVS_SERVICE_MANAGER_ADDRESS" ./.docker/.state.env; then
           echo "🚀 Deploying WAVS middleware first..."
@@ -130,16 +125,16 @@ tasks:
       - |
         # Load state to get deployer address
         [ -f ./.docker/.state.env ] && source ./.docker/.state.env
-        
+
         if [ -z "$DEPLOYER_ADDRESS" ]; then
           echo "❌ DEPLOYER_ADDRESS not found in state"
           exit 1
         fi
-        
+
         # Check current balance
         BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url http://localhost:8545)
         echo "Current deployer balance: ${BALANCE} ETH"
-        
+
         # Fund if balance is less than 1 ETH
         if (( $(echo "$BALANCE < 1.0" | bc -l) )); then
           echo "💰 Funding deployer with 15 ETH..."
@@ -176,12 +171,12 @@ tasks:
           echo "❌ ERROR: DEPLOYER_PRIVATE_KEY not set"
           exit 1
         fi
-        
+
         if [ -z "$WAVS_SERVICE_MANAGER_ADDRESS" ]; then
           echo "❌ ERROR: WAVS_SERVICE_MANAGER_ADDRESS not set"
           exit 1
         fi
-        
+
         if [ -z "$ECDSA_STAKE_REGISTRY_ADDRESS" ]; then
           echo "❌ ERROR: ECDSA_STAKE_REGISTRY_ADDRESS not set"
           exit 1
@@ -193,9 +188,9 @@ tasks:
 
         # Change to avs_sync directory and run forge script
         cd tools/avs_sync
-        
+
         echo "Running forge script..."
-        
+
         # Run forge script and capture output
         set +e
         DEPLOY_OUTPUT=$(WAVS_SERVICE_MANAGER_ADDRESS="$WAVS_SERVICE_MANAGER_ADDRESS" \
@@ -203,9 +198,9 @@ tasks:
           forge script script/DeployAvsWriter.s.sol --fork-url {{.RPC_URL}} --broadcast --private-key $DEPLOYER_PRIVATE_KEY 2>&1)
         FORGE_EXIT_CODE=$?
         set -e
-        
+
         echo "Forge script completed with exit code: $FORGE_EXIT_CODE"
-        
+
         # Navigate back to root
         cd ../..
 

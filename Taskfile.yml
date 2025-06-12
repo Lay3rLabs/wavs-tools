@@ -43,6 +43,7 @@ tasks:
     desc: "Start anvil and core services"
     deps: [init-environment]
     cmds:
+      - warg clear
       - task: start-services-background
       - task: deploy-middleware
 
@@ -106,29 +107,47 @@ tasks:
     vars:
       STATE_DIR: ".docker"
       MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:{{.WAVS_MIDDLEWARE_DOCKER_TAG}}"
+    env:
+      DEPLOYER_ADDRESS: '{{.DEPLOYER_ADDRESS | default ""}}'
+      DEPLOYER_PRIVATE_KEY: '{{.DEPLOYER_PRIVATE_KEY | default ""}}'
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
+      ECDSA_STAKE_REGISTRY_ADDRESS: '{{.ECDSA_STAKE_REGISTRY_ADDRESS | default ""}}'
     cmds:
-      - >
-        docker run --rm --network host --env-file .env --env-file {{.STATE_DIR}}/.state.env
-        -v ./.nodes:/root/.nodes {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
+      - |
+        # Build environment args for Docker
+        ENV_ARGS=""
+        [ -n "$DEPLOYER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS"
+        [ -n "$DEPLOYER_PRIVATE_KEY" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_PRIVATE_KEY=$DEPLOYER_PRIVATE_KEY"
+        [ -n "$WAVS_SERVICE_MANAGER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e WAVS_SERVICE_MANAGER_ADDRESS=$WAVS_SERVICE_MANAGER_ADDRESS"
+        [ -n "$ECDSA_STAKE_REGISTRY_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e ECDSA_STAKE_REGISTRY_ADDRESS=$ECDSA_STAKE_REGISTRY_ADDRESS"
+
+        docker run --rm --network host \
+          $ENV_ARGS --env-file .env \
+          -v ./.nodes:/root/.nodes {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
 
   wavs-cli:
     desc: "Run wavs cli command"
     vars:
       WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:{{.WAVS_DOCKER_TAG}}"
       INSTANCE: '{{.INSTANCE | default "wavs-1"}}'
+    env:
+      WAVS_CLI_EVM_CREDENTIAL: '{{.WAVS_CLI_EVM_CREDENTIAL | default ""}}'
+      WAVS_SUBMISSION_MNEMONIC: '{{.WAVS_SUBMISSION_MNEMONIC | default ""}}'
+      DEPLOYER_ADDRESS: '{{.DEPLOYER_ADDRESS | default ""}}'
+      DEPLOYER_PRIVATE_KEY: '{{.DEPLOYER_PRIVATE_KEY | default ""}}'
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
+      ECDSA_STAKE_REGISTRY_ADDRESS: '{{.ECDSA_STAKE_REGISTRY_ADDRESS | default ""}}'
     cmds:
       - |
-        ENV_FILE="infra/{{.INSTANCE}}/.env"
-        STATE_FILE="{{.STATE_DIR}}/.state.env"
-        
+        # Build environment args for Docker
         ENV_ARGS=""
-        if [ -f "$ENV_FILE" ]; then
-          ENV_ARGS="$ENV_ARGS --env-file $ENV_FILE"
-        fi
-        if [ -f "$STATE_FILE" ]; then
-          ENV_ARGS="$ENV_ARGS --env-file $STATE_FILE"
-        fi
-        
+        [ -n "$WAVS_CLI_EVM_CREDENTIAL" ] && ENV_ARGS="$ENV_ARGS -e WAVS_CLI_EVM_CREDENTIAL=$WAVS_CLI_EVM_CREDENTIAL"
+        [ -n "$WAVS_SUBMISSION_MNEMONIC" ] && ENV_ARGS="$ENV_ARGS -e WAVS_SUBMISSION_MNEMONIC=$WAVS_SUBMISSION_MNEMONIC"
+        [ -n "$DEPLOYER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS"
+        [ -n "$DEPLOYER_PRIVATE_KEY" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_PRIVATE_KEY=$DEPLOYER_PRIVATE_KEY"
+        [ -n "$WAVS_SERVICE_MANAGER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e WAVS_SERVICE_MANAGER_ADDRESS=$WAVS_SERVICE_MANAGER_ADDRESS"
+        [ -n "$ECDSA_STAKE_REGISTRY_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e ECDSA_STAKE_REGISTRY_ADDRESS=$ECDSA_STAKE_REGISTRY_ADDRESS"
+
         docker run --rm --network host \
           $ENV_ARGS \
           -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
@@ -460,11 +479,13 @@ tasks:
 
         # 5. Upload to IPFS
         echo "☁️ Uploading service to IPFS..."
-        SERVICE_FILE=.docker/service.json task upload-to-ipfs
+        IPFS_CID=$(SERVICE_FILE=.docker/service.json task upload-to-ipfs | tail -1)
+        IPFS_URI="ipfs://${IPFS_CID}"
+        echo "📍 Service uploaded to: ${IPFS_URI}"
 
         # 6. Start services
         echo "🔄 Starting aggregator and operator..."
-        task start-aggregator-and-operator
+        task start-aggregator-and-operator IPFS_URI="${IPFS_URI}"
 
         echo "✅ Component {{.COMPONENT}} deployed successfully!"
 
@@ -630,19 +651,17 @@ tasks:
         fi
         set -e  # Re-enable exit on error
 
-        # Store registry info in state for service configuration
-        {
-          echo "REGISTRY=${REGISTRY}"
-          echo "PKG_NAMESPACE=${PKG_NAMESPACE}"
-          echo "PKG_NAME=${PKG_NAME}"
-          echo "PKG_VERSION=${PKG_VERSION}"
-        } >> {{.STATE_DIR}}/.state.env
+        # Registry info no longer stored in state - passed directly to tasks that need it
 
   start-aggregator-and-operator:
     desc: "Start aggregator and operator services"
     deps: [init-environment]
+    env:
+      IPFS_URI: "{{.IPFS_URI}}"
     cmds:
       - |
+        # Read state file to get deployer credentials
+        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
         # Set default IPFS gateway
         IPFS_GATEWAY=${IPFS_GATEWAY:-"https://gateway.pinata.cloud/ipfs/"}
 
@@ -697,7 +716,13 @@ tasks:
             if [[ "${IPFS_URI}" == http://* ]] || [[ "${IPFS_URI}" == https://* ]]; then
               # For HTTP URLs, deploy directly without IPFS gateway
               echo "🌐 Using HTTP deployment"
-              task wavs-cli -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --set-url
+              task wavs-cli \
+                WAVS_CLI_EVM_CREDENTIAL="${DEPLOYER_PRIVATE_KEY}" \
+                DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS}" \
+                DEPLOYER_PRIVATE_KEY="${DEPLOYER_PRIVATE_KEY}" \
+                WAVS_SERVICE_MANAGER_ADDRESS="${WAVS_SERVICE_MANAGER_ADDRESS}" \
+                ECDSA_STAKE_REGISTRY_ADDRESS="${ECDSA_STAKE_REGISTRY_ADDRESS}" \
+                -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --set-url
             elif [[ "${IPFS_URI}" == ipfs://* ]]; then
               # For IPFS URLs, use appropriate gateway
               if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
@@ -706,7 +731,13 @@ tasks:
                 IPFS_GATEWAY=${IPFS_GATEWAY:-"https://gateway.pinata.cloud/ipfs/"}
               fi
               echo "📁 Using IPFS deployment"
-              task wavs-cli -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY} --set-url
+              task wavs-cli \
+                WAVS_CLI_EVM_CREDENTIAL="${DEPLOYER_PRIVATE_KEY}" \
+                DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS}" \
+                DEPLOYER_PRIVATE_KEY="${DEPLOYER_PRIVATE_KEY}" \
+                WAVS_SERVICE_MANAGER_ADDRESS="${WAVS_SERVICE_MANAGER_ADDRESS}" \
+                ECDSA_STAKE_REGISTRY_ADDRESS="${ECDSA_STAKE_REGISTRY_ADDRESS}" \
+                -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY} --set-url
             else
               echo "❌ Unsupported service URL format: ${IPFS_URI}"
               exit 1
@@ -722,20 +753,34 @@ tasks:
   register-operator:
     desc: "Register operator with middleware"
     deps: [init-environment]
-    vars:
-      STATE_DIR: ".docker"
+    env:
+      DEPLOYER_ADDRESS: '{{.DEPLOYER_ADDRESS | default ""}}'
+      DEPLOYER_PRIVATE_KEY: '{{.DEPLOYER_PRIVATE_KEY | default ""}}'
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
+      ECDSA_STAKE_REGISTRY_ADDRESS: '{{.ECDSA_STAKE_REGISTRY_ADDRESS | default ""}}'
     cmds:
       - |
-        # Generate AVS signing key
+        # Generate AVS signing key and capture output
         SERVICE_INDEX=0
-        task generate-avs-signing-key SERVICE_INDEX=${SERVICE_INDEX}
+        AVS_KEY_OUTPUT=$(task generate-avs-signing-key SERVICE_INDEX=${SERVICE_INDEX})
+
+        # Parse the output to get the keys
+        OPERATOR_PRIVATE_KEY=$(echo "$AVS_KEY_OUTPUT" | grep "OPERATOR_PRIVATE_KEY=" | cut -d'=' -f2)
+        AVS_SIGNING_ADDRESS=$(echo "$AVS_KEY_OUTPUT" | grep "AVS_SIGNING_ADDRESS=" | cut -d'=' -f2)
 
         # Register operator with middleware
-        [ -f {{.STATE_DIR}}/.state.env ] && source {{.STATE_DIR}}/.state.env
-        if [ -n "${OPERATOR_PRIVATE_KEY:-}" ] && [ -n "${AVS_SIGNING_ADDRESS:-}" ] && [ -n "${WAVS_SERVICE_MANAGER_ADDRESS:-}" ]; then
-          task wavs-middleware -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
+        if [ -n "${OPERATOR_PRIVATE_KEY}" ] && [ -n "${AVS_SIGNING_ADDRESS}" ] && [ -n "${WAVS_SERVICE_MANAGER_ADDRESS}" ]; then
+          task wavs-middleware \
+            DEPLOYER_ADDRESS="${DEPLOYER_ADDRESS}" \
+            DEPLOYER_PRIVATE_KEY="${DEPLOYER_PRIVATE_KEY}" \
+            WAVS_SERVICE_MANAGER_ADDRESS="${WAVS_SERVICE_MANAGER_ADDRESS}" \
+            ECDSA_STAKE_REGISTRY_ADDRESS="${ECDSA_STAKE_REGISTRY_ADDRESS}" \
+            -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
         else
           echo "Missing required variables for operator registration"
+          echo "OPERATOR_PRIVATE_KEY: ${OPERATOR_PRIVATE_KEY}"
+          echo "AVS_SIGNING_ADDRESS: ${AVS_SIGNING_ADDRESS}"
+          echo "WAVS_SERVICE_MANAGER_ADDRESS: ${WAVS_SERVICE_MANAGER_ADDRESS}"
         fi
 
   generate-avs-signing-key:
@@ -759,10 +804,10 @@ tasks:
 
         rm ${TEMP_FILE}
 
-        # Store in state
-        echo "OPERATOR_PRIVATE_KEY=${OPERATOR_PRIVATE_KEY}" >> {{.STATE_DIR}}/.state.env
-        echo "AVS_SIGNING_ADDRESS=${AVS_SIGNING_ADDRESS}" >> {{.STATE_DIR}}/.state.env
-        echo "AVS_PRIVATE_KEY=${AVS_PRIVATE_KEY}" >> {{.STATE_DIR}}/.state.env
+        # Return values for caller to use (no longer stored in state)
+        echo "OPERATOR_PRIVATE_KEY=${OPERATOR_PRIVATE_KEY}"
+        echo "AVS_SIGNING_ADDRESS=${AVS_SIGNING_ADDRESS}"
+        echo "AVS_PRIVATE_KEY=${AVS_PRIVATE_KEY}"
 
   # ===========================================
   # UTILITY TASKS
