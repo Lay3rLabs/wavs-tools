@@ -9,7 +9,7 @@ vars:
   # ===========================================
   # DOCKER IMAGE TAGS - Change these to use different versions
   # ===========================================
-  WAVS_DOCKER_TAG: "0.4.0-rc" # WAVS main image tag
+  WAVS_DOCKER_TAG: "35c96a4" # WAVS main image tag
   WAVS_MIDDLEWARE_DOCKER_TAG: "0.4.0-rc" # WAVS middleware image tag
   WARG_REGISTRY_DOCKER_TAG: "v0.9.3" # WARG registry image tag
 
@@ -633,7 +633,7 @@ tasks:
             if [[ "${IPFS_URI}" == http://* ]] || [[ "${IPFS_URI}" == https://* ]]; then
               # For HTTP URLs, deploy directly without IPFS gateway
               echo "🌐 Using HTTP deployment"
-              task wavs-cli -- deploy-service --service-url ${IPFS_URI} --log-level=debug --data /data/.docker --home /data --wavs-endpoint ${WAVS_ENDPOINT}
+              task wavs-cli -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --set-url
             elif [[ "${IPFS_URI}" == ipfs://* ]]; then
               # For IPFS URLs, use appropriate gateway
               if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
@@ -642,7 +642,7 @@ tasks:
                 IPFS_GATEWAY=${IPFS_GATEWAY:-"https://gateway.pinata.cloud/ipfs/"}
               fi
               echo "📁 Using IPFS deployment"
-              task wavs-cli -- deploy-service --service-url ${IPFS_URI} --log-level=debug --data /data/.docker --home /data --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY}
+              task wavs-cli -- deploy-service --service-url ${IPFS_URI} --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY} --set-url
             else
               echo "❌ Unsupported service URL format: ${IPFS_URI}"
               exit 1
