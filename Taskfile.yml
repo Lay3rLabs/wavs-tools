@@ -41,7 +41,10 @@ tasks:
 
   start:
     desc: "Start anvil and core services"
-    deps: [init-environment, start-services]
+    deps: [init-environment]
+    cmds:
+      - task: start-services-background
+      - task: deploy-middleware
 
   stop:
     desc: "Stop Anvil and Docker services"
@@ -116,16 +119,20 @@ tasks:
     cmds:
       - |
         ENV_FILE="infra/{{.INSTANCE}}/.env"
+        STATE_FILE="{{.STATE_DIR}}/.state.env"
+        
+        ENV_ARGS=""
         if [ -f "$ENV_FILE" ]; then
-          docker run --rm --network host \
-            --env-file "$ENV_FILE" \
-            -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
-            wavs-cli {{.CLI_ARGS}}
-        else
-          docker run --rm --network host \
-            -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
-            wavs-cli {{.CLI_ARGS}}
+          ENV_ARGS="$ENV_ARGS --env-file $ENV_FILE"
         fi
+        if [ -f "$STATE_FILE" ]; then
+          ENV_ARGS="$ENV_ARGS --env-file $STATE_FILE"
+        fi
+        
+        docker run --rm --network host \
+          $ENV_ARGS \
+          -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
+          wavs-cli {{.CLI_ARGS}}
 
   # ===========================================
   # CORE TASKS (Setup and utilities)
@@ -204,6 +211,48 @@ tasks:
 
           echo "Started..."
           wait
+        fi
+
+  start-services-background:
+    desc: "Start anvil and Docker services in background"
+    cmds:
+      - |
+        export WARG_REGISTRY_DOCKER_TAG={{.WARG_REGISTRY_DOCKER_TAG}}
+
+        if [ -f .env ] && grep -q '^TESTNET_RPC_URL=' .env; then
+          TESTNET_RPC_URL=$(grep -E '^TESTNET_RPC_URL=' .env | cut -d '=' -f2- | tr -d '"')
+        else
+          rpc_url="https://holesky.drpc.org"
+          echo "No TESTNET_RPC_URL found in .env, using default ${rpc_url}"
+          TESTNET_RPC_URL=${rpc_url}
+        fi
+
+        PORT=8545
+        FORK_RPC_URL=${FORK_RPC_URL:-"${TESTNET_RPC_URL}"}
+
+        if [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
+          echo "Running in testnet mode, nothing to do"
+          exit 0
+        fi
+
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          # Kill any existing anvil
+          pkill -f "anvil --fork-url" || true
+          
+          # Start anvil in background
+          anvil --fork-url ${FORK_RPC_URL} --port ${PORT} &
+          
+          # Wait for anvil to be ready
+          while ! cast block-number --rpc-url http://localhost:${PORT} > /dev/null 2>&1
+          do
+            sleep 0.25
+          done
+
+          FILES="-f docker-compose.yml -f telemetry/docker-compose.yml"
+          docker compose ${FILES} pull
+          docker compose ${FILES} up --force-recreate -d
+
+          echo "Services started in background"
         fi
 
   create-deployer:
