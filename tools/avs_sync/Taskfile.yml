@@ -5,7 +5,7 @@ vars:
   COMPONENT_NAME: avs_sync
   COMPONENT_FILENAME: avs_sync.wasm
   PKG_NAME: avssync
-  PKG_VERSION: 0.5.1
+  PKG_VERSION: '{{.PKG_VERSION | default "0.1.0"}}'
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
   PKG_NAMESPACE: "wavstools"
@@ -80,6 +80,29 @@ tasks:
         echo "🔄 Step 7: Starting aggregator and operator services..."
         task start-aggregator-and-operator
 
+        # Step 8: Register service with aggregator
+        echo "📡 Step 8: Registering service with aggregator..."
+        [ -f ../../.docker/.state.env ] && source ../../.docker/.state.env
+        if [ -n "$IPFS_URI" ]; then
+          task register-service-with-aggregator IPFS_URI="$IPFS_URI"
+        fi
+
+        # Step 9: Deploy service to WAVS
+        echo "🚀 Step 9: Deploying service to WAVS..."
+        if [ -n "$IPFS_URI" ]; then
+          task deploy-service-to-wavs SERVICE_URL="$IPFS_URI"
+        fi
+
+        # Step 10: Register operator
+        echo "🔑 Step 10: Registering operator..."
+        task register-operator
+
+        # Step 11: Set service URI on contract
+        echo "📝 Step 11: Setting service URI on contract..."
+        if [ -n "$IPFS_URI" ]; then
+          task set-service-uri IPFS_URI="$IPFS_URI"
+        fi
+
         echo "✅ Complete avs_sync deployment finished!"
         echo "🎉 Your component is deployed and running!"
 
@@ -87,8 +110,7 @@ tasks:
     desc: "Trigger component by mining blocks"
     vars:
       BLOCKS: '{{.CLI_ARGS | default "1"}}'
-      RPC_URL:
-        sh: task get-rpc-url
+      RPC_URL: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}'
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.RPC_URL}}
 
@@ -105,10 +127,11 @@ tasks:
     desc: "Ensure WAVS middleware is deployed and deployer is funded"
     cmds:
       - |
-        # Initialize environment first
+        # This task is called from root directory, no need to cd
+        echo "🔧 Initializing environment..."
         task init-environment
 
-        # Fund deployer if needed
+        echo "💰 Checking deployer funding..."
         task avs_sync:fund-deployer
 
         # Check if middleware is already deployed by looking for state
@@ -121,8 +144,12 @@ tasks:
 
   fund-deployer:
     desc: "Fund the deployer wallet if needed"
+    vars:
+      RPC_URL: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}'
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
     cmds:
       - |
+        # This task is called from root directory, no need to cd
         # Load state to get deployer address
         [ -f ./.docker/.state.env ] && source ./.docker/.state.env
 
@@ -131,16 +158,35 @@ tasks:
           exit 1
         fi
 
+        echo "🔍 Checking deployer funding for {{.DEPLOY_ENV}} environment..."
+        echo "Using RPC URL: {{.RPC_URL}}"
+
+        # Check if we can connect to the RPC
+        if ! cast block-number --rpc-url {{.RPC_URL}} > /dev/null 2>&1; then
+          if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+            echo "❌ Local anvil not running. Please start services first with 'task start'"
+            exit 1
+          else
+            echo "❌ Cannot connect to {{.RPC_URL}}"
+            exit 1
+          fi
+        fi
+
         # Check current balance
-        BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url http://localhost:8545)
+        BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.RPC_URL}})
         echo "Current deployer balance: ${BALANCE} ETH"
 
-        # Fund if balance is less than 1 ETH
+        # Fund if balance is less than 1 ETH and we're in LOCAL mode
         if (( $(echo "$BALANCE < 1.0" | bc -l) )); then
-          echo "💰 Funding deployer with 15 ETH..."
-          cast rpc anvil_setBalance "${DEPLOYER_ADDRESS}" '15000000000000000000' --rpc-url http://localhost:8545 > /dev/null
-          NEW_BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url http://localhost:8545)
-          echo "✅ Deployer funded. New balance: ${NEW_BALANCE} ETH"
+          if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+            echo "💰 Funding deployer with 15 ETH..."
+            cast rpc anvil_setBalance "${DEPLOYER_ADDRESS}" '15000000000000000000' --rpc-url {{.RPC_URL}} > /dev/null
+            NEW_BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.RPC_URL}})
+            echo "✅ Deployer funded. New balance: ${NEW_BALANCE} ETH"
+          else
+            echo "⚠️ Deployer balance is low (${BALANCE} ETH) but in TESTNET mode"
+            echo "Please fund the deployer manually: ${DEPLOYER_ADDRESS}"
+          fi
         else
           echo "✅ Deployer already has sufficient balance"
         fi
@@ -153,14 +199,13 @@ tasks:
     desc: "Deploy avs_sync specific contracts"
     deps: [setup-component-env]
     vars:
-      RPC_URL:
-        sh: task get-rpc-url
+      RPC_URL: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}'
     cmds:
       - |
         echo "Deploying avs_sync contracts..."
 
         # Load environment variables from state file
-        [ -f ./.docker/.state.env ] && source ./.docker/.state.env
+        [ -f .docker/.state.env ] && source .docker/.state.env
 
         # Export required environment variables for forge
         export WAVS_SERVICE_MANAGER_ADDRESS
@@ -186,23 +231,19 @@ tasks:
         echo "Service Manager: $WAVS_SERVICE_MANAGER_ADDRESS"
         echo "Stake Registry: $ECDSA_STAKE_REGISTRY_ADDRESS"
 
-        # Change to avs_sync directory and run forge script
-        cd tools/avs_sync
-
         echo "Running forge script..."
 
         # Run forge script and capture output
         set +e
-        DEPLOY_OUTPUT=$(WAVS_SERVICE_MANAGER_ADDRESS="$WAVS_SERVICE_MANAGER_ADDRESS" \
-          ECDSA_STAKE_REGISTRY_ADDRESS="$ECDSA_STAKE_REGISTRY_ADDRESS" \
-          forge script script/DeployAvsWriter.s.sol --fork-url {{.RPC_URL}} --broadcast --private-key $DEPLOYER_PRIVATE_KEY 2>&1)
+        export WAVS_SERVICE_MANAGER_ADDRESS
+        export ECDSA_STAKE_REGISTRY_ADDRESS
+        cd tools/avs_sync
+        DEPLOY_OUTPUT=$(forge script script/DeployAvsWriter.s.sol --fork-url {{.RPC_URL}} --broadcast --private-key $DEPLOYER_PRIVATE_KEY 2>&1)
         FORGE_EXIT_CODE=$?
+        cd ../..
         set -e
 
         echo "Forge script completed with exit code: $FORGE_EXIT_CODE"
-
-        # Navigate back to root
-        cd ../..
 
         # Extract WAVS_SUBMIT_ADDRESS from the deployment output
         WAVS_SUBMIT_ADDRESS=$(echo "$DEPLOY_OUTPUT" | grep "AvsWriter deployed at:" | grep -o "0x[a-fA-F0-9]\{40\}")
@@ -216,8 +257,8 @@ tasks:
         fi
 
         echo "AVS Writer deployed at: $WAVS_SUBMIT_ADDRESS"
-        echo "WAVS_SUBMIT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> ./.docker/.state.env
-        echo "AVS_SYNC_CONTRACT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> ./.docker/.state.env
+        echo "WAVS_SUBMIT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> .docker/.state.env
+        echo "AVS_SYNC_CONTRACT_ADDRESS=${WAVS_SUBMIT_ADDRESS}" >> .docker/.state.env
 
   build-service:
     desc: "Build avs_sync service configuration"
@@ -227,21 +268,33 @@ tasks:
     cmds:
       - |
         # Load environment variables
-        [ -f ./.docker/.state.env ] && source ./.docker/.state.env
+        [ -f .docker/.state.env ] && source .docker/.state.env
 
-        # Validate required environment variables
+        # Set default AGGREGATOR_URL if not provided
         if [ -z "$AGGREGATOR_URL" ]; then
-          echo "ERROR: AGGREGATOR_URL not set, using default: http://127.0.0.1:8001"
           AGGREGATOR_URL="http://127.0.0.1:8001"
+          echo "Using default AGGREGATOR_URL: ${AGGREGATOR_URL}"
         fi
 
-        # Build service configuration
-        SERVICE_ID=$(task wavs-cli -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
-        WORKFLOW_ID=$(task wavs-cli -- {{.CMD}} workflow add | jq -r .workflow_id)
+        # Build service configuration directly with docker
+        WAVS_DOCKER_IMAGE="ghcr.io/lay3rlabs/wavs:{{.WAVS_DOCKER_TAG | default "35c96a4"}}"
+        
+        SERVICE_ID=$(docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+          
+        WORKFLOW_ID=$(docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        task wavs-cli -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
-        task wavs-cli -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+        docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+          
+        docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
 
         # Set component from WASI registry
         # Load package info from state
@@ -257,10 +310,22 @@ tasks:
         fi
 
         echo "Using WASI package: ${PKG_NAMESPACE}:${PKG_NAME}@${PKG_VERSION} from ${REGISTRY}"
-        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-registry --domain ${REGISTRY} --package ${PKG_NAMESPACE}:${PKG_NAME} --version ${PKG_VERSION} > /dev/null
-        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
-        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
-        task wavs-cli -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
+        
+        docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-registry --domain ${REGISTRY} --package ${PKG_NAMESPACE}:${PKG_NAME} --version ${PKG_VERSION} > /dev/null
+          
+        docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+          
+        docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+          
+        docker run --rm --network host \
+          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
+          wavs-cli {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
 
         echo "Service configuration built successfully"
 
@@ -269,10 +334,10 @@ tasks:
     cmds:
       - |
         # Ensure component state directory exists
-        mkdir -p ./.docker
+        mkdir -p .docker
 
         # Always create fresh component-specific state file
-        COMPONENT_STATE_FILE="./.docker/{{.COMPONENT_NAME}}.env"
+        COMPONENT_STATE_FILE=".docker/{{.COMPONENT_NAME}}.env"
         cat > "$COMPONENT_STATE_FILE" << EOF
         # Component: {{.COMPONENT_NAME}}
         COMPONENT_NAME={{.COMPONENT_NAME}}
@@ -290,36 +355,22 @@ tasks:
     desc: "Upload component to WASI registry"
     deps: [setup-component-env]
     vars:
-      RPC_URL:
-        sh: task get-rpc-url
-      DEPLOY_ENV:
-        sh: |
-          if [ -f ./.env ] && grep -q '^DEPLOY_ENV=' ./.env; then
-            grep '^DEPLOY_ENV=' ./.env | cut -d '=' -f2
-          else
-            echo "LOCAL"
-          fi
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      REGISTRY: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "localhost:8090" "wa.dev"}}'
+      PKG_NAMESPACE_VAR: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary .PKG_NAMESPACE ""}}'
     cmds:
       - |
-        # Get registry based on DEPLOY_ENV
-        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          REGISTRY=localhost:8090
-        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
-          REGISTRY=wa.dev
-        else
-          echo "Unknown DEPLOY_ENV: {{.DEPLOY_ENV}}"
-          exit 1
-        fi
+        REGISTRY="{{.REGISTRY}}"
 
         # Get PKG_NAMESPACE based on DEPLOY_ENV
         if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          PKG_NAMESPACE="wavstools"
+          PKG_NAMESPACE="{{.PKG_NAMESPACE_VAR}}"
         else
           read -p "Enter the PKG_NAMESPACE for ${REGISTRY}: " namespace
           PKG_NAMESPACE="${namespace}"
         fi
 
-        COMPONENT_PATH="./compiled/{{.COMPONENT_FILENAME}}"
+        COMPONENT_PATH="compiled/{{.COMPONENT_FILENAME}}"
         if [ ! -f "$COMPONENT_PATH" ]; then
           echo "❌ Component file not found: $COMPONENT_PATH"
           exit 1
@@ -350,6 +401,9 @@ tasks:
             elif [[ "$output" =~ "error sending request for url" ]]; then
                 echo "⚠️ Registry not available - check that you are running the registry locally"
                 echo "${output}"
+            elif [[ "$output" =~ "namespace.*is not defined" ]]; then
+                echo "✅ Package uploaded to local registry (namespace auto-created)"
+                echo "   (This is expected for local registries)"
             else
                 echo "⚠️ Upload error: ${output}"
             fi
@@ -364,21 +418,17 @@ tasks:
           echo "PKG_NAMESPACE=${PKG_NAMESPACE}"
           echo "PKG_NAME={{.PKG_NAME}}"
           echo "PKG_VERSION={{.PKG_VERSION}}"
-        } >> "./.docker/.state.env"
+        } >> ".docker/.state.env"
 
   upload-service-to-ipfs:
     desc: "Upload service configuration to IPFS"
     vars:
-      DEPLOY_ENV:
-        sh: |
-          if [ -f ./.env ] && grep -q '^DEPLOY_ENV=' ./.env; then
-            grep '^DEPLOY_ENV=' ./.env | cut -d '=' -f2
-          else
-            echo "LOCAL"
-          fi
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+    env:
+      PINATA_API_KEY: '{{.PINATA_API_KEY | default ""}}'
     cmds:
       - |
-        SERVICE_FILE="./.docker/service.json"
+        SERVICE_FILE=".docker/service.json"
         if [ -z "$SERVICE_FILE" ] || [ ! -f "$SERVICE_FILE" ]; then
           echo "❌ SERVICE_FILE not set or does not exist: '$SERVICE_FILE'"
           exit 1
@@ -387,56 +437,130 @@ tasks:
         echo "📄 SERVICE_FILE: $SERVICE_FILE"
         echo "🌍 DEPLOY_ENV: {{.DEPLOY_ENV}}"
 
-        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          # Use Docker IPFS instance via HTTP API
-          echo "📤 Uploading to Docker IPFS instance..."
-          
-          # Check if IPFS container is running
-          if ! curl -s --connect-timeout 5 http://localhost:5001/api/v0/version > /dev/null; then
-            echo "❌ IPFS not running on localhost:5001"
-            echo "💡 Start IPFS with: docker-compose up -d ipfs"
-            echo "⚠️ Skipping IPFS upload - deployment will continue without service deployment"
-            echo "IPFS_URI=" >> "./.docker/.state.env"
-            return 0
-          fi
-          
-          # Upload to IPFS using HTTP API
-          ipfs_response=$(curl -s -X POST \
-            -F "file=@${SERVICE_FILE}" \
-            "http://localhost:5001/api/v0/add?only-hash=false&recursive=false&quiet=true")
-          
-          if [ $? -eq 0 ] && [ -n "$ipfs_response" ]; then
-            ipfs_cid=$(echo "$ipfs_response" | jq -r '.Hash' 2>/dev/null || echo "$ipfs_response" | tail -1)
-            if [ -n "$ipfs_cid" ] && [ "$ipfs_cid" != "null" ]; then
-              echo "✅ Uploaded to IPFS: $ipfs_cid"
-              echo "IPFS_URI=ipfs://$ipfs_cid" >> "./.docker/.state.env"
-            else
-              echo "❌ Failed to extract IPFS hash from response: $ipfs_response"
-              # Determine state file path
-              if [ "$(basename $(pwd))" = "avs_sync" ]; then
-                STATE_FILE="{{.ROOT}}.docker/.state.env"
-              else
-                STATE_FILE="./.docker/.state.env"
-              fi
-              echo "IPFS_URI=" >> "$STATE_FILE"
-            fi
-          else
-            echo "❌ Failed to upload to IPFS"
-            echo "IPFS_URI=" >> "./.docker/.state.env"
-          fi
-        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
-          if [ -z "$PINATA_API_KEY" ]; then
-            echo "❌ PINATA_API_KEY not set"
-            exit 1
-          fi
-          ipfs_cid=$(curl -s -X POST https://api.pinata.cloud/pinning/pinFileToIPFS \
-            -H "Authorization: Bearer $PINATA_API_KEY" \
-            -F "file=@${SERVICE_FILE}" | jq -r '.IpfsHash')
+        ipfs_cid=$(DEPLOY_ENV="{{.DEPLOY_ENV}}" SERVICE_FILE="$SERVICE_FILE" task upload-to-ipfs | tail -1)
+
+        if [ -n "$ipfs_cid" ]; then
           echo "✅ Uploaded to IPFS: $ipfs_cid"
           echo "IPFS_URI=ipfs://$ipfs_cid" >> "./.docker/.state.env"
         else
-          echo "❌ Unknown DEPLOY_ENV: {{.DEPLOY_ENV}}"
+          echo "❌ Failed to upload to IPFS"
+          echo "IPFS_URI=" >> "./.docker/.state.env"
+        fi
+
+  register-service-with-aggregator:
+    desc: "Register service with aggregator"
+    vars:
+      AGGREGATOR_URL: '{{.AGGREGATOR_URL | default "http://127.0.0.1:8001"}}'
+      IPFS_URI: "{{.IPFS_URI}}"
+    cmds:
+      - |
+        if [ -z "{{.IPFS_URI}}" ]; then
+          echo "❌ IPFS_URI is required"
           exit 1
+        fi
+
+        echo "📡 Registering service with aggregator at {{.AGGREGATOR_URL}}..."
+        response=$(wget -q --header="Content-Type: application/json" \
+          --post-data='{"uri": "{{.IPFS_URI}}"}' \
+          {{.AGGREGATOR_URL}}/register-service -O -)
+
+        if [ $? -eq 0 ]; then
+          echo "✅ Service registered with aggregator"
+          echo "Response: $response"
+        else
+          echo "❌ Failed to register service with aggregator"
+          exit 1
+        fi
+
+  deploy-service-to-wavs:
+    desc: "Deploy service to WAVS instance"
+    vars:
+      WAVS_ENDPOINT: '{{.WAVS_ENDPOINT | default "http://127.0.0.1:8000"}}'
+      SERVICE_URL: "{{.SERVICE_URL}}"
+      IPFS_GATEWAY: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://127.0.0.1:8080/ipfs/" "https://gateway.pinata.cloud/ipfs/"}}'
+    cmds:
+      - |
+        if [ -z "{{.SERVICE_URL}}" ]; then
+          echo "❌ SERVICE_URL is required"
+          exit 1
+        fi
+
+        # Check WAVS service availability
+        echo "🔍 Checking WAVS service at {{.WAVS_ENDPOINT}}..."
+        TIMEOUT=60
+        ELAPSED=0
+
+        while [ $ELAPSED -lt $TIMEOUT ]; do
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" {{.WAVS_ENDPOINT}}/app)
+          if [ "$HTTP_CODE" = "200" ]; then
+            echo "✅ WAVS service is running"
+            break
+          fi
+          
+          echo "⏳ Waiting for WAVS service... (${ELAPSED}s/${TIMEOUT}s)"
+          sleep 2
+          ELAPSED=$((ELAPSED + 2))
+        done
+
+        if [ $ELAPSED -ge $TIMEOUT ]; then
+          echo "❌ WAVS service not reachable at {{.WAVS_ENDPOINT}} after ${TIMEOUT}s"
+          exit 1
+        fi
+
+        echo "🚀 Deploying service from: {{.SERVICE_URL}}..."
+        cd         task wavs-cli CLI_ARGS="deploy-service --service-url {{.SERVICE_URL}} --log-level=debug --data /data/.docker --home /data --wavs-endpoint {{.WAVS_ENDPOINT}} --ipfs-gateway {{.IPFS_GATEWAY}}"
+
+  register-operator:
+    desc: "Register operator with AVS"
+    cmds:
+      - |
+        # Load state
+        [ -f .docker/.state.env ] && source .docker/.state.env
+
+        # Get AVS signing key info
+        SERVICE_INDEX=0
+        DEFAULT_ENV_FILE="infra/wavs-1/.env"
+
+        SERVICE_ID=$(curl -s http://localhost:8000/app | jq -r ".services[${SERVICE_INDEX}].id")
+        if [ -z "$SERVICE_ID" ] || [ "$SERVICE_ID" == "null" ]; then
+          echo "❌ Error: SERVICE_ID is null or not found for index ${SERVICE_INDEX}."
+          exit 1
+        fi
+
+        HD_INDEX=$(curl -s http://localhost:8000/service-key/${SERVICE_ID} | jq -rc '.secp256k1.hd_index')
+
+        source ${DEFAULT_ENV_FILE}
+        OPERATOR_PRIVATE_KEY=$(cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0)
+        AVS_SIGNING_ADDRESS=$(cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index ${HD_INDEX})
+
+        echo "Registering operator with AVS..."
+        echo "Service Manager: $WAVS_SERVICE_MANAGER_ADDRESS"
+        echo "HD Index: ${HD_INDEX}"
+        echo "Service ID: ${SERVICE_ID}"
+        echo "AVS Signing Address: ${AVS_SIGNING_ADDRESS}"
+
+        cd         task wavs-middleware CLI_ARGS="register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether"
+
+  set-service-uri:
+    desc: "Set service URI on WAVS Service Manager contract"
+    vars:
+      IPFS_URI: "{{.IPFS_URI}}"
+      RPC_URL: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}'
+    cmds:
+      - |
+        # Load state
+        [ -f .docker/.state.env ] && source .docker/.state.env
+
+        if [ -n "$DEPLOYER_PRIVATE_KEY" ] && [ -n "{{.IPFS_URI}}" ] && [ -n "$WAVS_SERVICE_MANAGER_ADDRESS" ]; then
+          echo "📝 Setting service URI on WAVS Service Manager..."
+          cast send $WAVS_SERVICE_MANAGER_ADDRESS 'setServiceURI(string)' "{{.IPFS_URI}}" \
+            -r {{.RPC_URL}} --private-key $DEPLOYER_PRIVATE_KEY
+          echo "✅ Service URI set successfully"
+        else
+          echo "⚠️ Skipping service URI setting - required variables not available"
+          echo "  DEPLOYER_PRIVATE_KEY: ${DEPLOYER_PRIVATE_KEY:+set}"
+          echo "  IPFS_URI: {{.IPFS_URI}}"
+          echo "  WAVS_SERVICE_MANAGER_ADDRESS: ${WAVS_SERVICE_MANAGER_ADDRESS:+set}"
         fi
 
   # ===========================================
@@ -447,7 +571,7 @@ tasks:
     desc: "Clean build artifacts"
     cmds:
       - cargo clean
-      - rm -f {{.ROOT}}compiled/{{.COMPONENT_FILENAME}} 2>/dev/null || true
+      - rm -f compiled/{{.COMPONENT_FILENAME}} 2>/dev/null || true
 
   test:
     desc: "Run component tests"

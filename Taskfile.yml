@@ -13,23 +13,9 @@ vars:
   WAVS_MIDDLEWARE_DOCKER_TAG: "0.4.0-rc" # WAVS middleware image tag
   WARG_REGISTRY_DOCKER_TAG: "v0.9.3" # WARG registry image tag
 
-  DEPLOY_ENV:
-    sh: |
-      if [ -f .env ] && grep -q '^DEPLOY_ENV=' .env; then
-        grep '^DEPLOY_ENV=' .env | cut -d '=' -f2
-      else
-        echo "LOCAL"
-      fi
-  RPC_URL:
-    sh: |
-      DEPLOY_ENV="{{.DEPLOY_ENV}}"
-      if [ "$DEPLOY_ENV" = "LOCAL" ]; then
-        grep "^LOCAL_ETHEREUM_RPC_URL=" .env 2>/dev/null | cut -d '=' -f2 || echo "http://localhost:8545"
-      elif [ "$DEPLOY_ENV" = "TESTNET" ]; then
-        grep "^TESTNET_RPC_URL=" .env 2>/dev/null | cut -d '=' -f2 || echo "https://holesky.drpc.org"
-      else
-        echo "http://localhost:8545"
-      fi
+  # Default environment settings (can be overridden with env vars)
+  DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+  RPC_URL: '{{.RPC_URL | default "http://localhost:8545"}}'
 
 includes:
   avs_sync: ./tools/avs_sync/Taskfile.yml
@@ -43,17 +29,23 @@ tasks:
     desc: "Start anvil and core services"
     deps: [init-environment]
     cmds:
-      - warg clear
+      - warg reset
       - task: start-services-background
       - task: deploy-middleware
 
   stop:
     desc: "Stop Anvil and Docker services"
+    vars:
+      WARG_REGISTRY_DOCKER_TAG: "{{.WARG_REGISTRY_DOCKER_TAG}}"
     cmds:
       - |
+        echo "Stopping Docker services..."
         export WARG_REGISTRY_DOCKER_TAG={{.WARG_REGISTRY_DOCKER_TAG}}
-        docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans || true
-      - pkill -f "anvil --fork-url" || true
+        docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans || echo "Docker compose down completed"
+      - |
+        echo "Stopping anvil processes..."
+        pkill -f "anvil --fork-url" || echo "No anvil processes found"
+      - echo "Stop completed"
 
   show-versions:
     desc: "Show current Docker image versions being used"
@@ -130,6 +122,7 @@ tasks:
     vars:
       WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:{{.WAVS_DOCKER_TAG}}"
       INSTANCE: '{{.INSTANCE | default "wavs-1"}}'
+      CLI_ARGS: '{{.CLI_ARGS | default ""}}'
     env:
       WAVS_CLI_EVM_CREDENTIAL: '{{.WAVS_CLI_EVM_CREDENTIAL | default ""}}'
       WAVS_SUBMISSION_MNEMONIC: '{{.WAVS_SUBMISSION_MNEMONIC | default ""}}'
@@ -504,34 +497,57 @@ tasks:
 
   upload-to-ipfs:
     desc: Upload a service file to IPFS and return the CID
+    vars:
+      SERVICE_FILE: '{{.SERVICE_FILE | default ".docker/service.json"}}'
+    env:
+      PINATA_API_KEY: '{{.PINATA_API_KEY | default ""}}'
     cmds:
       - |
+        SERVICE_FILE="{{.SERVICE_FILE}}"
         if [ -z "$SERVICE_FILE" ] || [ ! -f "$SERVICE_FILE" ]; then
           echo "❌ SERVICE_FILE not set or does not exist: '$SERVICE_FILE'"
           exit 1
         fi
 
-        DEPLOY_ENV=$(grep "^DEPLOY_ENV=" .env | cut -d '=' -f2 | tr '[:lower:]' '[:upper:]')
         echo "📄 SERVICE_FILE: $SERVICE_FILE"
-        echo "🌍 DEPLOY_ENV: $DEPLOY_ENV"
+        echo "🌍 DEPLOY_ENV: {{.DEPLOY_ENV}}"
 
-        if [ "$DEPLOY_ENV" = "LOCAL" ]; then
-          ipfs_cid=$(ipfs add -Q "$SERVICE_FILE")
-        elif [ "$DEPLOY_ENV" = "TESTNET" ]; then
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          # Use Docker IPFS instance via HTTP API
+          if ! curl -s --connect-timeout 5 http://localhost:5001/api/v0/version > /dev/null; then
+            echo "❌ IPFS not running on localhost:5001"
+            exit 1
+          fi
+          
+          ipfs_response=$(curl -s -X POST \
+            -F "file=@${SERVICE_FILE}" \
+            "http://localhost:5001/api/v0/add?only-hash=false&recursive=false&quiet=true")
+          
+          if [ $? -eq 0 ] && [ -n "$ipfs_response" ]; then
+            ipfs_cid=$(echo "$ipfs_response" | jq -r '.Hash' 2>/dev/null || echo "$ipfs_response" | tail -1)
+            if [ -n "$ipfs_cid" ] && [ "$ipfs_cid" != "null" ]; then
+              echo "$ipfs_cid"
+            else
+              echo "❌ Failed to extract IPFS hash from response: $ipfs_response" >&2
+              exit 1
+            fi
+          else
+            echo "❌ Failed to upload to IPFS" >&2
+            exit 1
+          fi
+        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
           if [ -z "$PINATA_API_KEY" ]; then
-            echo "❌ PINATA_API_KEY not set"
+            echo "❌ PINATA_API_KEY not set" >&2
             exit 1
           fi
           ipfs_cid=$(curl -s -X POST https://api.pinata.cloud/pinning/pinFileToIPFS \
             -H "Authorization: Bearer $PINATA_API_KEY" \
             -F "file=@${SERVICE_FILE}" | jq -r '.IpfsHash')
+          echo "$ipfs_cid"
         else
-          echo "❌ Unknown DEPLOY_ENV: $DEPLOY_ENV"
+          echo "❌ Unknown DEPLOY_ENV: {{.DEPLOY_ENV}}" >&2
           exit 1
         fi
-
-        echo "✅ Uploaded to IPFS: $ipfs_cid"
-        echo "$ipfs_cid"
 
   build-components:
     desc: "Build all or specific WASM components"
@@ -575,43 +591,38 @@ tasks:
 
   upload-to-wasi-registry:
     desc: "Upload component to WASI registry"
-    deps: [init-environment]
+    vars:
+      REGISTRY: '{{.DEPLOY_ENV | eq "LOCAL" | ternary "localhost:8090" "wa.dev"}}'
+      PKG_NAMESPACE_VAR: '{{.DEPLOY_ENV | eq "LOCAL" | ternary .PKG_NAMESPACE ""}}'
+    env:
+      PKG_NAME: "{{.PKG_NAME}}"
+      PKG_VERSION: "{{.PKG_VERSION}}"
+      COMPONENT_FILENAME: "{{.COMPONENT_FILENAME}}"
     cmds:
       - |
-        # Get registry based on DEPLOY_ENV
-        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          REGISTRY=localhost:8090
-        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
-          REGISTRY=wa.dev
-        else
-          echo "Unknown DEPLOY_ENV: {{.DEPLOY_ENV}}"
-          exit 1
-        fi
-        export REGISTRY
-        if [ -z "$REGISTRY" ]; then
-            echo "❌ REGISTRY is not set."
-            exit 1
-        fi
+        REGISTRY="{{.REGISTRY}}"
 
         # Get PKG_NAMESPACE based on DEPLOY_ENV
         if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          export PKG_NAMESPACE="wavstools"
+          PKG_NAMESPACE="{{.PKG_NAMESPACE_VAR}}"
         else
           read -p "Enter the PKG_NAMESPACE for ${REGISTRY}: " namespace
-          export PKG_NAMESPACE="${namespace}"
+          PKG_NAMESPACE="${namespace}"
         fi
+
         if [ -z "$PKG_NAMESPACE" ]; then
             echo "❌ PKG_NAMESPACE is not set."
             exit 1
         fi
 
         # Validate required environment variables
-        for var in PKG_NAME PKG_VERSION COMPONENT_FILENAME; do
-          if [ -z "${!var}" ]; then
-            echo "❌ ERROR: $var environment variable is required"
-            exit 1
-          fi
-        done
+        if [ -z "$PKG_NAME" ] || [ -z "$PKG_VERSION" ] || [ -z "$COMPONENT_FILENAME" ]; then
+          echo "❌ ERROR: PKG_NAME, PKG_VERSION, and COMPONENT_FILENAME are required"
+          echo "  PKG_NAME: $PKG_NAME"
+          echo "  PKG_VERSION: $PKG_VERSION"
+          echo "  COMPONENT_FILENAME: $COMPONENT_FILENAME"
+          exit 1
+        fi
 
         COMPONENT_PATH="{{.COMPONENTS_DIR}}/${COMPONENT_FILENAME}"
         if [ ! -f "$COMPONENT_PATH" ]; then
@@ -866,26 +877,6 @@ tasks:
         done
 
   # Utility tasks
-  get-rpc-url:
-    desc: "Get RPC URL based on DEPLOY_ENV"
-    silent: true
-    cmds:
-      - |
-        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
-          if [ -f .env ] && grep -q '^LOCAL_ETHEREUM_RPC_URL=' .env; then
-            grep '^LOCAL_ETHEREUM_RPC_URL=' .env | cut -d '=' -f2
-          else
-            echo "http://localhost:8545"
-          fi
-        elif [ "{{.DEPLOY_ENV}}" = "TESTNET" ]; then
-          if [ -f .env ] && grep -q '^TESTNET_RPC_URL=' .env; then
-            grep '^TESTNET_RPC_URL=' .env | cut -d '=' -f2
-          else
-            echo "https://holesky.drpc.org"
-          fi
-        else
-          echo "http://localhost:8545"
-        fi
 
   dos2unix:
     desc: "Convert line endings to Unix format"
