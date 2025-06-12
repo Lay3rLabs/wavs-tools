@@ -112,11 +112,20 @@ tasks:
     desc: "Run wavs cli command"
     vars:
       WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:{{.WAVS_DOCKER_TAG}}"
+      INSTANCE: '{{.INSTANCE | default "wavs-1"}}'
     cmds:
-      - >
-        docker run --rm --network host
-        -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}}
-        wavs-cli {{.CLI_ARGS}}
+      - |
+        ENV_FILE="infra/{{.INSTANCE}}/.env"
+        if [ -f "$ENV_FILE" ]; then
+          docker run --rm --network host \
+            --env-file "$ENV_FILE" \
+            -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
+            wavs-cli {{.CLI_ARGS}}
+        else
+          docker run --rm --network host \
+            -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
+            wavs-cli {{.CLI_ARGS}}
+        fi
 
   # ===========================================
   # CORE TASKS (Setup and utilities)
