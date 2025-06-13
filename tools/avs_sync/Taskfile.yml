@@ -15,10 +15,6 @@ vars:
   COMPILED_DIR: "./compiled"
 
 tasks:
-  # ===========================================
-  # PUBLIC TASKS (Component-specific commands)
-  # ===========================================
-
   wasi-build:
     desc: "Build WASI component"
     cmds:
@@ -47,64 +43,90 @@ tasks:
         fi
 
   deploy:
-    desc: "Complete avs_sync deployment - does everything automatically"
+    desc: "Complete avs_sync deployment"
+    env:
+      COMPONENT_NAME: "avs_sync"
+      COMPONENT_FILENAME: "avs_sync.wasm"
+      PKG_NAME: "avssync"
+      PKG_VERSION: "0.1.0"
+      AGGREGATOR_URL: "http://127.0.0.1:8001"
+      WAVS_ENDPOINT: "http://127.0.0.1:8000"
     cmds:
       - |
-        echo "🚀 Starting complete avs_sync deployment..."
+        echo "🚀 Deploying component: {{.COMPONENT_NAME}}"
 
-        # Step 1: Build WASM
-        echo "📦 Step 1: Building WASM component..."
+        echo "📦 Building WASM component..."
         task avs_sync:wasi-build
 
-        # Step 2: Ensure environment and middleware
-        echo "🔧 Step 2: Setting up environment and middleware..."
+        echo "🔧 Deploying middleware..."
         task avs_sync:ensure-middleware
 
-        # Step 3: Deploy contracts
-        echo "📄 Step 3: Deploying contracts..."
+        echo "📄 Deploying contracts..."
         task avs_sync:deploy-contracts
 
-        # Step 4: Upload to WASI registry
-        echo "📤 Step 4: Uploading to WASI registry..."
+        echo "📤 Uploading to WASI registry..."
         task avs_sync:upload-to-registry
 
-        # Step 5: Build service configuration
-        echo "⚙️ Step 5: Building service configuration..."
+        echo "⚙️ Building service configuration..."
         task avs_sync:build-service
 
-        # Step 6: Upload service to IPFS
-        echo "☁️ Step 6: Uploading service to IPFS..."
-        task avs_sync:upload-service-to-ipfs
-
-        # Step 7: Start aggregator and operator services
-        echo "🔄 Step 7: Starting aggregator and operator services..."
-        task start-aggregator-and-operator
-
-        # Step 8: Register service with aggregator
-        echo "📡 Step 8: Registering service with aggregator..."
-        [ -f ../../.docker/.state.env ] && source ../../.docker/.state.env
-        if [ -n "$IPFS_URI" ]; then
-          task register-service-with-aggregator IPFS_URI="$IPFS_URI"
+        echo "☁️ Uploading service to IPFS..."
+        docker cp .docker/service.json ipfs:/tmp/service.json
+        ipfs_cid=$(docker exec ipfs ipfs add --pin /tmp/service.json | awk '{print $2}')
+        if [ -n "$ipfs_cid" ]; then
+          echo "✅ Uploaded to IPFS: $ipfs_cid"
+          echo "IPFS_URI=ipfs://$ipfs_cid" >> .docker/.state.env
+          export IPFS_URI="ipfs://$ipfs_cid"
+        else
+          echo "❌ Failed to upload to IPFS"
+          exit 1
         fi
 
-        # Step 9: Deploy service to WAVS
-        echo "🚀 Step 9: Deploying service to WAVS..."
-        if [ -n "$IPFS_URI" ]; then
-          task deploy-service-to-wavs SERVICE_URL="$IPFS_URI"
+        echo "📝 Setting service URI on contract..."
+        [ -f .docker/.state.env ] && source .docker/.state.env
+        RPC_URL={{.DEPLOY_ENV | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}
+        cast send ${WAVS_SERVICE_MANAGER_ADDRESS} 'setServiceURI(string)' "${IPFS_URI}" -r ${RPC_URL} --private-key ${DEPLOYER_PRIVATE_KEY}
+
+        echo "🔄 Starting aggregator..."
+        task create-aggregator INDEX=1
+
+        echo "📡 Starting aggregator service..."
+        [ -f .docker/.state.env ] && source .docker/.state.env
+        if [ -f infra/aggregator-1/start.sh ] && [ -n "$IPFS_URI" ]; then
+          IPFS_GATEWAY={{.DEPLOY_ENV | eq "LOCAL" | ternary "http://127.0.0.1:8080/ipfs/" "https://gateway.pinata.cloud/ipfs/"}} bash infra/aggregator-1/start.sh
+          wget -q --header="Content-Type: application/json" --post-data="{\"uri\": \"${IPFS_URI}\"}" {{.AGGREGATOR_URL}}/register-service -O - && echo "✅ Service registered with aggregator"
+        else
+          echo "❌ Cannot register service - missing start.sh or IPFS_URI"
+          exit 1
         fi
 
-        # Step 10: Register operator
-        echo "🔑 Step 10: Registering operator..."
-        task register-operator
+        echo "🔄 Configuring WAVS operator..."
+        task create-operator INDEX=1
 
-        # Step 11: Set service URI on contract
-        echo "📝 Step 11: Setting service URI on contract..."
-        if [ -n "$IPFS_URI" ]; then
-          task set-service-uri IPFS_URI="$IPFS_URI"
+        if ! curl -s {{.WAVS_ENDPOINT}}/app > /dev/null 2>&1; then
+          echo "🚀 Starting WAVS operator service..."
+          if [ -f infra/wavs-1/start.sh ]; then
+            IPFS_GATEWAY={{.DEPLOY_ENV | eq "LOCAL" | ternary "http://127.0.0.1:8080/ipfs/" "https://gateway.pinata.cloud/ipfs/"}} bash infra/wavs-1/start.sh
+            sleep 5
+          fi
+        else
+          echo "✅ WAVS service already running"
         fi
 
-        echo "✅ Complete avs_sync deployment finished!"
-        echo "🎉 Your component is deployed and running!"
+        echo "🚀 Deploying service to WAVS..."
+        [ -f .docker/.state.env ] && source .docker/.state.env
+        if [ -n "$IPFS_URI" ]; then
+          IPFS_GATEWAY={{.DEPLOY_ENV | eq "LOCAL" | ternary "http://127.0.0.1:8080/ipfs/" "https://gateway.pinata.cloud/ipfs/"}}
+          task wavs-cli -- deploy-service --service-url ${IPFS_URI} --log-level=debug --data /data/.docker --home /data --wavs-endpoint ${WAVS_ENDPOINT} --ipfs-gateway ${IPFS_GATEWAY}
+        else
+          echo "❌ No IPFS_URI found, cannot deploy service"
+          exit 1
+        fi
+
+        echo "🔑 Registering operator..."
+        task avs_sync:register-operator
+
+        echo "✅ Component {{.COMPONENT_NAME}} deployed successfully!"
 
   trigger:
     desc: "Trigger component by mining blocks"
@@ -113,15 +135,6 @@ tasks:
       RPC_URL: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}'
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.RPC_URL}}
-
-  list-operators:
-    desc: "List operators (usage: task list-operators BLOCKS=<n>)"
-    vars:
-      BLOCKS: '{{.BLOCKS | default "500"}}'
-    env:
-      PAST_BLOCKS: "{{.BLOCKS}}"
-    cmds:
-      - task wavs-middleware -- list_operator
 
   ensure-middleware:
     desc: "Ensure WAVS middleware is deployed and deployer is funded"
@@ -190,10 +203,6 @@ tasks:
         else
           echo "✅ Deployer already has sufficient balance"
         fi
-
-  # ===========================================
-  # DEPLOYMENT TASKS
-  # ===========================================
 
   deploy-contracts:
     desc: "Deploy avs_sync specific contracts"
@@ -305,7 +314,7 @@ tasks:
           
         task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
           
-        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values 'ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}' > /dev/null
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
           
         task wavs-cli -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
 
@@ -418,7 +427,13 @@ tasks:
         echo "📄 SERVICE_FILE: $SERVICE_FILE"
         echo "🌍 DEPLOY_ENV: {{.DEPLOY_ENV}}"
 
-        ipfs_cid=$(DEPLOY_ENV="{{.DEPLOY_ENV}}" SERVICE_FILE="$SERVICE_FILE" task upload-to-ipfs | tail -1)
+        # Use docker exec approach for IPFS upload since HTTP API has issues
+        if [ "{{.DEPLOY_ENV}}" = "LOCAL" ]; then
+          docker cp ${SERVICE_FILE} ipfs:/tmp/service.json
+          ipfs_cid=$(docker exec ipfs ipfs add --pin /tmp/service.json | awk '{print $2}')
+        else
+          ipfs_cid=$(DEPLOY_ENV="{{.DEPLOY_ENV}}" SERVICE_FILE="$SERVICE_FILE" task upload-to-ipfs | tail -1)
+        fi
 
         if [ -n "$ipfs_cid" ]; then
           echo "✅ Uploaded to IPFS: $ipfs_cid"
@@ -427,69 +442,6 @@ tasks:
           echo "❌ Failed to upload to IPFS"
           echo "IPFS_URI=" >> "./.docker/.state.env"
         fi
-
-  register-service-with-aggregator:
-    desc: "Register service with aggregator"
-    vars:
-      AGGREGATOR_URL: '{{.AGGREGATOR_URL | default "http://127.0.0.1:8001"}}'
-      IPFS_URI: "{{.IPFS_URI}}"
-    cmds:
-      - |
-        if [ -z "{{.IPFS_URI}}" ]; then
-          echo "❌ IPFS_URI is required"
-          exit 1
-        fi
-
-        echo "📡 Registering service with aggregator at {{.AGGREGATOR_URL}}..."
-        response=$(wget -q --header="Content-Type: application/json" \
-          --post-data='{"uri": "{{.IPFS_URI}}"}' \
-          {{.AGGREGATOR_URL}}/register-service -O -)
-
-        if [ $? -eq 0 ]; then
-          echo "✅ Service registered with aggregator"
-          echo "Response: $response"
-        else
-          echo "❌ Failed to register service with aggregator"
-          exit 1
-        fi
-
-  deploy-service-to-wavs:
-    desc: "Deploy service to WAVS instance"
-    vars:
-      WAVS_ENDPOINT: '{{.WAVS_ENDPOINT | default "http://127.0.0.1:8000"}}'
-      SERVICE_URL: "{{.SERVICE_URL}}"
-      IPFS_GATEWAY: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://127.0.0.1:8080/ipfs/" "https://gateway.pinata.cloud/ipfs/"}}'
-    cmds:
-      - |
-        if [ -z "{{.SERVICE_URL}}" ]; then
-          echo "❌ SERVICE_URL is required"
-          exit 1
-        fi
-
-        # Check WAVS service availability
-        echo "🔍 Checking WAVS service at {{.WAVS_ENDPOINT}}..."
-        TIMEOUT=60
-        ELAPSED=0
-
-        while [ $ELAPSED -lt $TIMEOUT ]; do
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" {{.WAVS_ENDPOINT}}/app)
-          if [ "$HTTP_CODE" = "200" ]; then
-            echo "✅ WAVS service is running"
-            break
-          fi
-          
-          echo "⏳ Waiting for WAVS service... (${ELAPSED}s/${TIMEOUT}s)"
-          sleep 2
-          ELAPSED=$((ELAPSED + 2))
-        done
-
-        if [ $ELAPSED -ge $TIMEOUT ]; then
-          echo "❌ WAVS service not reachable at {{.WAVS_ENDPOINT}} after ${TIMEOUT}s"
-          exit 1
-        fi
-
-        echo "🚀 Deploying service from: {{.SERVICE_URL}}..."
-        task wavs-cli -- deploy-service --service-url {{.SERVICE_URL}} --log-level=debug --data /data/.docker --home /data --wavs-endpoint {{.WAVS_ENDPOINT}} --ipfs-gateway {{.IPFS_GATEWAY}}
 
   register-operator:
     desc: "Register operator with AVS"
@@ -521,45 +473,3 @@ tasks:
         echo "AVS Signing Address: ${AVS_SIGNING_ADDRESS}"
 
         task wavs-middleware -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
-
-  set-service-uri:
-    desc: "Set service URI on WAVS Service Manager contract"
-    vars:
-      IPFS_URI: "{{.IPFS_URI}}"
-      RPC_URL: '{{.DEPLOY_ENV | default "LOCAL" | eq "LOCAL" | ternary "http://localhost:8545" "https://holesky.drpc.org"}}'
-    cmds:
-      - |
-        # Load state
-        [ -f .docker/.state.env ] && source .docker/.state.env
-
-        if [ -n "$DEPLOYER_PRIVATE_KEY" ] && [ -n "{{.IPFS_URI}}" ] && [ -n "$WAVS_SERVICE_MANAGER_ADDRESS" ]; then
-          echo "📝 Setting service URI on WAVS Service Manager..."
-          cast send $WAVS_SERVICE_MANAGER_ADDRESS 'setServiceURI(string)' "{{.IPFS_URI}}" \
-            -r {{.RPC_URL}} --private-key $DEPLOYER_PRIVATE_KEY
-          echo "✅ Service URI set successfully"
-        else
-          echo "⚠️ Skipping service URI setting - required variables not available"
-          echo "  DEPLOYER_PRIVATE_KEY: ${DEPLOYER_PRIVATE_KEY:+set}"
-          echo "  IPFS_URI: {{.IPFS_URI}}"
-          echo "  WAVS_SERVICE_MANAGER_ADDRESS: ${WAVS_SERVICE_MANAGER_ADDRESS:+set}"
-        fi
-
-  # ===========================================
-  # UTILITY TASKS
-  # ===========================================
-
-  clean:
-    desc: "Clean build artifacts"
-    cmds:
-      - cargo clean
-      - rm -f compiled/{{.COMPONENT_FILENAME}} 2>/dev/null || true
-
-  test:
-    desc: "Run component tests"
-    cmds:
-      - cargo test
-
-  fmt:
-    desc: "Format code"
-    cmds:
-      - cargo fmt
