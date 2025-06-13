@@ -25,6 +25,6 @@ contract AvsWriter is IWavsServiceHandler {
 
         //NOTE: any block limits we should worry about here?
         //NOTE: writer go code uses retry mechanism for this: https://github.com/Layr-Labs/eigenlayer-middleware/blob/3fb5b61076475108bd87d4e6c7352fd60b46af1c/src/interfaces/ISlashingRegistryCoordinator.sol#L362-L363
-        _ecdsaStakeRegistry.updateOperatorsForQuorum(operatorsPerQuorum, quorumNumbers);
+        //_ecdsaStakeRegistry.updateOperatorsForQuorum(operatorsPerQuorum, quorumNumbers);
     }
 }

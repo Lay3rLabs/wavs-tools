@@ -6,7 +6,7 @@ vars:
   PKG_NAME: avssync
   PKG_VERSION: 0.1.0
   BLOCK_INTERVAL: 100
-  PAST_BLOCKS: 50000
+  PAST_BLOCKS: 10000
   # Post-deployment vars
   RPC_URL: http://localhost:8545
   SERVICE_JSON: .docker/service.json

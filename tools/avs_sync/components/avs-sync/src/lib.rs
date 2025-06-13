@@ -100,11 +100,19 @@ impl Guest for Component {
                 return Ok(None);
             }
 
-            let payload =
-                (update_data.operators_per_quorum, Bytes::from(update_data.quorum_numbers))
-                    .abi_encode();
+            host::log(
+                LogLevel::Info,
+                &format!("operators_per_quorum: {:#?}", update_data.operators_per_quorum),
+            );
+            host::log(
+                LogLevel::Info,
+                &format!("quorum_numbers: {}", hex::encode(&update_data.quorum_numbers)),
+            );
 
-            host::log(LogLevel::Info, &format!("{}", hex::encode(&payload)));
+            let payload =
+                (update_data.operators_per_quorum, update_data.quorum_numbers).abi_encode();
+
+            host::log(LogLevel::Info, &format!("ABI encoded: {}", hex::encode(&payload)));
 
             // Return the data needed for updateOperatorsForQuorum
             Ok(Some(WasmResponse { payload, ordering: None }))
@@ -174,6 +182,26 @@ async fn perform_avs_sync(
         total_operators,
         block_height,
     })
+}
+
+#[cfg(test)]
+mod test {
+    use std::str::FromStr;
+
+    use alloy_primitives::{hex, Address};
+    use alloy_sol_types::SolValue;
+
+    #[test]
+    fn encode_payload() {
+        // Rust equivalent of the Solidity code
+        let operator = Address::from_str("0xE2B61A283f1638DC18B9c00F30F85BD090d601f8").unwrap();
+        let mut operators_per_quorum: Vec<Vec<Address>> = Vec::with_capacity(1);
+        operators_per_quorum.push(vec![operator]);
+        let quorum_numbers = vec![0u8]; // equivalent to hex"00"
+        let payload = (operators_per_quorum, quorum_numbers).abi_encode();
+
+        println!("ABI encoded payload: {}", hex::encode(&payload));
+    }
 }
 
 export!(Component with_types_in bindings);
