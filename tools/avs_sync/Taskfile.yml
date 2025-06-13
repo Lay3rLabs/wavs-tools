@@ -121,7 +121,7 @@ tasks:
     env:
       PAST_BLOCKS: "{{.BLOCKS}}"
     cmds:
-      - task wavs-middleware CLI_ARGS="list_operator"
+      - task wavs-middleware -- list_operator
 
   ensure-middleware:
     desc: "Ensure WAVS middleware is deployed and deployer is funded"
@@ -276,25 +276,15 @@ tasks:
           echo "Using default AGGREGATOR_URL: ${AGGREGATOR_URL}"
         fi
 
-        # Build service configuration directly with docker
-        WAVS_DOCKER_IMAGE="ghcr.io/lay3rlabs/wavs:{{.WAVS_DOCKER_TAG | default "35c96a4"}}"
-        
-        SERVICE_ID=$(docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+        # Build service configuration using task wavs-cli
+        SERVICE_ID=$(task wavs-cli -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
           
-        WORKFLOW_ID=$(docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} workflow add | jq -r .workflow_id)
+        WORKFLOW_ID=$(task wavs-cli -- {{.CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+        task wavs-cli -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
           
-        docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+        task wavs-cli -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url ${AGGREGATOR_URL} --address ${WAVS_SUBMIT_ADDRESS} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
 
         # Set component from WASI registry
         # Load package info from state
@@ -310,22 +300,14 @@ tasks:
         fi
 
         echo "Using WASI package: ${PKG_NAMESPACE}:${PKG_NAME}@${PKG_VERSION} from ${REGISTRY}"
-        
-        docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-registry --domain ${REGISTRY} --package ${PKG_NAMESPACE}:${PKG_NAME} --version ${PKG_VERSION} > /dev/null
+
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-registry --domain ${REGISTRY} --package ${PKG_NAMESPACE}:${PKG_NAME} --version ${PKG_VERSION} > /dev/null
           
-        docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
           
-        docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+        task wavs-cli -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values 'ecdsa_stake_registry_address=${ECDSA_STAKE_REGISTRY_ADDRESS},lookback_blocks={{.PAST_BLOCKS}}' > /dev/null
           
-        docker run --rm --network host \
-          -w /data -v $(pwd):/data $WAVS_DOCKER_IMAGE \
-          wavs-cli {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
+        task wavs-cli -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address ${WAVS_SERVICE_MANAGER_ADDRESS} > /dev/null
 
         echo "Service configuration built successfully"
 
@@ -390,7 +372,6 @@ tasks:
         set +e
         output=$(warg publish release --registry ${PROTOCOL}://${REGISTRY} --name ${PKG_NAMESPACE}:{{.PKG_NAME}} --version {{.PKG_VERSION}} ${COMPONENT_PATH} 2>&1)
         exit_code=$?
-        warg reset --registry ${PROTOCOL}://${REGISTRY}
 
         if [[ $exit_code -ne 0 ]]; then
             if [[ "$output" =~ "failed to prove inclusion" ]]; then
@@ -508,7 +489,7 @@ tasks:
         fi
 
         echo "🚀 Deploying service from: {{.SERVICE_URL}}..."
-        cd         task wavs-cli CLI_ARGS="deploy-service --service-url {{.SERVICE_URL}} --log-level=debug --data /data/.docker --home /data --wavs-endpoint {{.WAVS_ENDPOINT}} --ipfs-gateway {{.IPFS_GATEWAY}}"
+        task wavs-cli -- deploy-service --service-url {{.SERVICE_URL}} --log-level=debug --data /data/.docker --home /data --wavs-endpoint {{.WAVS_ENDPOINT}} --ipfs-gateway {{.IPFS_GATEWAY}}
 
   register-operator:
     desc: "Register operator with AVS"
@@ -539,7 +520,7 @@ tasks:
         echo "Service ID: ${SERVICE_ID}"
         echo "AVS Signing Address: ${AVS_SIGNING_ADDRESS}"
 
-        cd         task wavs-middleware CLI_ARGS="register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether"
+        task wavs-middleware -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
 
   set-service-uri:
     desc: "Set service URI on WAVS Service Manager contract"

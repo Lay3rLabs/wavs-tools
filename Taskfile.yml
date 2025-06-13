@@ -27,25 +27,25 @@ tasks:
 
   start:
     desc: "Start anvil and core services"
-    deps: [init-environment]
+    deps: [check-prerequisites, init-environment]
     cmds:
-      - warg reset
       - task: start-services-background
       - task: deploy-middleware
 
   stop:
     desc: "Stop Anvil and Docker services"
-    vars:
+    env:
       WARG_REGISTRY_DOCKER_TAG: "{{.WARG_REGISTRY_DOCKER_TAG}}"
     cmds:
-      - |
-        echo "Stopping Docker services..."
-        export WARG_REGISTRY_DOCKER_TAG={{.WARG_REGISTRY_DOCKER_TAG}}
-        docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans || echo "Docker compose down completed"
-      - |
-        echo "Stopping anvil processes..."
-        pkill -f "anvil --fork-url" || echo "No anvil processes found"
-      - echo "Stop completed"
+      - docker compose -f docker-compose.yml -f telemetry/docker-compose.yml down --remove-orphans || true
+      - pkill -f "anvil --fork-url" || true
+      - warg reset
+
+  restart:
+    desc: "Restart Anvil and Docker services"
+    cmds:
+      - task stop
+      - task start
 
   show-versions:
     desc: "Show current Docker image versions being used"
@@ -884,3 +884,12 @@ tasks:
       - dos2unix ./script/* 2>/dev/null || true
       - find ./script/template -type f -exec dos2unix {} \; 2>/dev/null || true
       - find ./tools -name "script" -type d -exec find {} -type f -exec dos2unix {} \; 2>/dev/null || true
+
+  check-prerequisites:
+    desc: "Ensure all required CLI tools are installed"
+    cmds:
+      - |
+        which cast || (echo "❌ 'cast' is missing. Install Foundry." && exit 1)
+        which jq || (echo "❌ 'jq' is missing. Install it via apt/brew." && exit 1)
+        which warg || (echo "❌ 'warg' is missing. Run: cargo binstall warg-cli" && exit 1)
+        echo "✅ All required tools are installed"
