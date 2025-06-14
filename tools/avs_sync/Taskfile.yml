@@ -94,7 +94,14 @@ tasks:
         [ -f .docker/.state.env ] && source .docker/.state.env
         if [ -f infra/aggregator-1/start.sh ] && [ -n "$IPFS_URI" ]; then
           IPFS_GATEWAY={{.DEPLOY_ENV | eq "LOCAL" | ternary "http://127.0.0.1:8080/ipfs/" "https://gateway.pinata.cloud/ipfs/"}} bash infra/aggregator-1/start.sh
-          wget -q --header="Content-Type: application/json" --post-data="{\"uri\": \"${IPFS_URI}\"}" {{.AGGREGATOR_URL}}/register-service -O - && echo "✅ Service registered with aggregator"
+          echo "🔄 Registering service with aggregator..."
+          wget -q --header="Content-Type: application/json" --post-data="{\"uri\": \"${IPFS_URI}\"}" ${AGGREGATOR_URL}/register-service -O /dev/null
+          if [ $? -eq 0 ]; then
+            echo "✅ Service registered with aggregator"
+          else
+            echo "❌ Failed to register service with aggregator"
+            exit 1
+          fi
         else
           echo "❌ Cannot register service - missing start.sh or IPFS_URI"
           exit 1
