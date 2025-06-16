@@ -449,4 +449,4 @@ tasks:
         echo "Service ID: ${SERVICE_ID}"
         echo "AVS Signing Address: ${AVS_SIGNING_ADDRESS}"
 
-        task wavs-middleware -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
+        task wavs-middleware WAVS_SERVICE_MANAGER_ADDRESS=${WAVS_SERVICE_MANAGER_ADDRESS} -- register ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether

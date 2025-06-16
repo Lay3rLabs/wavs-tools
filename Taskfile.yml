@@ -69,24 +69,16 @@ tasks:
     desc: "Run wavs middleware command"
     deps: [init-env]
     vars:
-      STATE_DIR: ".docker"
       MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:{{.WAVS_MIDDLEWARE_DOCKER_TAG}}"
-    env:
-      DEPLOYER_ADDRESS: '{{.DEPLOYER_ADDRESS | default ""}}'
-      DEPLOYER_PRIVATE_KEY: '{{.DEPLOYER_PRIVATE_KEY | default ""}}'
       WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
-      ECDSA_STAKE_REGISTRY_ADDRESS: '{{.ECDSA_STAKE_REGISTRY_ADDRESS | default ""}}'
+    env:
+      LST_CONTRACT_ADDRESS: '{{.LST_CONTRACT_ADDRESS | default ""}}'
+      LST_STRATEGY_ADDRESS: '{{.LST_STRATEGY_ADDRESS | default ""}}'
     cmds:
       - |
-        # Build environment args for Docker
-        ENV_ARGS=""
-        [ -n "$DEPLOYER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS"
-        [ -n "$DEPLOYER_PRIVATE_KEY" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_PRIVATE_KEY=$DEPLOYER_PRIVATE_KEY"
-        [ -n "$WAVS_SERVICE_MANAGER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e WAVS_SERVICE_MANAGER_ADDRESS=$WAVS_SERVICE_MANAGER_ADDRESS"
-        [ -n "$ECDSA_STAKE_REGISTRY_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e ECDSA_STAKE_REGISTRY_ADDRESS=$ECDSA_STAKE_REGISTRY_ADDRESS"
-
         docker run --rm --network host \
-          $ENV_ARGS --env-file .env \
+          --env-file .env \
+          -e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}} \
           -v ./.nodes:/root/.nodes {{.MIDDLEWARE_DOCKER_IMAGE}} {{.CLI_ARGS}}
 
   wavs-cli:
