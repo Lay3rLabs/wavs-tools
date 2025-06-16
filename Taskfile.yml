@@ -1,0 +1,16 @@
+version: "3"
+
+dotenv: [".env"]
+silent: true
+
+vars:
+  DOCKER_SUDO:
+    sh: |
+      if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 
+        echo ""
+      else 
+        echo "sudo"
+      fi
+
+includes:
+  backend: ./backend/Taskfile.yml

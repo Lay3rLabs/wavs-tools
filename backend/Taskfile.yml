@@ -1,0 +1,87 @@
+version: "3"
+
+vars:
+  ANVIL_RPC_URL: "https://1rpc.io/holesky"
+  ANVIL_PORT: 8545
+  WAVS_PORT: 8123 
+  WAVS_AGGREGATOR_PORT: 8124
+
+tasks:
+  start:
+    desc: "Starts all backend services"
+    deps: [start-anvil, start-wavs]
+
+  stop:
+    desc: "Stops all backend services"
+    deps: [stop-anvil, stop-wavs]
+
+  start-anvil:
+    desc: "Start Anvil"
+    deps: [start-anvil-launch, start-anvil-wait]
+
+  stop-anvil:
+    desc: "Stop Anvil"
+    cmds:
+      - |
+        {{.DOCKER_SUDO}} docker stop $({{.DOCKER_SUDO}} docker ps -q --filter "ancestor=anvil") 2>/dev/null || true
+
+  start-wavs:
+    desc: "Start WAVS services"
+    deps: [clean-wavs-docker]
+    cmds:
+      - task: start-wavs-inner
+
+  stop-wavs:
+    dir: backend
+    cmds: 
+      - docker compose --file docker-compose.yml down
+
+
+  # INTERNAL SUBTASKS
+  start-anvil-launch:
+    internal: true
+    cmds: 
+      - anvil --fork-url {{.ANVIL_RPC_URL}} --port {{.ANVIL_PORT}}
+
+  start-anvil-wait:
+    internal: true
+    cmds:
+      - |
+        while ! nc -z localhost {{.ANVIL_PORT}}; do
+          echo "Waiting for Anvil to start on port {{.ANVIL_PORT}}..."
+          sleep 1
+        done
+      - echo "Anvil is up and running!"
+
+  start-wavs-inner:
+    internal: true
+    deps: [start-wavs-launch, start-wavs-wait, start-wavs-aggregator-wait]
+
+  start-wavs-launch:
+    internal: true
+    dir: backend
+    cmds: 
+      - docker compose --file docker-compose.yml pull
+      - docker compose --file docker-compose.yml up --force-recreate -d
+
+  start-wavs-wait:
+    internal: true
+    cmds:
+      - |
+        while ! nc -z localhost {{.WAVS_PORT}}; do
+          echo "Waiting for WAVS to start on port {{.WAVS_PORT}}..."
+          sleep 1
+        done
+      - echo "WAVS is up and running!"
+
+  start-wavs-aggregator-wait:
+    internal: true
+    cmds:
+      - |
+        while ! nc -z localhost {{.WAVS_AGGREGATOR_PORT}}; do
+          echo "Waiting for Aggregator to start on port {{.WAVS_AGGREGATOR_PORT}}..."
+          sleep 1
+        done
+      - echo "WAVS Aggregator is up and running!"
+
+  
