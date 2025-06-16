@@ -22,3 +22,4 @@ aggregator/
 tests/.test-reports
 infra/
 .claude
+.DS_Store
