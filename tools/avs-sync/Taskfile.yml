@@ -5,7 +5,7 @@ dotenv: ['../../.env']
 includes:
   cli: ../../cli/Taskfile.yml
 
-# silent: true
+silent: true
 
 vars:
   COMPONENT_NAME: avs_sync
