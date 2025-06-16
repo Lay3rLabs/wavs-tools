@@ -428,7 +428,6 @@ tasks:
         [ -f .docker/{{.COMPONENT_NAME}}.env ] && source .docker/{{.COMPONENT_NAME}}.env
 
         # Get AVS signing key info
-        SERVICE_INDEX=0
         DEFAULT_ENV_FILE="infra/wavs-1/.env"
 
         SERVICE_ID=$(jq -r '.id' .docker/service.json)
