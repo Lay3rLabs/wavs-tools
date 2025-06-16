@@ -1,6 +1,6 @@
 version: "3"
 
-dotenv: ['../../.env']
+dotenv: ["../../.env"]
 
 includes:
   cli: ../../Taskfile-cli.yml
@@ -9,10 +9,14 @@ silent: true
 
 vars:
   COMPONENT_NAME: avs_sync
-  COMPONENTS_CARGO_RELEASE_DIR: "{{joinPath .ROOT_DIR \"../../target/wasm32-wasip1/release\"}}"
+  COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .ROOT_DIR "../../target/wasm32-wasip1/release"}}'
   ANVIL_PORT: 8548
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
-  MIDDLEWARE_NODES_DIR: "{{joinPath .ROOT_DIR \"../../.middleware-nodes\"}}"
+  MIDDLEWARE_NODES_DIR: '{{joinPath .ROOT_DIR "../../.middleware-nodes"}}'
+  SERVICE_MANAGER_ADDRESS:
+    sh: jq -r .addresses.WavsServiceManager // empty "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
+  STAKE_REGISTRY_ADDRESS:
+    sh: jq -r .addresses.stakeRegistry // empty "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
 
 tasks:
   components-build:
@@ -50,14 +54,11 @@ tasks:
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"
     dir: contracts
-    vars:
-      SERVICE_MANAGER_ADDRESS:
-        sh: jq -r .addresses.WavsServiceManager "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
     cmds:
       - |
         echo "Service manager address: {{.SERVICE_MANAGER_ADDRESS}}"
       - echo "TODO, finish the deploy script"
-      - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}" 
+      - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}"
 
   contracts-test:
     desc: "Runs tests for the AVS Sync contracts"
