@@ -24,6 +24,9 @@ vars:
     sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" || true
   STAKE_REGISTRY_ADDRESS:
     sh: jq -r '.addresses.stakeRegistry // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" || true
+  SERVICE_JSON_PATH: '{{joinPath .ROOT_DIR "../../.docker" (print .COMPONENT_NAME ".json")}}'
+  SERVICE_ID:
+    sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" || true
 
 tasks:
   components-build:
@@ -114,8 +117,13 @@ tasks:
         echo "Service configuration built successfully"
 
   upload-service:
-    vars:
-      SERVICE_JSON_PATH: "../../.docker/{{.COMPONENT_NAME}}.json"
     cmds:
       - |
         curl -X POST "{{.WAVS_URL}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
+
+  set-service-uri:
+    vars:
+      SERVICE_URI: "{{.WAVS_URL}}/service/{{.SERVICE_ID}}"
+    cmds:
+      - |
+        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
