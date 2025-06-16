@@ -1,0 +1,8 @@
+{
+  "name": "wavs-tools",
+  "version": "1.0.0",
+  "license": "MIT",
+  "dependencies": {
+    "@wavs/solidity": "^0.4.0-rc"
+  }
+}

@@ -1,10 +1,18 @@
 version: "3"
 
+
 vars:
   ANVIL_RPC_URL: "https://1rpc.io/holesky"
   ANVIL_PORT: 8548
   WAVS_PORT: 8123 
   WAVS_AGGREGATOR_PORT: 8124
+  DOCKER_SUDO:
+    sh: |
+      if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 
+        echo ""
+      else 
+        echo "sudo"
+      fi
 
 env:
   ANVIL_RPC_URL: "{{.ANVIL_RPC_URL}}"
@@ -13,7 +21,7 @@ env:
 tasks:
   start:
     desc: "Starts all backend services"
-    deps: [start-docker, wait-anvil, wait-wavs, wait-aggregator]
+    deps: [start-inner, wait-anvil, wait-wavs, wait-aggregator]
 
   stop:
     desc: "Stops all backend services"
@@ -24,7 +32,7 @@ tasks:
 
   # Internal subtasks
 
-  start-docker:
+  start-inner:
     internal: true
     dir: backend
     cmds: 

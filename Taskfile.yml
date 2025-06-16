@@ -1,16 +1,15 @@
+# This is just a convenience to start common tasks from the root directory
 version: "3"
 
-dotenv: [".env"]
-silent: true
+# silent: true
 
-vars:
-  DOCKER_SUDO:
-    sh: |
-      if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 
-        echo ""
-      else 
-        echo "sudo"
-      fi
+dotenv: ['.env']
 
 includes:
   backend: ./backend/Taskfile.yml
+  cli: ./cli/Taskfile.yml
+
+tasks:
+  default:
+    cmds:
+      - task --list-all

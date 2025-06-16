@@ -17,7 +17,8 @@ wavs:worker*.wasm
 avs_sync/src/contracts/abi/
 aggregator/
 .wavs/
-compiled/
+.wasi-output/
+.wavs-cli-data/
 tests/.test-reports
 infra/
 .claude

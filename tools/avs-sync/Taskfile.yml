@@ -1,0 +1,56 @@
+version: "3"
+
+dotenv: ['../../.env']
+
+includes:
+  cli: ../../cli/Taskfile.yml
+
+# silent: true
+
+vars:
+  COMPONENT_NAME: avs_sync
+  COMPONENTS_CARGO_RELEASE_DIR: "{{joinPath .ROOT_DIR \"../../target/wasm32-wasip1/release\"}}"
+  EVM_RPC_URL: "http://localhost:8545"
+
+tasks:
+  components-build:
+    desc: "Builds the WASI component for AVS Sync"
+    dir: component
+    vars:
+      COMPONENTS_DIR: "{{.ROOT_DIR}}/.wasi-output"
+    cmds:
+      - |
+        echo "Building component: {{.COMPONENT_NAME}}"
+        cargo component build --release
+        mkdir -p {{.COMPONENTS_DIR}}
+        cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENTS_DIR}}/
+
+  components-upload:
+    desc: "Uploads the WASI component for AVS Sync"
+    vars:
+      # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
+      COMPONENTS_DIR: "/wavs-tools/tools/avs-sync/.wasi-output"
+      DATA_DIR: "/wavs-tools/tools/avs-sync/.wavs-cli-data"
+    cmds:
+      - |
+        OUTPUT=$(task cli:wavs -- upload-component "{{.COMPONENTS_DIR}}/{{.COMPONENT_NAME}}.wasm" --data "{{.DATA_DIR}}")
+        DIGEST=$(echo "$OUTPUT" | tail -n 1)
+        if [[ "$OUTPUT" == *"Digest"* ]]; then
+          echo "Component uploaded successfully, digest is $DIGEST"
+          echo "$DIGEST" > "./.wasi-output/component_digest.txt"
+        else
+          echo "Failed to upload component."
+          exit 1
+        fi
+
+  contracts-deploy:
+    desc: "Deploys the AVS Sync contracts"
+    dir: contracts
+    cmds:
+      - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}" 
+
+  contracts-test:
+    desc: "Runs tests for the AVS Sync contracts"
+    dir: contracts
+    cmds:
+      - forge test
