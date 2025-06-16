@@ -63,4 +63,4 @@ tasks:
     desc: "Runs tests for the AVS Sync contracts"
     dir: contracts
     cmds:
-      - forge test
+      - forge test -vv
