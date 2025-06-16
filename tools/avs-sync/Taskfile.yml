@@ -5,7 +5,7 @@ dotenv: ["../../.env"]
 includes:
   cli: ../../Taskfile-cli.yml
 
-silent: true
+silent: false
 
 vars:
   COMPONENT_NAME: avs_sync
@@ -115,6 +115,7 @@ tasks:
 
   upload-service:
     vars:
-      SERVICE_JSON_PATH: "{{.REPO_ROOT}}/.docker/{{.COMPONENT_NAME}}.json"
-      cmds:
-        - curl -X POST "{{.WAVS_URL}}" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
+      SERVICE_JSON_PATH: "../../.docker/{{.COMPONENT_NAME}}.json"
+    cmds:
+      - |
+        curl -X POST "{{.WAVS_URL}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
