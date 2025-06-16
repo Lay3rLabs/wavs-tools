@@ -14,9 +14,9 @@ vars:
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
   MIDDLEWARE_NODES_DIR: '{{joinPath .ROOT_DIR "../../.middleware-nodes"}}'
   SERVICE_MANAGER_ADDRESS:
-    sh: jq -r .addresses.WavsServiceManager // empty "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
+    sh: jq -r .addresses.WavsServiceManager "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
   STAKE_REGISTRY_ADDRESS:
-    sh: jq -r .addresses.stakeRegistry // empty "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
+    sh: jq -r .addresses.stakeRegistry "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
 
 tasks:
   components-build:
@@ -54,11 +54,11 @@ tasks:
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"
     dir: contracts
+    env:
+      SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
     cmds:
-      - |
-        echo "Service manager address: {{.SERVICE_MANAGER_ADDRESS}}"
-      - echo "TODO, finish the deploy script"
-      - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}"
+      - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}" --private-key $DEPLOYER_PRIVATE_KEY
 
   contracts-test:
     desc: "Runs tests for the AVS Sync contracts"
