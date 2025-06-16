@@ -107,7 +107,7 @@ impl Guest for Component {
                 (update_data.operators_per_quorum, Bytes::from(update_data.quorum_numbers))
                     .abi_encode();
 
-            host::log(LogLevel::Info, &format!("{}", hex::encode(&payload)));
+            host::log(LogLevel::Info, &hex::encode(&payload));
 
             // Return the data needed for updateOperatorsForQuorum
             Ok(Some(WasmResponse { payload, ordering: None }))
