@@ -12,7 +12,7 @@ vars:
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .ROOT_DIR "../../target/wasm32-wasip1/release"}}'
-  ANVIL_PORT: 8548
+  ANVIL_PORT: 8545
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
   AGGREGATOR_PORT: 8124
   AGGREGATOR_URL: "http://localhost:{{.AGGREGATOR_PORT}}"
@@ -27,8 +27,23 @@ vars:
   SERVICE_JSON_PATH: '{{joinPath .ROOT_DIR "../../.docker" (print .COMPONENT_NAME ".json")}}'
   SERVICE_ID:
     sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" || true
+  SERVICE_URI: "{{.WAVS_URL}}/service/{{.SERVICE_ID}}"
 
 tasks:
+  test:
+    desc: "A full deployment"
+    cmds:
+      - |
+        task components-build
+        task components-upload
+        task fund-deployer
+        task contracts-deploy
+        task build-service
+        task upload-service
+        task set-service-uri
+        task register-service-uri
+        task deploy-service
+
   components-build:
     desc: "Builds the WASI component for AVS Sync"
     dir: component
@@ -122,8 +137,34 @@ tasks:
         curl -X POST "{{.WAVS_URL}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
 
   set-service-uri:
-    vars:
-      SERVICE_URI: "{{.WAVS_URL}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
         cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+
+  register-service-uri:
+    cmds:
+      - |
+        curl -X POST "{{.AGGREGATOR_URL}}/register-service" -H "Content-Type: application/json" -d "{\"uri\": \"{{.SERVICE_URI}}\"}"
+
+  deploy-service:
+    cmds:
+      - |
+        task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_URL}}
+
+  fund-deployer:
+    cmds:
+      - |
+        # Check current balance
+        DEPLOYER_ADDRESS=$(cast wallet address --private-key $DEPLOYER_PRIVATE_KEY)
+        BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}})
+        echo "Current deployer balance: ${BALANCE} ETH"
+
+        # Fund if balance is less than 1 ETH and we're in LOCAL mode
+        if (( $(echo "$BALANCE < 1.0" | bc -l) )); then
+            echo "💰 Funding deployer with 15 ETH..."
+            cast rpc anvil_setBalance "${DEPLOYER_ADDRESS}" '15000000000000000000' --rpc-url {{.EVM_RPC_URL}} > /dev/null
+            NEW_BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}})
+            echo "✅ Deployer funded. New balance: ${NEW_BALANCE} ETH"
+        else
+          echo "✅ Deployer already has sufficient balance"
+        fi

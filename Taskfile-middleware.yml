@@ -20,17 +20,14 @@ tasks:
       REPO_ROOT: "{{.TASKFILE_DIR}}"
       NODES_DIR: "{{.REPO_ROOT}}/.middleware-nodes"
     env:
-      METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
-      FUNDED_KEY: "{{.MIDDLEWARE_FUNDED_KEY}}"
-      LST_STRATEGY_ADDRESS: "{{.LST_STRATEGY_ADDRESS}}"
-      LST_CONTRACT_ADDRESS: "{{.LST_CONTRACT_ADDRESS}}"
       DEPLOY_ENV: "LOCAL"
       LOCAL_ETHEREUM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
-      ETHERSCAN_API_KEY: "{{.ETHERSCAN_API_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         --env-file .env
+        -e DEPLOY_ENV
+        -e LOCAL_ETHEREUM_RPC_URL
         -v {{.REPO_ROOT}}:/wavs-tools
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
