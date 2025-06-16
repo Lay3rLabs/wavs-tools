@@ -27,7 +27,7 @@ tasks:
 
   start:
     desc: "Start anvil and core services"
-    deps: [check-prerequisites, init-environment]
+    deps: [check-prerequisites]
     cmds:
       - task: start-services-background
       - task: deploy-middleware
@@ -49,7 +49,6 @@ tasks:
 
   create-aggregator:
     desc: "Create aggregator instance (usage: task create-aggregator INDEX=<n>)"
-    deps: [init-environment]
     vars:
       INDEX: "{{.INDEX | default 1}}"
     cmds:
@@ -59,7 +58,6 @@ tasks:
 
   create-operator:
     desc: "Create operator instance (usage: task create-operator INDEX=<n>)"
-    deps: [init-environment]
     vars:
       INDEX: "{{.INDEX | default 1}}"
     cmds:
@@ -69,7 +67,7 @@ tasks:
 
   wavs-middleware:
     desc: "Run wavs middleware command"
-    deps: [init-environment]
+    deps: [init-env]
     vars:
       STATE_DIR: ".docker"
       MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:{{.WAVS_MIDDLEWARE_DOCKER_TAG}}"
@@ -97,26 +95,19 @@ tasks:
       WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:{{.WAVS_DOCKER_TAG}}"
       INSTANCE: '{{.INSTANCE | default "wavs-1"}}'
       CLI_ARGS: '{{.CLI_ARGS | default ""}}'
-    env:
-      WAVS_CLI_EVM_CREDENTIAL: '{{.WAVS_CLI_EVM_CREDENTIAL | default ""}}'
-      WAVS_SUBMISSION_MNEMONIC: '{{.WAVS_SUBMISSION_MNEMONIC | default ""}}'
-      DEPLOYER_ADDRESS: '{{.DEPLOYER_ADDRESS | default ""}}'
-      DEPLOYER_PRIVATE_KEY: '{{.DEPLOYER_PRIVATE_KEY | default ""}}'
-      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
-      ECDSA_STAKE_REGISTRY_ADDRESS: '{{.ECDSA_STAKE_REGISTRY_ADDRESS | default ""}}'
     cmds:
       - |
-        # Build environment args for Docker
-        ENV_ARGS=""
-        [ -n "$WAVS_CLI_EVM_CREDENTIAL" ] && ENV_ARGS="$ENV_ARGS -e WAVS_CLI_EVM_CREDENTIAL=$WAVS_CLI_EVM_CREDENTIAL"
-        [ -n "$WAVS_SUBMISSION_MNEMONIC" ] && ENV_ARGS="$ENV_ARGS -e WAVS_SUBMISSION_MNEMONIC=$WAVS_SUBMISSION_MNEMONIC"
-        [ -n "$DEPLOYER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_ADDRESS=$DEPLOYER_ADDRESS"
-        [ -n "$DEPLOYER_PRIVATE_KEY" ] && ENV_ARGS="$ENV_ARGS -e DEPLOYER_PRIVATE_KEY=$DEPLOYER_PRIVATE_KEY"
-        [ -n "$WAVS_SERVICE_MANAGER_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e WAVS_SERVICE_MANAGER_ADDRESS=$WAVS_SERVICE_MANAGER_ADDRESS"
-        [ -n "$ECDSA_STAKE_REGISTRY_ADDRESS" ] && ENV_ARGS="$ENV_ARGS -e ECDSA_STAKE_REGISTRY_ADDRESS=$ECDSA_STAKE_REGISTRY_ADDRESS"
+        INSTANCE="{{.INSTANCE}}"
+
+        # Check if instance env file exists
+        if [ -f "infra/${INSTANCE}/.env" ]; then
+          ENV_FILE_ARG="--env-file infra/${INSTANCE}/.env"
+        else
+          ENV_FILE_ARG="--env-file .env"
+        fi
 
         docker run --rm --network host \
-          $ENV_ARGS \
+          $ENV_FILE_ARG \
           -w /data -v $(pwd):/data {{.WAVS_DOCKER_IMAGE}} \
           wavs-cli {{.CLI_ARGS}}
 
@@ -124,8 +115,8 @@ tasks:
   # CORE TASKS (Setup and utilities)
   # ===========================================
 
-  init-environment:
-    desc: "Initialize environment and state files"
+  init-env:
+    desc: "Initialize environment and state files (run once before middleware deployment)"
     cmds:
       - mkdir -p {{.STATE_DIR}}
       - |
@@ -243,7 +234,6 @@ tasks:
 
   create-deployer:
     desc: "Create and fund deployer wallet"
-    deps: [init-environment]
     cmds:
       - |
         mkdir -p .docker
