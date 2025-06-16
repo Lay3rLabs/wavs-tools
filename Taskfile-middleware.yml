@@ -3,7 +3,6 @@ version: "3"
 env:
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
   ANVIL_PORT: 8548
-  CHAIN_ID: 17000
 
 vars:
   DOCKER_SUDO:
@@ -28,17 +27,10 @@ tasks:
       DEPLOY_ENV: "LOCAL"
       LOCAL_ETHEREUM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
       ETHERSCAN_API_KEY: "{{.ETHERSCAN_API_KEY}}"
-    cmds: 
+    cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
-        -e METADATA_URI
-        -e FUNDED_KEY
-        -e DEPLOY_ENV 
-        -e LOCAL_ETHEREUM_RPC_URL
-        -e LST_STRATEGY_ADDRESS
-        -e LST_CONTRACT_ADDRESS
-        -e ETHERSCAN_API_KEY
-        -e CHAIN_ID 
+        --env-file .env
         -v {{.REPO_ROOT}}:/wavs-tools
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
