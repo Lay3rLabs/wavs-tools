@@ -1,4 +1,11 @@
 services:
+  anvil:
+    container_name: "anvil"
+    image: "ghcr.io/foundry-rs/foundry:latest"
+    stop_signal: SIGKILL
+    network_mode: "host"
+    command: ["anvil --fork-url ${ANVIL_RPC_URL} --port ${ANVIL_PORT}"]
+
   wavs:
     container_name: "wavs"
     image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"

@@ -2,48 +2,38 @@ version: "3"
 
 vars:
   ANVIL_RPC_URL: "https://1rpc.io/holesky"
-  ANVIL_PORT: 8545
+  ANVIL_PORT: 8548
   WAVS_PORT: 8123 
   WAVS_AGGREGATOR_PORT: 8124
+
+env:
+  ANVIL_RPC_URL: "{{.ANVIL_RPC_URL}}"
+  ANVIL_PORT: "{{.ANVIL_PORT}}"
 
 tasks:
   start:
     desc: "Starts all backend services"
-    deps: [start-anvil, start-wavs]
+    deps: [start-docker, wait-anvil, wait-wavs, wait-aggregator]
 
   stop:
     desc: "Stops all backend services"
-    deps: [stop-anvil, stop-wavs]
-
-  start-anvil:
-    desc: "Start Anvil"
-    deps: [start-anvil-launch, start-anvil-wait]
-
-  stop-anvil:
-    desc: "Stop Anvil"
-    cmds:
-      - |
-        {{.DOCKER_SUDO}} docker stop $({{.DOCKER_SUDO}} docker ps -q --filter "ancestor=anvil") 2>/dev/null || true
-
-  start-wavs:
-    desc: "Start WAVS services"
-    deps: [clean-wavs-docker]
-    cmds:
-      - task: start-wavs-inner
-
-  stop-wavs:
     dir: backend
     cmds: 
-      - docker compose --file docker-compose.yml down
+      - |
+        {{.DOCKER_SUDO}} docker compose --file docker-compose.yml down --remove-orphans || true
 
+  # Internal subtasks
 
-  # INTERNAL SUBTASKS
-  start-anvil-launch:
+  start-docker:
     internal: true
+    dir: backend
     cmds: 
-      - anvil --fork-url {{.ANVIL_RPC_URL}} --port {{.ANVIL_PORT}}
+      - |
+        {{.DOCKER_SUDO}} docker compose --file docker-compose.yml pull
+      - |
+        {{.DOCKER_SUDO}} docker compose --file docker-compose.yml up --force-recreate -d
 
-  start-anvil-wait:
+  wait-anvil:
     internal: true
     cmds:
       - |
@@ -53,18 +43,7 @@ tasks:
         done
       - echo "Anvil is up and running!"
 
-  start-wavs-inner:
-    internal: true
-    deps: [start-wavs-launch, start-wavs-wait, start-wavs-aggregator-wait]
-
-  start-wavs-launch:
-    internal: true
-    dir: backend
-    cmds: 
-      - docker compose --file docker-compose.yml pull
-      - docker compose --file docker-compose.yml up --force-recreate -d
-
-  start-wavs-wait:
+  wait-wavs:
     internal: true
     cmds:
       - |
@@ -74,7 +53,7 @@ tasks:
         done
       - echo "WAVS is up and running!"
 
-  start-wavs-aggregator-wait:
+  wait-aggregator:
     internal: true
     cmds:
       - |
@@ -83,5 +62,3 @@ tasks:
           sleep 1
         done
       - echo "WAVS Aggregator is up and running!"
-
-  

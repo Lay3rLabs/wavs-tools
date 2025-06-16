@@ -12,8 +12,6 @@ cp .env.example .env
 task backend:start
 ```
 
-Wait until the backend is running, then continue on with the next steps.
-
 ```bash
 echo "TODO"
 ```
@@ -22,3 +20,5 @@ echo "TODO"
 
 Jaeger UI is at http://localhost:16686/
 Prometheus is at http://localhost:9090/
+
+Anvil logs can be viewed via `tail -f /tmp/anvil.log`

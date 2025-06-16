@@ -20,3 +20,4 @@ aggregator/
 compiled/
 tests/.test-reports
 infra/
+.claude
