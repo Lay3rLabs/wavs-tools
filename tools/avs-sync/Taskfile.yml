@@ -8,8 +8,9 @@ includes:
 silent: true
 
 vars:
-  CHAIN_ID: "{{ .ENV.CHAIN_ID }}"
   COMPONENT_NAME: avs_sync
+  BLOCK_INTERVAL: 100
+  PAST_BLOCKS: 500
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .ROOT_DIR "../../target/wasm32-wasip1/release"}}'
   ANVIL_PORT: 8548
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
@@ -38,9 +39,9 @@ tasks:
     vars:
       # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
       COMPONENTS_DIR: "/wavs-tools/tools/avs-sync/.wasi-output"
-      DATA_DIR: "/wavs-tools/tools/avs-sync/.wavs-cli-data"
+      DATA_DIR: "/wavs-tools/tools/avs-sync/.cli:wavs-data"
     cmds:
-      # unfortunately, the wavs-cli upload-component command doesn't write to JSON
+      # unfortunately, the cli:wavs upload-component command doesn't write to JSON
       # but, fortunately, the last line of the output is the digest
       - |
         OUTPUT=$(task cli:upload-component -- "{{.COMPONENTS_DIR}}/{{.COMPONENT_NAME}}.wasm" --data "{{.DATA_DIR}}")
@@ -77,3 +78,34 @@ tasks:
       - >
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
         "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/$CHAIN_ID/run-latest.json"
+
+  build-service:
+    desc: "Build avs_sync service configuration"
+    vars:
+      CMD: "service --json true --home /wavs-home --file /wavs-tools/.docker/{{.COMPONENT_NAME}}.json"
+      TRIGGER_CHAIN: "local"
+      SUBMIT_CHAIN: "local"
+      AGGREGATOR_URL: "http://localhost:8124"
+    cmds:
+      - |
+        # Build service configuration using task cli:wavs
+        SERVICE_ID=$(task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+
+        WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
+
+        # Configure workflow
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+          
+        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.AGGREGATOR_URL}} --address $(task submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+
+        DIGEST=$(cat ./.wasi-output/component_digest.txt)
+
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest ${DIGEST} > /dev/null
+          
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+          
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address={{.STAKE_REGISTRY_ADDRESS}},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+          
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
+
+        echo "Service configuration built successfully"
