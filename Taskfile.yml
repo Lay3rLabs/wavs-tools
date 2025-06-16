@@ -7,7 +7,8 @@ dotenv: ['.env']
 
 includes:
   backend: ./backend/Taskfile.yml
-  cli: ./cli/Taskfile.yml
+  cli: ./Taskfile-cli.yml
+  middleware: ./Taskfile-middleware.yml
 
 tasks:
   default:

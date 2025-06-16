@@ -22,4 +22,5 @@ aggregator/
 tests/.test-reports
 infra/
 .claude
+.middleware-nodes
 .DS_Store

@@ -3,14 +3,16 @@ version: "3"
 dotenv: ['../../.env']
 
 includes:
-  cli: ../../cli/Taskfile.yml
+  cli: ../../Taskfile-cli.yml
 
 silent: true
 
 vars:
   COMPONENT_NAME: avs_sync
   COMPONENTS_CARGO_RELEASE_DIR: "{{joinPath .ROOT_DIR \"../../target/wasm32-wasip1/release\"}}"
-  EVM_RPC_URL: "http://localhost:8545"
+  ANVIL_PORT: 8548
+  EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
+  MIDDLEWARE_NODES_DIR: "{{joinPath .ROOT_DIR \"../../.middleware-nodes\"}}"
 
 tasks:
   components-build:
@@ -32,8 +34,10 @@ tasks:
       COMPONENTS_DIR: "/wavs-tools/tools/avs-sync/.wasi-output"
       DATA_DIR: "/wavs-tools/tools/avs-sync/.wavs-cli-data"
     cmds:
+      # unfortunately, the wavs-cli upload-component command doesn't write to JSON
+      # but, fortunately, the last line of the output is the digest
       - |
-        OUTPUT=$(task cli:wavs -- upload-component "{{.COMPONENTS_DIR}}/{{.COMPONENT_NAME}}.wasm" --data "{{.DATA_DIR}}")
+        OUTPUT=$(task cli:upload-component -- "{{.COMPONENTS_DIR}}/{{.COMPONENT_NAME}}.wasm" --data "{{.DATA_DIR}}")
         DIGEST=$(echo "$OUTPUT" | tail -n 1)
         if [[ "$OUTPUT" == *"Digest"* ]]; then
           echo "Component uploaded successfully, digest is $DIGEST"
@@ -46,7 +50,13 @@ tasks:
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"
     dir: contracts
+    vars:
+      SERVICE_MANAGER_ADDRESS:
+        sh: jq -r .addresses.WavsServiceManager "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
     cmds:
+      - |
+        echo "Service manager address: {{.SERVICE_MANAGER_ADDRESS}}"
+      - echo "TODO, finish the deploy script"
       - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}" 
 
   contracts-test:

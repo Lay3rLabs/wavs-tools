@@ -21,7 +21,7 @@ task backend:start
 
 ### Deploy the middleware 
 ```bash
-task cli:middleware-deploy
+task middleware:deploy
 ```
 
 
