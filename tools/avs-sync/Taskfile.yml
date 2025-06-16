@@ -14,6 +14,10 @@ vars:
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .ROOT_DIR "../../target/wasm32-wasip1/release"}}'
   ANVIL_PORT: 8548
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
+  AGGREGATOR_PORT: 8124
+  AGGREGATOR_URL: "http://localhost:{{.AGGREGATOR_PORT}}"
+  WAVS_PORT: 8123
+  WAVS_URL: "http://localhost:{{.WAVS_PORT}}"
   MIDDLEWARE_NODES_DIR: '{{joinPath .ROOT_DIR "../../.middleware-nodes"}}'
   SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
   SERVICE_MANAGER_ADDRESS:
@@ -85,7 +89,6 @@ tasks:
       CMD: "service --json true --home /wavs-home --file /wavs-tools/.docker/{{.COMPONENT_NAME}}.json"
       TRIGGER_CHAIN: "local"
       SUBMIT_CHAIN: "local"
-      AGGREGATOR_URL: "http://localhost:8124"
     cmds:
       - |
         # Build service configuration using task cli:wavs
@@ -109,3 +112,9 @@ tasks:
         task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
 
         echo "Service configuration built successfully"
+
+  upload-service:
+    vars:
+      SERVICE_JSON_PATH: "{{.REPO_ROOT}}/.docker/{{.COMPONENT_NAME}}.json"
+      cmds:
+        - curl -X POST "{{.WAVS_URL}}" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
