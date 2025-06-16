@@ -63,7 +63,7 @@ tasks:
     vars:
       # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
       COMPONENTS_DIR: "/wavs-tools/tools/avs-sync/.wasi-output"
-      DATA_DIR: "/wavs-tools/tools/avs-sync/.cli:wavs-data"
+      DATA_DIR: "/wavs-tools/tools/avs-sync/.wavs-cli-data"
     cmds:
       # unfortunately, the cli:wavs upload-component command doesn't write to JSON
       # but, fortunately, the last line of the output is the digest
