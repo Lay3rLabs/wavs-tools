@@ -4,6 +4,7 @@ dotenv: ["../../.env"]
 
 includes:
   cli: ../../Taskfile-cli.yml
+  middleware: ../../Taskfile-middleware.yml
 
 silent: false
 
@@ -43,6 +44,7 @@ tasks:
         task set-service-uri
         task register-service-uri
         task deploy-service
+        task register-operator
 
   components-build:
     desc: "Builds the WASI component for AVS Sync"
@@ -93,13 +95,18 @@ tasks:
     cmds:
       - forge test -vv
 
-  submission-address:
+  get-submission-address:
     vars:
       CONTRACT_NAME: "AvsWriter"
     cmds:
       - >
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
         "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/$CHAIN_ID/run-latest.json"
+
+  get-service-key:
+    cmds:
+      - |
+        curl -s {{.WAVS_URL}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
 
   build-service:
     desc: "Build avs_sync service configuration"
@@ -117,7 +124,7 @@ tasks:
         # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
           
-        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.AGGREGATOR_URL}} --address $(task submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.AGGREGATOR_URL}} --address $(task get-submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
 
         DIGEST=$(cat ./.wasi-output/component_digest.txt)
 
@@ -151,6 +158,14 @@ tasks:
       - |
         task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_URL}}
 
+  register-operator:
+    cmds:
+      - |
+        HD_INDEX=$(task get-service-key)
+        OPERATOR_PRIVATE_KEY=$(cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0)
+        AVS_SIGNING_ADDRESS=$(cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index ${HD_INDEX})
+        task middleware:register-operator WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER_ADDRESS}} -- ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
+
   fund-deployer:
     cmds:
       - |
@@ -168,3 +183,10 @@ tasks:
         else
           echo "✅ Deployer already has sufficient balance"
         fi
+
+  trigger:
+    desc: "Trigger component by mining blocks"
+    vars:
+      BLOCKS: '{{.CLI_ARGS | default "100"}}'
+    cmds:
+      - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
