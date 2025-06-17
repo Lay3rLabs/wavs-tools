@@ -8,9 +8,10 @@ includes:
 tasks:
   deploy:
     desc: "Deploy middleware"
+    deps: [clean]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
-      LOCAL_ETHEREUM_RPC_URL: "{{.MIDDLEWARE_LOCAL_ETHEREUM_RPC_URL}}" 
+      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}" 
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -21,13 +22,18 @@ tasks:
         -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
 
+  clean: 
+    desc: "Clean up middleware nodes directory"
+    cmds:
+      - rm -rf {{.MIDDLEWARE_NODES_DIR}}
+
   register-operator:
     desc: "Register an operator"
     vars:
       WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
-      LOCAL_ETHEREUM_RPC_URL: "{{.MIDDLEWARE_LOCAL_ETHEREUM_RPC_URL}}" 
+      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}" 
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host

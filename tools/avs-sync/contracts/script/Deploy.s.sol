@@ -9,13 +9,14 @@ import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 
 contract DeployAvsWriter is Script {
     function run() external {
+        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
         address serviceManagerAddress = vm.envAddress("SERVICE_MANAGER_ADDRESS");
         address stakeRegistryAddress = vm.envAddress("STAKE_REGISTRY_ADDRESS");
 
         require(serviceManagerAddress != address(0), "SERVICE_MANAGER_ADDRESS not set");
         require(stakeRegistryAddress != address(0), "STAKE_REGISTRY_ADDRESS not set");
 
-        vm.startBroadcast();
+        vm.startBroadcast(deployerPrivateKey);
 
         // Deploy AvsWriter contract
         AvsWriter avsWriter =

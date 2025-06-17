@@ -24,6 +24,11 @@ task backend:start
 task middleware:deploy
 ```
 
+### Fund the Deployer
+```bash
+task cli:fund-deployer
+```
+
 
 ### Stop the backend
 
