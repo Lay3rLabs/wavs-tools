@@ -1,0 +1,70 @@
+version: "3"
+
+includes:
+  config: 
+    taskfile: ./config.yml
+    flatten: true
+
+env:
+  # avoid namespace conflicts with other env vars
+  # see https://github.com/go-task/task/issues/1038
+  COMPOSE_FOUNDRY_DOCKER_IMAGE: "{{.FOUNDRY_DOCKER_IMAGE}}"
+  COMPOSE_WAVS_DOCKER_IMAGE: "{{.WAVS_DOCKER_IMAGE}}"
+  COMPOSE_JAEGER_DOCKER_IMAGE: "{{.JAEGER_DOCKER_IMAGE}}"
+  COMPOSE_PROMETHEUS_DOCKER_IMAGE: "{{.PROMETHEUS_DOCKER_IMAGE}}"
+  COMPOSE_ANVIL_FORK_URL: "{{.ANVIL_FORK_URL}}"
+  COMPOSE_ANVIL_PORT: "{{.ANVIL_PORT}}"
+  COMPOSE_WAVS_HOME: "{{.WAVS_HOME_DIR}}"
+
+tasks:
+  start:
+    desc: "Starts all backend services"
+    deps: [start-inner, wait-anvil, wait-wavs, wait-aggregator]
+
+  stop:
+    desc: "Stops all backend services"
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - |
+        {{.DOCKER_SUDO}} docker compose --file docker-compose.yml down --remove-orphans || true
+
+  # Internal subtasks
+
+  start-inner:
+    internal: true
+    dir: "{{.BACKEND_DIR}}"
+    cmds:
+      - |
+        {{.DOCKER_SUDO}} docker compose --file docker-compose.yml pull
+      - |
+        {{.DOCKER_SUDO}} docker compose --file docker-compose.yml up --force-recreate -d
+
+  wait-anvil:
+    internal: true
+    cmds:
+      - |
+        while ! nc -z localhost {{.ANVIL_PORT}}; do
+          echo "Waiting for Anvil to start on port {{.ANVIL_PORT}}..."
+          sleep 1
+        done
+      - echo "Anvil is up and running!"
+
+  wait-wavs:
+    internal: true
+    cmds:
+      - |
+        while ! nc -z localhost {{.WAVS_PORT}}; do
+          echo "Waiting for WAVS to start on port {{.WAVS_PORT}}..."
+          sleep 1
+        done
+      - echo "WAVS is up and running!"
+
+  wait-aggregator:
+    internal: true
+    cmds:
+      - |
+        while ! nc -z localhost {{.WAVS_AGGREGATOR_PORT}}; do
+          echo "Waiting for Aggregator to start on port {{.WAVS_AGGREGATOR_PORT}}..."
+          sleep 1
+        done
+      - echo "WAVS Aggregator is up and running!"

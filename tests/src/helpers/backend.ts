@@ -1,16 +1,16 @@
-import { spawn, ChildProcess } from 'child_process';
+import { exec, ExecException } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { promisify } from 'util';
 import waitPort from 'wait-port';
 
+const execPromise = promisify(exec);
+
 export class BackendManager {
-  private backendProcess: ChildProcess | null;
-  private port: number;
   public error: any | undefined;
+  isRunning: boolean = false;
 
   constructor() {
-    this.backendProcess = null;
-    this.port = parseInt(process.env.BACKEND_PORT || '3000', 10);
   }
 
   rootDirectory(): string {
@@ -29,78 +29,32 @@ export class BackendManager {
   // Due to https://github.com/mochajs/mocha/issues/4392
   // this always "succeeds", all interactions should require calling `assertRunning()` 
   // specifically see https://github.com/mochajs/mocha/issues/4392#issuecomment-797500518
-  async start(): Promise<void> {
+  async start() {
     try {
       this.error = undefined;
       // change to root directory
       process.chdir(this.rootDirectory());
-    
+
       // Start the backend using task
-      this.backendProcess = spawn('task', ['start-backend'], {
-        stdio: 'pipe',
-        detached: true
-      });
+      console.log('Starting backend...');
+      const {stdout, stderr} = await execPromise('task backend:start');
+      console.log('Backend started successfully');
 
-      // Handle process output for debugging
-      this.backendProcess.stdout?.on('data', (data: Buffer) => {
-        //console.log(`Backend stdout: ${data}`);
-      });
-
-      this.backendProcess.stderr?.on('data', (data: Buffer) => {
-        //console.error(`Backend stderr: ${data}`);
-      });
-
-      this.backendProcess.on('error', (error: Error) => {
-        console.error(`Failed to start backend: ${error}`);
-        throw error;
-      });
-
-      // Wait for the backend to be ready
-      await waitPort({
-        host: 'localhost',
-        port: this.port,
-        timeout: 30000, // 30 second timeout
-        output: 'silent'
-      });
+      this.isRunning = true;
     } catch (error) {
-      await this.stop();
+      this.stop();
       this.error = error;
     }
   }
 
-  async stop(): Promise<void> {
-    if (this.backendProcess && this.backendProcess.pid) {
-      return new Promise<void>((resolve) => {
-        // Since we spawn with detached: true, we need to kill the process group
-        // Use negative PID to kill the entire process group on Unix systems
-        const pid = -this.backendProcess!.pid!;
-        
-        try {
-          // First try graceful shutdown
-          process.kill(pid, 'SIGTERM');
-          
-          // Set a timeout for force kill if graceful shutdown fails
-          const forceKillTimeout = setTimeout(() => {
-            try {
-              process.kill(pid, 'SIGKILL');
-            } catch (error) {
-              console.warn(`Warning during force kill: ${error}`);
-            }
-          }, 5000); // 5 second timeout
-          
-          // Listen for process exit
-          this.backendProcess!.on('exit', () => {
-            clearTimeout(forceKillTimeout);
-            this.backendProcess = null;
-            resolve();
-          });
-          
-        } catch (error) {
-          console.warn(`Warning: ${error}`);
-          this.backendProcess = null;
-          resolve();
-        }
-      });
+  async stop() {
+    if(this.isRunning) {
+      this.isRunning = false;
+      // change to root directory
+      process.chdir(this.rootDirectory());
+      console.log('Stopping backend...');
+      const {stdout, stderr} = await execPromise('task backend:stop');
+      console.log('Backend stopped successfully');
     }
   }
 
@@ -108,7 +62,7 @@ export class BackendManager {
     if(this.error) {
       throw this.error;
     }
-    if (!this.backendProcess || this.backendProcess.killed) {
+    if (!this.isRunning) {
       throw new Error('Backend process is not running');
     }
   }

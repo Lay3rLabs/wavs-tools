@@ -1,50 +1,52 @@
-###################################
-#
-# make start-all
-#
-# docker exec -it wavs bash
-#
-###################################
-
 services:
-  wavs:
-    image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
-    container_name: "wavs"
+  anvil:
+    container_name: "anvil"
+    image: "${COMPOSE_FOUNDRY_DOCKER_IMAGE}"
     stop_signal: SIGKILL
     network_mode: "host"
-    env_file: "./.env"
-    ports:
-      - "8000:8000"
-    environment:
-      WAVS_HOME: "/wavs/packages/wavs"
-      WAVS_CLI_HOME: "/wavs/packages/cli"
-      WAVS_AGGREGATOR_HOME: "/wavs/packages/aggregator"
-    command: ["wavs"]
+    command: ["anvil --fork-url ${COMPOSE_ANVIL_FORK_URL} --port ${COMPOSE_ANVIL_PORT}"]
+
+  wavs:
+    container_name: "wavs"
+    image: "${COMPOSE_WAVS_DOCKER_IMAGE}"
+    stop_signal: SIGKILL
+    network_mode: "host"
+    env_file: "../.env"
+    command: ["wavs", "--home", "/wavs-home"]
     volumes:
-      - "./:/wavs"
-      - "./.docker:/root/wavs/cli/"
+      - "${COMPOSE_WAVS_HOME}:/wavs-home"
 
   aggregator:
-    image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
-    depends_on: ["wavs"]
     container_name: "wavs-aggregator"
+    image: "${COMPOSE_WAVS_DOCKER_IMAGE}"
+    depends_on: ["wavs"]
     stop_signal: SIGKILL
-    env_file: "./.env"
-    ports:
-      - "8001:8001"
-    command: ["wavs-aggregator"]
+    env_file: "../.env"
+    command: ["wavs-aggregator", "--home", "/wavs-home"]
     volumes:
-      - ".:/wavs"
+      - "${COMPOSE_WAVS_HOME}:/wavs-home"
     network_mode: "host"
 
-  ipfs:
-    image: "ipfs/kubo:v0.34.1"
-    container_name: "ipfs"
-    stop_signal: SIGKILL
+  jaeger:
+    container_name: wavs-jaeger
+    depends_on: ["wavs"]
+    image: "${COMPOSE_JAEGER_DOCKER_IMAGE}"
     network_mode: "host"
-    ports:
-      - "4001:4001"
-      - "4001:4001/udp"
-      - "8080:8080"
-      - "5001:5001"
-    command: ["daemon", "--offline"]
+    stop_signal: SIGKILL
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    # ports managed by host network mode
+
+  # Prometheus is used to display metrics
+  prometheus:
+    container_name: wavs-prometheus
+    depends_on: ["wavs"]
+    image: "${COMPOSE_PROMETHEUS_DOCKER_IMAGE}" 
+    network_mode: "host"
+    stop_signal: SIGKILL
+    # ports managed by host network mode
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-otlp-receiver"

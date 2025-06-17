@@ -1,117 +1,46 @@
-# WAVS Tools
+# QUICKSTART
 
-This repository is a monorepo for WAVS components and tools that can be used by projects to build various services, including AVS implementations.
+## First-time setup
 
-## Directory Layout
-
-- **backend/**: Docker Compose setups, telemetry, testnet scripts, and WAVS configuration
-- **submodules/**: External dependencies (eigenlayer-middleware, forge-std, openzeppelin-contracts)
-- **tests/**: Integration and end-to-end tests
-- **tools/**: Development tools and utilities
-  - **avs_sync/**: AVS synchronization service example with contracts and WASI components
-
-The WAVS configuration file (`wavs.toml`) is located in the `backend/` directory.
-
-## System Requirements
-
-<details>
-<summary>Core (Docker, Compose, Make, JQ, Node v21+)</summary>
-
-### Docker
-- **MacOS**: `brew install --cask docker`
-- **Linux**: `sudo apt -y install docker.io`
-- **Windows WSL**: [docker desktop wsl](https://docs.docker.com/desktop/wsl/#turn-on-docker-desktop-wsl-2) & `sudo chmod 666 /var/run/docker.sock`
-- [Docker Documentation](https://docs.docker.com/get-started/get-docker/)
-
-### Docker Compose
-- **MacOS**: Already installed with Docker installer
-- **Linux + Windows WSL**: `sudo apt-get install docker-compose-v2`
-- [Compose Documentation](https://docs.docker.com/compose/)
-
-### Make
-- **MacOS**: `brew install make`
-- **Linux + Windows WSL**: `sudo apt -y install make`
-- [Make Documentation](https://www.gnu.org/software/make/manual/make.html)
-
-### JQ
-- **MacOS**: `brew install jq`
-- **Linux + Windows WSL**: `sudo apt -y install jq`
-- [JQ Documentation](https://jqlang.org/download/)
-
-### Node.js
-- **Required Version**: v21+
-- [Installation via NVM](https://github.com/nvm-sh/nvm?tab=readme-ov-file#installing-and-updating)
-</details>
-
-<details>
-
-<summary>Rust v1.84+</summary>
-
-### Rust Installation
-
-```bash docci-ignore
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
-rustup toolchain install stable
-rustup target add wasm32-wasip2
+Copy and edit your environment variables
+```bash
+cp .env.example .env
 ```
 
-### Upgrade Rust
-
-```bash docci-ignore
-# Remove old targets if present
-rustup target remove wasm32-wasi || true
-rustup target remove wasm32-wasip1 || true
-
-# Update and add required target
-rustup update stable
-rustup target add wasm32-wasip2
+Install dependencies
+```bash
+task setup
 ```
 
-</details>
+## Get up and running
 
-<details>
-<summary>Cargo Components</summary>
-
-### Install Cargo Components
-
-```bash docci-ignore
-# Install required cargo components
-# https://github.com/bytecodealliance/cargo-component#installation
-cargo install cargo-binstall
-cargo binstall cargo-component wasm-tools warg-cli wkg --locked --no-confirm --force
-
-# Configure default registry
-# Found at: $HOME/.config/wasm-pkg/config.toml
-wkg config --default-registry wa.dev
+### Start the backend
+```bash
+task backend:start
 ```
 
-</details>
+### Deploy the middleware 
+```bash
+task middleware:deploy
+```
 
-## Building
-
-### Solidity
-
-Install the required packages to build the Solidity contracts. This project supports both [submodules](./.gitmodules) and [npm packages](./package.json).
+### Stop the backend
 
 ```bash
-# Install packages (npm & submodules)
-make setup
-
-# Build the contracts
-forge build
-
-# Run the solidity tests
-forge test
+task backend:stop
 ```
 
-# Running tests
+## Develop a tool 
+There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
-For now:
+```bash
+cd tools/avs-sync
+task bootstrap
+```
 
-1. `cd tests`
-2. `npm install`
-3. `npm run test:report:open`
+# DEBUGGING
 
-TODO: `task setup should install all required packages`
-TODO: `task test` etc.
+Jaeger UI is at http://localhost:16686/
+Prometheus is at http://localhost:9090/
+
+wavs-cli can be executed via `task cli:wavs -- [command]` 

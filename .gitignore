@@ -17,6 +17,12 @@ wavs:worker*.wasm
 avs_sync/src/contracts/abi/
 aggregator/
 .wavs/
-compiled/
+.wasi-output/
+.wavs-cli-data/
 tests/.test-reports
 infra/
+.claude
+.middleware-nodes
+abi/
+.service-output/
+.DS_Store

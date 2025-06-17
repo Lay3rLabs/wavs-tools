@@ -1,0 +1,64 @@
+version: "3"
+
+includes:
+  config:
+    taskfile: ./config.yml
+    flatten: true
+
+tasks:
+  deploy:
+    desc: "Deploy middleware"
+    deps: [clean]
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
+    cmds:
+      - mkdir -p {{.MIDDLEWARE_NODES_DIR}}
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file {{.ENV_FILE}}
+        -e DEPLOY_ENV
+        -e LOCAL_ETHEREUM_RPC_URL
+        -v {{.TASKFILE_DIR}}:/wavs-tools
+        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
+
+  clean:
+    desc: "Clean up middleware nodes directory"
+    cmds:
+      - rm -rf {{.MIDDLEWARE_NODES_DIR}}
+
+  register-operator:
+    desc: "Register an operator"
+    vars:
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file {{.ENV_FILE}}
+        -e DEPLOY_ENV
+        -e LOCAL_ETHEREUM_RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}
+        -v {{.TASKFILE_DIR}}:/wavs-tools
+        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.CLI_ARGS}}
+
+  list-operators:
+    vars:
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file {{.ENV_FILE}}
+        -e DEPLOY_ENV
+        -e LOCAL_ETHEREUM_RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}
+        -v {{.TASKFILE_DIR}}:/wavs-tools
+        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} list_operator

@@ -1,0 +1,58 @@
+version: "3"
+
+includes:
+  config:
+    taskfile: ./config.yml
+    flatten: true
+
+tasks:
+  upload-component:
+    desc: "Runs WAVS CLI commands"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -v {{.REPO_ROOT}}:/wavs-tools
+        -v {{.WAVS_HOME_DIR}}:/wavs-home 
+        {{.WAVS_DOCKER_IMAGE}}
+        wavs-cli upload-component {{.CLI_ARGS}} --json true --home /wavs-home --wavs-endpoint {{.WAVS_ENDPOINT}}
+
+  wavs:
+    desc: "Runs WAVS CLI commands"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -v {{.REPO_ROOT}}:/wavs-tools
+        -v {{.WAVS_HOME_DIR}}:/wavs-home 
+        {{.WAVS_DOCKER_IMAGE}}
+        wavs-cli {{.CLI_ARGS}}
+
+  fund-deployer:
+    vars:
+      DEPLOYER_ADDRESS:
+        sh: cast wallet address --private-key $DEPLOYER_PRIVATE_KEY
+      DEPLOYER_BALANCE:
+        sh: cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}}
+    cmds:
+      - |
+        # Check current balance
+        echo "Current deployer balance: {{.DEPLOYER_BALANCE}}} ETH"
+
+        # Fund if balance is less than 1 ETH and we're in LOCAL mode
+        if (( $(echo "{{.DEPLOYER_BALANCE}} < 1.0" | bc -l) )); then
+            echo "💰 Funding deployer with 15 ETH..."
+            cast rpc anvil_setBalance "{{.DEPLOYER_ADDRESS}}" '15000000000000000000' --rpc-url {{.EVM_RPC_URL}} > /dev/null
+            NEW_BALANCE=$(cast balance --ether {{.DEPLOYER_ADDRESS}} --rpc-url {{.EVM_RPC_URL}})
+            echo "✅ Deployer funded. New balance: {{.NEW_BALANCE}} ETH"
+        else
+          echo "✅ Deployer already has sufficient balance"
+        fi
+
+
+  copy-eigenlayer-abi:
+    internal: true
+    dir: "./submodules/eigenlayer-middleware/out"
+    cmds:
+      - mkdir -p {{.ABI_DIR}}
+      - forge build
+      - for: ["ECDSAStakeRegistry.sol"]
+        cmd: cp -r {{.ITEM}} {{.ABI_DIR}}
