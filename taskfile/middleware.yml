@@ -1,0 +1,40 @@
+version: "3"
+
+includes:
+  config: 
+    taskfile: ./config.yml
+    flatten: true
+
+tasks:
+  deploy:
+    desc: "Deploy middleware"
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      LOCAL_ETHEREUM_RPC_URL: "{{.MIDDLEWARE_LOCAL_ETHEREUM_RPC_URL}}" 
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file {{.ENV_FILE}}
+        -e DEPLOY_ENV
+        -e LOCAL_ETHEREUM_RPC_URL
+        -v {{.TASKFILE_DIR}}:/wavs-tools
+        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
+
+  register-operator:
+    desc: "Register an operator"
+    vars:
+      WAVS_SERVICE_MANAGER_ADDRESS: '{{.WAVS_SERVICE_MANAGER_ADDRESS | default ""}}'
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      LOCAL_ETHEREUM_RPC_URL: "{{.MIDDLEWARE_LOCAL_ETHEREUM_RPC_URL}}" 
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        --env-file {{.ENV_FILE}}
+        -e DEPLOY_ENV
+        -e LOCAL_ETHEREUM_RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS={{.WAVS_SERVICE_MANAGER_ADDRESS}}
+        -v {{.TASKFILE_DIR}}:/wavs-tools
+        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.CLI_ARGS}}

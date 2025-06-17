@@ -6,9 +6,9 @@ version: "3"
 dotenv: ['.env']
 
 includes:
-  backend: ./backend/Taskfile.yml
-  cli: ./Taskfile-cli.yml
-  middleware: ./Taskfile-middleware.yml
+  backend: ./taskfile/backend.yml
+  cli: ./taskfile/cli.yml
+  middleware: ./taskfile/middleware.yml
 
 tasks:
   default:

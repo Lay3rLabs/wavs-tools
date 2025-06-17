@@ -1,21 +1,20 @@
 version: "3"
 
-vars:
-  ANVIL_RPC_URL: "https://1rpc.io/holesky"
-  ANVIL_PORT: 8545
-  WAVS_PORT: 8123
-  WAVS_AGGREGATOR_PORT: 8124
-  DOCKER_SUDO:
-    sh: |
-      if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 
-        echo ""
-      else 
-        echo "sudo"
-      fi
+includes:
+  config: 
+    taskfile: ./config.yml
+    flatten: true
 
 env:
-  ANVIL_RPC_URL: "{{.ANVIL_RPC_URL}}"
-  ANVIL_PORT: "{{.ANVIL_PORT}}"
+  # avoid namespace conflicts with other env vars
+  # see https://github.com/go-task/task/issues/1038
+  COMPOSE_FOUNDRY_DOCKER_IMAGE: "{{.FOUNDRY_DOCKER_IMAGE}}"
+  COMPOSE_WAVS_DOCKER_IMAGE: "{{.WAVS_DOCKER_IMAGE}}"
+  COMPOSE_JAEGER_DOCKER_IMAGE: "{{.JAEGER_DOCKER_IMAGE}}"
+  COMPOSE_PROMETHEUS_DOCKER_IMAGE: "{{.PROMETHEUS_DOCKER_IMAGE}}"
+  COMPOSE_ANVIL_FORK_URL: "{{.ANVIL_FORK_URL}}"
+  COMPOSE_ANVIL_PORT: "{{.ANVIL_PORT}}"
+  COMPOSE_WAVS_HOME: "{{.WAVS_HOME_DIR}}"
 
 tasks:
   start:
@@ -24,7 +23,7 @@ tasks:
 
   stop:
     desc: "Stops all backend services"
-    dir: backend
+    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
         {{.DOCKER_SUDO}} docker compose --file docker-compose.yml down --remove-orphans || true
@@ -33,7 +32,7 @@ tasks:
 
   start-inner:
     internal: true
-    dir: backend
+    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
         {{.DOCKER_SUDO}} docker compose --file docker-compose.yml pull

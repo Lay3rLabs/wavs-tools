@@ -19,7 +19,6 @@ vars:
   AGGREGATOR_URL: "http://localhost:{{.AGGREGATOR_PORT}}"
   WAVS_PORT: 8123
   WAVS_URL: "http://localhost:{{.WAVS_PORT}}"
-  MIDDLEWARE_NODES_DIR: '{{joinPath .ROOT_DIR "../../.middleware-nodes"}}'
   SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
   SERVICE_MANAGER_ADDRESS:
     sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" || true
