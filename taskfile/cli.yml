@@ -1,7 +1,10 @@
 version: "3"
 
+vars:
+  ABI_FOLDER_NAME: "abi"
+
 includes:
-  config: 
+  config:
     taskfile: ./config.yml
     flatten: true
 
@@ -28,7 +31,7 @@ tasks:
 
   fund-deployer:
     vars:
-      DEPLOYER_ADDRESS: 
+      DEPLOYER_ADDRESS:
         sh: cast wallet address --private-key $DEPLOYER_PRIVATE_KEY
       DEPLOYER_BALANCE:
         sh: cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}}
@@ -46,3 +49,21 @@ tasks:
         else
           echo "✅ Deployer already has sufficient balance"
         fi
+
+  setup:
+    vars:
+      ABI_FOLDER: "{{.ABI_FOLDER_NAME}}"
+    cmds:
+      - mkdir -p {{.ABI_FOLDER}}
+      - task: copy-eigenlayer-abi
+      - npm install
+
+  copy-eigenlayer-abi:
+    internal: true
+    dir: "./submodules/eigenlayer-middleware/out"
+    vars:
+      ABI_FOLDER: '{{ joinPath .TASKFILE_DIR (print "../" .ABI_FOLDER_NAME) }}'
+    cmds:
+      - forge build
+      - for: ["ECDSAStakeRegistry.sol"]
+        cmd: cp -r {{.ITEM}} {{.ABI_FOLDER}}

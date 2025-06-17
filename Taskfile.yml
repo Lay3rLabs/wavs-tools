@@ -3,7 +3,7 @@ version: "3"
 
 # silent: true
 
-dotenv: ['.env']
+dotenv: [".env"]
 
 includes:
   backend: ./taskfile/backend.yml
