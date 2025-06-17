@@ -12,7 +12,10 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'  # Fetch all submodules
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
