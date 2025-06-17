@@ -1,7 +1,6 @@
 {
     "scripts": {
         "test": "cd .. && mocha tests/src/**/*.test.ts --require tsx --reporter mochawesome --reporter-options reportDir=tests/.test-reports,reportFilename=test-report,json=true,overwrite=true",
-        "test:watch": "mocha --watch",
         "test:report": "npm run test; npm run merge-test-reports",
         "test:report:open": "npm run test:report; opener .test-reports/merged-report.html",
         "test:clean": "rm -rf .test-reports",
@@ -10,6 +9,7 @@
     "devDependencies": {
         "@types/chai": "^5.2.2",
         "@types/mocha": "^10.0.10",
+        "@types/node": "^24.0.3",
         "chai": "^5.2.0",
         "mocha": "^11.5.0",
         "mochawesome": "^7.1.3",

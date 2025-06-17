@@ -12,16 +12,32 @@ jobs:
       issues: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'  # Fetch all submodules
+
+      - name: Install Foundry
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
 
       - uses: actions/setup-node@v4
         name: Install Node.js
         with:
           node-version: 21
 
-      - name: Install test dependencies
-        run: npm ci
-        working-directory: tests
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup dependencies
+        run: task setup
+
+      - name: Setup environment 
+        run: cp .env.example .env
 
       - name: Run tests and generate report
         id: tests
