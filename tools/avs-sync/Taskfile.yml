@@ -185,8 +185,6 @@ tasks:
 
   register-operator:
     vars:
-      HD_INDEX:
-        sh: task get-service-hd-index
       AVS_SIGNING_ADDRESS:
         sh: task get-service-signing-address
       OPERATOR_PRIVATE_KEY:
