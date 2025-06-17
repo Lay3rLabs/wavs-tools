@@ -18,4 +18,20 @@ tasks:
   setup:
     cmds:
       - npm install
+      - cd tests && npm install
       - task: cli:copy-eigenlayer-abi
+
+  test:
+    dir: tests
+    cmds:
+      - npm run test 
+  
+  test:watch:
+    dir: tests
+    cmds:
+      - npm run test:watch
+
+  test:report:
+    dir: tests
+    cmds:
+      - npm run test:report:open
