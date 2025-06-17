@@ -5,11 +5,11 @@ dotenv: ["../../.env"]
 includes:
   cli: ../../taskfile/cli.yml
   middleware: ../../taskfile/middleware.yml
-  config: 
+  config:
     taskfile: ../../taskfile/config.yml
     flatten: true
 
-silent: true 
+silent: true
 
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
@@ -52,7 +52,7 @@ tasks:
         cargo component build --release
         mkdir -p {{.COMPONENTS_OUTPUT_DIR}}
         cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENTS_OUTPUT_DIR}}/
-    
+
   components-clean:
     desc: "Cleans the WASI component output directory"
     dir: component
@@ -119,7 +119,6 @@ tasks:
         sh: cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index {{.HD_INDEX}}
     cmds:
       - echo "{{.AVS_SIGNING_ADDRESS}}"
-        
 
   build-service:
     desc: "Build avs_sync service configuration"
@@ -202,3 +201,9 @@ tasks:
       BLOCKS: '{{.CLI_ARGS | default "100"}}'
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
+
+  list-operators:
+    cmds:
+      - task: middleware:list-operators
+        vars:
+          WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
