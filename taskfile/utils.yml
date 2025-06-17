@@ -1,0 +1,12 @@
+version: "3"
+
+tasks:
+  setup:
+    dir: "./submodules/eigenlayer-middleware/out"
+    vars:
+      ABI_FOLDER: '{{joinPath .TASKFILE_DIR "../abi"}}'
+    cmds:
+      - forge build
+      - mkdir -p {{.ABI_FOLDER}}
+      - for: ["ECDSAStakeRegistry.sol"]
+        cmd: cp -r {{.ITEM}} {{.ABI_FOLDER}}

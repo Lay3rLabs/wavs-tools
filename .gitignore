@@ -24,3 +24,4 @@ infra/
 .claude
 .middleware-nodes
 .DS_Store
+abi/
