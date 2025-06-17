@@ -2,14 +2,14 @@
 
 ## First-time setup
 
-Install dependencies
-```bash
-npm install
-```
-
 Copy and edit your environment variables
 ```bash
 cp .env.example .env
+```
+
+Install dependencies
+```bash
+task utils:setup
 ```
 
 ## Get up and running

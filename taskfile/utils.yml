@@ -1,12 +1,23 @@
 version: "3"
 
+vars:
+  ABI_FOLDER_NAME: "abi"
+
 tasks:
   setup:
+    vars:
+      ABI_FOLDER: "{{.ABI_FOLDER_NAME}}"
+    cmds:
+      - mkdir -p {{.ABI_FOLDER}}
+      - task: copy-eigenlayer-abi
+      - npm install
+
+  copy-eigenlayer-abi:
+    internal: true
     dir: "./submodules/eigenlayer-middleware/out"
     vars:
-      ABI_FOLDER: '{{joinPath .TASKFILE_DIR "../abi"}}'
+      ABI_FOLDER: '{{ joinPath .TASKFILE_DIR (print "../" .ABI_FOLDER_NAME) }}'
     cmds:
       - forge build
-      - mkdir -p {{.ABI_FOLDER}}
       - for: ["ECDSAStakeRegistry.sol"]
         cmd: cp -r {{.ITEM}} {{.ABI_FOLDER}}
