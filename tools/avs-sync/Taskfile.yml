@@ -5,29 +5,30 @@ dotenv: ["../../.env"]
 includes:
   cli: ../../taskfile/cli.yml
   middleware: ../../taskfile/middleware.yml
-  config: ../../taskfile/config.yml
+  config: 
+    taskfile: ../../taskfile/config.yml
+    flatten: true
 
 silent: false
 
 vars:
+  # These are all locally defined here, do not depend on config.yml being loaded first
+  # Seems to be some sort of data race
+  # For this reason, we sometimes need to redefined vars like SERVICE_URI
   COMPONENT_NAME: avs_sync
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
   WAVS_PORT: 8123
   SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
   COMPONENTS_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".wasi-output"}}'
-  SERVICE_JSON_PATH: '{{joinPath .ROOT_DIR "../../.docker" (print .COMPONENT_NAME ".json")}}'
+  SERVICE_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".service-output"}}'
+  SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   SERVICE_ID:
     sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
-  SERVICE_URI: "{{.WAVS_URL}}/service/{{.SERVICE_ID}}"
   COMPONENT_DIGEST_FILE: "{{.COMPONENTS_OUTPUT_DIR}}/{{.COMPONENT_NAME}}_digest.txt"
 
 tasks:
-  foo:
-    cmds:
-      - echo "{{.REPO_ROOT}}"
-
-  test:
+  bootstrap:
     desc: "A full deployment"
     cmds:
       - |
@@ -72,7 +73,7 @@ tasks:
         DIGEST=$(echo "$OUTPUT" | tail -n 1)
         if [[ "$OUTPUT" == *"Digest"* ]]; then
           echo "Component uploaded successfully, digest is $DIGEST"
-          echo "$DIGEST" > "{{.COMPONENTS_DIGEST_FILE}}"
+          echo "$DIGEST" > "{{.COMPONENT_DIGEST_FILE}}"
         else
           echo "Failed to upload component."
           exit 1
@@ -103,15 +104,29 @@ tasks:
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
         "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/$CHAIN_ID/run-latest.json"
 
-  get-service-key:
+  get-service-hd-index:
+    vars:
+      SERVICE_HD_INDEX:
+        sh: curl -s {{.WAVS_ENDPOINT}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
     cmds:
-      - |
-        curl -s {{.WAVS_URL}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
+      - echo "{{.SERVICE_HD_INDEX}}"
+
+  get-service-signing-address:
+    vars:
+      HD_INDEX:
+        sh: task get-service-hd-index
+      AVS_SIGNING_ADDRESS:
+        sh: cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index {{.HD_INDEX}}
+    cmds:
+      - echo "{{.AVS_SIGNING_ADDRESS}}"
+        
 
   build-service:
     desc: "Build avs_sync service configuration"
+    deps: [clean-service]
     vars:
-      CMD: "service --json true --home /wavs-home --file /wavs-tools/.docker/{{.COMPONENT_NAME}}.json"
+      SERVICE_JSON_DOCKER_PATH: "/wavs-tools/tools/avs-sync/.service-output/{{.COMPONENT_NAME}}.json"
+      CMD: "service --json true --home /wavs-home --file {{.SERVICE_JSON_DOCKER_PATH}}"
       TRIGGER_CHAIN: "local"
       SUBMIT_CHAIN: "local"
       COMPONENT_DIGEST:
@@ -126,10 +141,9 @@ tasks:
         # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
           
-        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.AGGREGATOR_URL}} --address $(task get-submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address $(task get-submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
 
-
-        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest ${DIGEST} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}} > /dev/null
           
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
           
@@ -139,34 +153,48 @@ tasks:
 
         echo "Service configuration built successfully"
 
+  clean-service:
+    desc: "Cleans up the service configuration"
+    cmds:
+      - rm -f "{{.SERVICE_JSON_PATH}}"
+
   upload-service:
     cmds:
       - |
-        curl -X POST "{{.WAVS_URL}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
+        curl -X POST "{{.WAVS_ENDPOINT}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
 
   set-service-uri:
+    vars:
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
         cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
 
   register-service-uri:
+    vars:
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
-        curl -X POST "{{.AGGREGATOR_URL}}/register-service" -H "Content-Type: application/json" -d "{\"uri\": \"{{.SERVICE_URI}}\"}"
+        curl -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" -H "Content-Type: application/json" -d "{\"uri\": \"{{.SERVICE_URI}}\"}"
 
   deploy-service:
+    vars:
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
-        task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_URL}}
+        task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
   register-operator:
+    vars:
+      HD_INDEX:
+        sh: task get-service-hd-index
+      AVS_SIGNING_ADDRESS:
+        sh: task get-service-signing-address
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
     cmds:
       - |
-        HD_INDEX=$(task get-service-key)
-        OPERATOR_PRIVATE_KEY=$(cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0)
-        AVS_SIGNING_ADDRESS=$(cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index ${HD_INDEX})
-        task middleware:register-operator WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER_ADDRESS}} -- ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
-
+        task middleware:register-operator WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER_ADDRESS}} -- {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} 0.001ether
 
   trigger:
     desc: "Trigger component by mining blocks"

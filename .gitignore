@@ -23,5 +23,6 @@ tests/.test-reports
 infra/
 .claude
 .middleware-nodes
-.DS_Store
 abi/
+.service-output/
+.DS_Store
