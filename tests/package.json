@@ -1,7 +1,6 @@
 {
     "scripts": {
         "test": "cd .. && mocha tests/src/**/*.test.ts --require tsx --reporter mochawesome --reporter-options reportDir=tests/.test-reports,reportFilename=test-report,json=true,overwrite=true",
-        "test:watch": "mocha --watch",
         "test:report": "npm run test; npm run merge-test-reports",
         "test:report:open": "npm run test:report; opener .test-reports/merged-report.html",
         "test:clean": "rm -rf .test-reports",

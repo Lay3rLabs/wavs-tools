@@ -25,11 +25,6 @@ tasks:
     dir: tests
     cmds:
       - npm run test 
-  
-  test:watch:
-    dir: tests
-    cmds:
-      - npm run test:watch
 
   test:report:
     dir: tests
