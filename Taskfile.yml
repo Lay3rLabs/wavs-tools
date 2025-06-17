@@ -9,7 +9,6 @@ includes:
   backend: ./taskfile/backend.yml
   cli: ./taskfile/cli.yml
   middleware: ./taskfile/middleware.yml
-  utils: ./taskfile/utils.yml
 
 tasks:
   default:

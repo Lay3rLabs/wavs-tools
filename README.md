@@ -9,7 +9,7 @@ cp .env.example .env
 
 Install dependencies
 ```bash
-task utils:setup
+task cli:setup
 ```
 
 ## Get up and running
