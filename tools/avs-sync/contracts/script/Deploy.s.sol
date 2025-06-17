@@ -9,26 +9,18 @@ import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 
 contract DeployAvsWriter is Script {
     function run() external {
-        uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
+        address serviceManagerAddress = vm.envAddress("SERVICE_MANAGER_ADDRESS");
+        address stakeRegistryAddress = vm.envAddress("STAKE_REGISTRY_ADDRESS");
 
-        console.log("TODO, deploy! private key is:", deployerPrivateKey);
+        require(serviceManagerAddress != address(0), "SERVICE_MANAGER_ADDRESS not set");
+        require(stakeRegistryAddress != address(0), "STAKE_REGISTRY_ADDRESS not set");
 
-        // // Get addresses from environment variables
-        // address serviceManager = vm.envAddress("WAVS_SERVICE_MANAGER_ADDRESS");
-        // address ecdsaStakeRegistryAddress = vm.envAddress("ECDSA_STAKE_REGISTRY_ADDRESS");
+        vm.startBroadcast();
 
-        // console.log("=== Deploying AVS Contracts ===");
-        // console.log("ECDSA Stake Registry:", ecdsaStakeRegistryAddress);
-        // console.log("Service Manager:", serviceManager);
-        // console.log("Deployer:", vm.addr(deployerPrivateKey));
+        // Deploy AvsWriter contract
+        AvsWriter avsWriter =
+            new AvsWriter(IWavsServiceManager(serviceManagerAddress), ECDSAStakeRegistry(stakeRegistryAddress));
 
-        // vm.startBroadcast(deployerPrivateKey);
-
-        // // Deploy AvsWriter
-        // AvsWriter avsWriter =
-        //     new AvsWriter(IWavsServiceManager(serviceManager), ECDSAStakeRegistry(ecdsaStakeRegistryAddress));
-
-        // console.log("AvsWriter deployed at:", address(avsWriter));
         vm.stopBroadcast();
     }
 }

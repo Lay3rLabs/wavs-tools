@@ -1,10 +1,9 @@
 version: "3"
 
-
 vars:
   ANVIL_RPC_URL: "https://1rpc.io/holesky"
-  ANVIL_PORT: 8548
-  WAVS_PORT: 8123 
+  ANVIL_PORT: 8545
+  WAVS_PORT: 8123
   WAVS_AGGREGATOR_PORT: 8124
   DOCKER_SUDO:
     sh: |
@@ -26,7 +25,7 @@ tasks:
   stop:
     desc: "Stops all backend services"
     dir: backend
-    cmds: 
+    cmds:
       - |
         {{.DOCKER_SUDO}} docker compose --file docker-compose.yml down --remove-orphans || true
 
@@ -35,7 +34,7 @@ tasks:
   start-inner:
     internal: true
     dir: backend
-    cmds: 
+    cmds:
       - |
         {{.DOCKER_SUDO}} docker compose --file docker-compose.yml pull
       - |

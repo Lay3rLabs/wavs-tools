@@ -1,20 +1,51 @@
 version: "3"
 
-dotenv: ['../../.env']
+dotenv: ["../../.env"]
 
 includes:
   cli: ../../Taskfile-cli.yml
+  middleware: ../../Taskfile-middleware.yml
 
-silent: true
+silent: false
 
 vars:
   COMPONENT_NAME: avs_sync
-  COMPONENTS_CARGO_RELEASE_DIR: "{{joinPath .ROOT_DIR \"../../target/wasm32-wasip1/release\"}}"
-  ANVIL_PORT: 8548
+  BLOCK_INTERVAL: 100
+  PAST_BLOCKS: 500
+  COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .ROOT_DIR "../../target/wasm32-wasip1/release"}}'
+  ANVIL_PORT: 8545
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
-  MIDDLEWARE_NODES_DIR: "{{joinPath .ROOT_DIR \"../../.middleware-nodes\"}}"
+  AGGREGATOR_PORT: 8124
+  AGGREGATOR_URL: "http://localhost:{{.AGGREGATOR_PORT}}"
+  WAVS_PORT: 8123
+  WAVS_URL: "http://localhost:{{.WAVS_PORT}}"
+  MIDDLEWARE_NODES_DIR: '{{joinPath .ROOT_DIR "../../.middleware-nodes"}}'
+  SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
+  SERVICE_MANAGER_ADDRESS:
+    sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" || true
+  STAKE_REGISTRY_ADDRESS:
+    sh: jq -r '.addresses.stakeRegistry // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" || true
+  SERVICE_JSON_PATH: '{{joinPath .ROOT_DIR "../../.docker" (print .COMPONENT_NAME ".json")}}'
+  SERVICE_ID:
+    sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" || true
+  SERVICE_URI: "{{.WAVS_URL}}/service/{{.SERVICE_ID}}"
 
 tasks:
+  test:
+    desc: "A full deployment"
+    cmds:
+      - |
+        task components-build
+        task components-upload
+        task fund-deployer
+        task contracts-deploy
+        task build-service
+        task upload-service
+        task set-service-uri
+        task register-service-uri
+        task deploy-service
+        task register-operator
+
   components-build:
     desc: "Builds the WASI component for AVS Sync"
     dir: component
@@ -34,7 +65,7 @@ tasks:
       COMPONENTS_DIR: "/wavs-tools/tools/avs-sync/.wasi-output"
       DATA_DIR: "/wavs-tools/tools/avs-sync/.wavs-cli-data"
     cmds:
-      # unfortunately, the wavs-cli upload-component command doesn't write to JSON
+      # unfortunately, the cli:wavs upload-component command doesn't write to JSON
       # but, fortunately, the last line of the output is the digest
       - |
         OUTPUT=$(task cli:upload-component -- "{{.COMPONENTS_DIR}}/{{.COMPONENT_NAME}}.wasm" --data "{{.DATA_DIR}}")
@@ -51,16 +82,111 @@ tasks:
     desc: "Deploys the AVS Sync contracts"
     dir: contracts
     vars:
-      SERVICE_MANAGER_ADDRESS:
-        sh: jq -r .addresses.WavsServiceManager "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json"
+      SCRIPT_NAME: "DeployAvsWriter"
+    env:
+      SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
     cmds:
-      - |
-        echo "Service manager address: {{.SERVICE_MANAGER_ADDRESS}}"
-      - echo "TODO, finish the deploy script"
-      - forge script script/Deploy.s.sol:DeployAvsWriter --broadcast --rpc-url "{{.EVM_RPC_URL}}" 
+      - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}" --private-key $DEPLOYER_PRIVATE_KEY
 
   contracts-test:
     desc: "Runs tests for the AVS Sync contracts"
     dir: contracts
     cmds:
       - forge test -vv
+
+  get-submission-address:
+    vars:
+      CONTRACT_NAME: "AvsWriter"
+    cmds:
+      - >
+        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/$CHAIN_ID/run-latest.json"
+
+  get-service-key:
+    cmds:
+      - |
+        curl -s {{.WAVS_URL}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
+
+  build-service:
+    desc: "Build avs_sync service configuration"
+    vars:
+      CMD: "service --json true --home /wavs-home --file /wavs-tools/.docker/{{.COMPONENT_NAME}}.json"
+      TRIGGER_CHAIN: "local"
+      SUBMIT_CHAIN: "local"
+    cmds:
+      - |
+        # Build service configuration using task cli:wavs
+        SERVICE_ID=$(task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+
+        WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
+
+        # Configure workflow
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+          
+        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.AGGREGATOR_URL}} --address $(task get-submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+
+        DIGEST=$(cat ./.wasi-output/component_digest.txt)
+
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest ${DIGEST} > /dev/null
+          
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+          
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address={{.STAKE_REGISTRY_ADDRESS}},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+          
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
+
+        echo "Service configuration built successfully"
+
+  upload-service:
+    cmds:
+      - |
+        curl -X POST "{{.WAVS_URL}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
+
+  set-service-uri:
+    cmds:
+      - |
+        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+
+  register-service-uri:
+    cmds:
+      - |
+        curl -X POST "{{.AGGREGATOR_URL}}/register-service" -H "Content-Type: application/json" -d "{\"uri\": \"{{.SERVICE_URI}}\"}"
+
+  deploy-service:
+    cmds:
+      - |
+        task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_URL}}
+
+  register-operator:
+    cmds:
+      - |
+        HD_INDEX=$(task get-service-key)
+        OPERATOR_PRIVATE_KEY=$(cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0)
+        AVS_SIGNING_ADDRESS=$(cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index ${HD_INDEX})
+        task middleware:register-operator WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER_ADDRESS}} -- ${OPERATOR_PRIVATE_KEY} ${AVS_SIGNING_ADDRESS} 0.001ether
+
+  fund-deployer:
+    cmds:
+      - |
+        # Check current balance
+        DEPLOYER_ADDRESS=$(cast wallet address --private-key $DEPLOYER_PRIVATE_KEY)
+        BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}})
+        echo "Current deployer balance: ${BALANCE} ETH"
+
+        # Fund if balance is less than 1 ETH and we're in LOCAL mode
+        if (( $(echo "$BALANCE < 1.0" | bc -l) )); then
+            echo "💰 Funding deployer with 15 ETH..."
+            cast rpc anvil_setBalance "${DEPLOYER_ADDRESS}" '15000000000000000000' --rpc-url {{.EVM_RPC_URL}} > /dev/null
+            NEW_BALANCE=$(cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}})
+            echo "✅ Deployer funded. New balance: ${NEW_BALANCE} ETH"
+        else
+          echo "✅ Deployer already has sufficient balance"
+        fi
+
+  trigger:
+    desc: "Trigger component by mining blocks"
+    vars:
+      BLOCKS: '{{.CLI_ARGS | default "100"}}'
+    cmds:
+      - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}

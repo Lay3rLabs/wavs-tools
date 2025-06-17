@@ -8,7 +8,7 @@ services:
 
   wavs:
     container_name: "wavs"
-    image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
+    image: "ghcr.io/lay3rlabs/wavs:35c96a4"
     stop_signal: SIGKILL
     network_mode: "host"
     env_file: "../.env"
@@ -18,7 +18,7 @@ services:
 
   aggregator:
     container_name: "wavs-aggregator"
-    image: "ghcr.io/lay3rlabs/wavs:0.4.0-rc"
+    image: "ghcr.io/lay3rlabs/wavs:35c96a4"
     depends_on: ["wavs"]
     stop_signal: SIGKILL
     env_file: "../.env"
