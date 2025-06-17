@@ -28,7 +28,7 @@ vars:
   COMPONENT_DIGEST_FILE: "{{.COMPONENTS_OUTPUT_DIR}}/{{.COMPONENT_NAME}}_digest.txt"
 
 tasks:
-  test:
+  bootstrap:
     desc: "A full deployment"
     cmds:
       - |
