@@ -23,4 +23,5 @@ tests/.test-reports
 infra/
 .claude
 .middleware-nodes
+.service-output/
 .DS_Store
