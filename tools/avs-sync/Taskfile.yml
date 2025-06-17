@@ -132,6 +132,8 @@ tasks:
         sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
     cmds:
       - |
+        mkdir -p {{.SERVICE_OUTPUT_DIR}}
+
         # Build service configuration using task cli:wavs
         SERVICE_ID=$(task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
 
@@ -155,7 +157,7 @@ tasks:
   clean-service:
     desc: "Cleans up the service configuration"
     cmds:
-      - rm -f "{{.SERVICE_JSON_PATH}}"
+      - rm -rf "{{.SERVICE_OUTPUT_DIR}}"
 
   upload-service:
     cmds:
