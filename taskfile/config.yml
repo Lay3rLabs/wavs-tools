@@ -30,6 +30,7 @@ vars:
   MIDDLEWARE_DEPLOY_ENV: "LOCAL"
   ENV_FILE: '{{joinPath .REPO_ROOT ".env"}}'
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .REPO_ROOT "target/wasm32-wasip1/release"}}'
+  ABI_DIR: '{{joinPath .REPO_ROOT "abi"}}'
   SERVICE_MANAGER_ADDRESS:
     sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
   STAKE_REGISTRY_ADDRESS:

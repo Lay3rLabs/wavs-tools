@@ -1,7 +1,7 @@
-# This is just a convenience to start common tasks from the root directory
+# This is mostly just a convenience to start common tasks from the root directory
 version: "3"
 
-# silent: true
+silent: true
 
 dotenv: [".env"]
 
@@ -14,3 +14,8 @@ tasks:
   default:
     cmds:
       - task --list-all
+
+  setup:
+    cmds:
+      - npm install
+      - task: cli:copy-eigenlayer-abi

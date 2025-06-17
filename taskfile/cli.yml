@@ -1,8 +1,5 @@
 version: "3"
 
-vars:
-  ABI_FOLDER_NAME: "abi"
-
 includes:
   config:
     taskfile: ./config.yml
@@ -50,20 +47,12 @@ tasks:
           echo "✅ Deployer already has sufficient balance"
         fi
 
-  setup:
-    vars:
-      ABI_FOLDER: "{{.ABI_FOLDER_NAME}}"
-    cmds:
-      - mkdir -p {{.ABI_FOLDER}}
-      - task: copy-eigenlayer-abi
-      - npm install
 
   copy-eigenlayer-abi:
     internal: true
     dir: "./submodules/eigenlayer-middleware/out"
-    vars:
-      ABI_FOLDER: '{{ joinPath .TASKFILE_DIR (print "../" .ABI_FOLDER_NAME) }}'
     cmds:
+      - mkdir -p {{.ABI_DIR}}
       - forge build
       - for: ["ECDSAStakeRegistry.sol"]
-        cmd: cp -r {{.ITEM}} {{.ABI_FOLDER}}
+        cmd: cp -r {{.ITEM}} {{.ABI_DIR}}

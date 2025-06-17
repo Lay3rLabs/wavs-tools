@@ -9,7 +9,7 @@ includes:
     taskfile: ../../taskfile/config.yml
     flatten: true
 
-silent: false
+silent: true 
 
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
