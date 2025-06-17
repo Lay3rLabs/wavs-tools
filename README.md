@@ -24,11 +24,6 @@ task backend:start
 task middleware:deploy
 ```
 
-### (optional) Fund the Deployer
-```bash
-task cli:fund-deployer
-```
-
 ### Stop the backend
 
 ```bash
@@ -36,41 +31,12 @@ task backend:stop
 ```
 
 ## Develop a tool 
-The steps are as follows:
-
-1. **Build the components**: This compiles the WASI code for the tool.
-2. **Upload the components**: This uploads the compiled WASI code to the WAVS node.
-3. **Deploy the contracts**: This deploys the Solidity contracts to the blockchain.
-4. **Register the service**: This registers the service with the backend (WAVS and Eigenlayer contracts).
-
-Typically you will want to develop via integration tests, which will require building the components first, and then running the tests.
-
-Let's use `avs-sync` as an example. Everything assumes you are already in the `tools/avs-sync` directory.
-
-### Build the components
-
-This will create a `.wasi-output` directory with the compiled WASI code.
+There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
 ```bash
-task components-build
+cd tools/avs-sync
+task bootstrap
 ```
-
-### Upload the components
-
-This will create a `digest.txt` file in the `.wasi-output` directory, which contains the WAVS-calculated digest of the WASI code. This digest is used to identify the components in the WAVS node. 
-
-For remote nodes, this would instead be stored in a registry like `wa.dev`
-
-```bash
-task components-upload
-```
-
-### Deploy the contracts 
-
-```bash
-task contracts-deploy 
-```
-
 
 # DEBUGGING
 
