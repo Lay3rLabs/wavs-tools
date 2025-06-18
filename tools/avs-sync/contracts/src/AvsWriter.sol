@@ -4,6 +4,7 @@ pragma solidity ^0.8.27;
 import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
 import {IWavsServiceHandler} from "@wavs/interfaces/IWavsServiceHandler.sol";
 import {ECDSAStakeRegistry} from "@eigenlayer-middleware/src/unaudited/ECDSAStakeRegistry.sol";
+import {AvsWriterPayload} from "./Types.sol";
 
 contract AvsWriter is IWavsServiceHandler {
     ECDSAStakeRegistry private _ecdsaStakeRegistry;
@@ -20,11 +21,10 @@ contract AvsWriter is IWavsServiceHandler {
     ) external {
         _serviceManager.validate(envelope, signatureData);
 
-        (address[][] memory operatorsPerQuorum, bytes memory quorumNumbers) =
-            abi.decode(envelope.payload, (address[][], bytes));
+        AvsWriterPayload memory payload = abi.decode(envelope.payload, (AvsWriterPayload));
 
         //NOTE: any block limits we should worry about here?
         //NOTE: writer go code uses retry mechanism for this: https://github.com/Layr-Labs/eigenlayer-middleware/blob/3fb5b61076475108bd87d4e6c7352fd60b46af1c/src/interfaces/ISlashingRegistryCoordinator.sol#L362-L363
-        _ecdsaStakeRegistry.updateOperatorsForQuorum(operatorsPerQuorum, quorumNumbers);
+        _ecdsaStakeRegistry.updateOperatorsForQuorum(payload.operatorsPerQuorum, payload.quorumNumbers);
     }
 }

@@ -3,7 +3,8 @@ mod avs_reader;
 mod bindings;
 
 use alloy_network::Ethereum;
-use alloy_primitives::{hex, Address, Bytes};
+use alloy_primitives::Address;
+use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
@@ -21,20 +22,14 @@ use crate::bindings::{
     wavs::worker::layer_types::{BlockIntervalData, LogLevel},
 };
 
+sol!("../contracts/src/Types.sol");
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ComponentInput {
     pub ecdsa_stake_registry_address: String,
     pub chain_name: String,
     pub block_height: u64,
     pub lookback_blocks: u64, // How many blocks to look back for events
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UpdateOperatorsForQuorumData {
-    pub operators_per_quorum: Vec<Vec<Address>>, // address[][] - operators for each quorum
-    pub quorum_numbers: Vec<u8>, // bytes - quorum identifiers (always [0] for ECDSAStakeRegistry)
-    pub total_operators: usize,
-    pub block_height: u64,
 }
 
 struct Component;
@@ -91,7 +86,7 @@ impl Guest for Component {
                 .parse()
                 .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
 
-            let update_data = perform_avs_sync(
+            let avs_writer_payload = perform_avs_sync(
                 chain_name,
                 block_height,
                 ecdsa_stake_registry_address,
@@ -100,29 +95,17 @@ impl Guest for Component {
             .await
             .map_err(|e| e.to_string())?;
 
-            host::log(
-                LogLevel::Info,
-                &format!(
-                    "AVS sync completed: {} total operators in quorum 0 at block {}",
-                    update_data.total_operators, update_data.block_height
-                ),
-            );
-
-            if update_data.total_operators == 0 {
+            if avs_writer_payload
+                .operatorsPerQuorum
+                .iter()
+                .all(|x| x.is_empty())
+            {
                 return Ok(None);
             }
 
-            let payload = (
-                update_data.operators_per_quorum,
-                Bytes::from(update_data.quorum_numbers),
-            )
-                .abi_encode();
-
-            host::log(LogLevel::Info, &hex::encode(&payload));
-
             // Return the data needed for updateOperatorsForQuorum
             Ok(Some(WasmResponse {
-                payload,
+                payload: avs_writer_payload.abi_encode(),
                 ordering: None,
             }))
         })
@@ -134,7 +117,7 @@ async fn perform_avs_sync(
     block_height: u64,
     ecdsa_stake_registry_address: Address,
     lookback_blocks: u64,
-) -> Result<UpdateOperatorsForQuorumData> {
+) -> Result<AvsWriterPayload> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
 
@@ -174,15 +157,6 @@ async fn perform_avs_sync(
         &format!("Found {} active operators", active_operators.len()),
     );
 
-    // Log each operator with their weight
-    for operator in &active_operators {
-        let weight = avs_reader.get_operator_weight(*operator).await?;
-        host::log(
-            LogLevel::Debug,
-            &format!("Operator {} weight: {}", operator, weight),
-        );
-    }
-
     // Sort operators in ascending order (required by the contract)
     let mut sorted_operators = active_operators;
     sorted_operators.sort();
@@ -196,16 +170,9 @@ async fn perform_avs_sync(
     );
 
     // ECDSAStakeRegistry only has quorum 0
-    let operators_per_quorum = vec![sorted_operators.clone()];
-    let quorum_numbers = vec![0u8];
-
-    let total_operators = sorted_operators.len();
-
-    Ok(UpdateOperatorsForQuorumData {
-        operators_per_quorum,
-        quorum_numbers,
-        total_operators,
-        block_height,
+    Ok(AvsWriterPayload {
+        operatorsPerQuorum: vec![sorted_operators],
+        quorumNumbers: vec![0u8].into(),
     })
 }
 

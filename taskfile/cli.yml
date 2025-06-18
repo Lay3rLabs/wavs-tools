@@ -26,27 +26,26 @@ tasks:
         {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
 
-  fund-deployer:
+  fund-address:
+    desc: "Check and fund address with 15 ETH if balance is < 1 ETH"
     vars:
-      DEPLOYER_ADDRESS:
-        sh: cast wallet address --private-key $DEPLOYER_PRIVATE_KEY
-      DEPLOYER_BALANCE:
-        sh: cast balance --ether $DEPLOYER_ADDRESS --rpc-url {{.EVM_RPC_URL}}
+      CURRENT_BALANCE:
+        sh: cast balance --ether {{.ADDRESS}} --rpc-url {{.EVM_RPC_URL}}
     cmds:
       - |
-        # Check current balance
-        echo "Current deployer balance: {{.DEPLOYER_BALANCE}}} ETH"
+        echo "🔎 Checking balance for address: {{.ADDRESS}}"
+        echo "Current balance: {{.CURRENT_BALANCE}} ETH"
 
-        # Fund if balance is less than 1 ETH and we're in LOCAL mode
-        if (( $(echo "{{.DEPLOYER_BALANCE}} < 1.0" | bc -l) )); then
-            echo "💰 Funding deployer with 15 ETH..."
-            cast rpc anvil_setBalance "{{.DEPLOYER_ADDRESS}}" '15000000000000000000' --rpc-url {{.EVM_RPC_URL}} > /dev/null
-            NEW_BALANCE=$(cast balance --ether {{.DEPLOYER_ADDRESS}} --rpc-url {{.EVM_RPC_URL}})
-            echo "✅ Deployer funded. New balance: {{.NEW_BALANCE}} ETH"
+        if (( $(echo "{{.CURRENT_BALANCE}} < 1.0" | bc -l) )); then
+          echo "💰 Funding {{.ADDRESS}} with 15 ETH..."
+          cast rpc anvil_setBalance "{{.ADDRESS}}" "15000000000000000000" --rpc-url {{.EVM_RPC_URL}} > /dev/null
+          NEW_BALANCE=$(cast balance --ether {{.ADDRESS}} --rpc-url {{.EVM_RPC_URL}})
+          echo "✅ Funded. New balance: ${NEW_BALANCE} ETH"
         else
-          echo "✅ Deployer already has sufficient balance"
+          echo "✅ Address already has ≥ 1 ETH"
         fi
-
+    requires:
+      vars: [ADDRESS, EVM_RPC_URL]
 
   copy-eigenlayer-abi:
     internal: true
