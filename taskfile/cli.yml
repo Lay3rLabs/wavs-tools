@@ -51,7 +51,7 @@ tasks:
     internal: true
     dir: "./submodules/eigenlayer-middleware"
     cmds:
-      - mkdir -p {{.ABI_DIR}}
+      - mkdir -p {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
       - forge build
       - for: ["ECDSAStakeRegistry.sol"]
-        cmd: cp -r "out/{{.ITEM}}" "{{.ABI_DIR}}/"
+        cmd: cp -r "out/{{.ITEM}}" "{{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}/"
