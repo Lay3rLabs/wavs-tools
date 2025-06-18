@@ -213,13 +213,13 @@ tasks:
       BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
-        sh: echo $(( {{.BLOCK}} - 500 ))
+        sh: echo $(( {{.BLOCK}} - 100 ))
     cmds:
       - >
         cast logs 
         --from-block {{.BLOCK_START}}
         --to-block latest "OperatorWeightUpdated(address,uint256,uint256)"
-        --address {{.STAKE_REGISTRY_ADDRESS}} 
+        --address {{.MIDDLEWARE_STAKE_REGISTRY_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
 
   add-weight:
