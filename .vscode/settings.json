@@ -1,0 +1,5 @@
+{
+    "solidity.packageDefaultDependenciesDirectory": "submodules",
+    "solidity.formatter": "forge",
+    "solidity.compileUsingRemoteVersion": "v0.8.27"
+}

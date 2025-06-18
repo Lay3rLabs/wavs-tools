@@ -9,6 +9,8 @@ fs_permissions = [{ access = "read-write", path = "./" }]
 
 remappings = [
     "@eigenlayer-middleware/=../../../submodules/eigenlayer-middleware/",
+    "@eigenlayer-contracts/=../../../submodules/eigenlayer-middleware/lib/eigenlayer-contracts/",
     "forge-std/=../../../submodules/forge-std/src/",
     "@wavs=../../../node_modules/@wavs/solidity/contracts",
+    "@openzeppelin/=../../../submodules/openzeppelin-contracts/",
 ]
