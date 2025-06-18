@@ -19,7 +19,6 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
  * - LST_STRATEGY_ADDRESS: The strategy contract for the LST
  * - STRATEGY_MANAGER_ADDRESS: EigenLayer strategy manager
  * - AMOUNT: Amount to add (in wei, e.g., 1000000000000000000 for 1 ETH)
- * - MNEMONIC: (optional) Mnemonic phrase used by Foundry to sign transactions
  */
 contract AddWeight is Script {
     function run() public {
@@ -44,11 +43,11 @@ contract AddWeight is Script {
         if (currentBalance < amount) {
             console.log("Minting LST tokens...");
 
+            vm.broadcast(operatorAddress);
             (bool success,) =
                 lstContractAddress.call{value: amount}(abi.encodeWithSignature("submit(address)", address(0)));
 
             if (!success) {
-                console.log("Failed to mint LST - you may need to acquire tokens manually");
                 revert("Cannot mint LST tokens");
             }
 
