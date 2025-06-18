@@ -15,7 +15,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'  # Fetch all submodules
+          submodules: 'recursive'
+
+      - name: Cache Submodules
+        id: cache-submodules
+        uses: actions/cache@v4
+        with:
+          path: ./submodules/eigenlayer-middleware
+          key: ${{ runner.os }}-submodules-${{ hashFiles('**/.gitmodules') }}-${{ hashFiles('submodules/**/.git') }}
+
+      - name: Cache Forge Build Output
+        id: cache-forge-build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./submodules/eigenlayer-middleware/out
+            ./abi/eigenlayer-middleware
+          key: ${{ runner.os }}-eigenlayer-middleware-build-${{ hashFiles('**/*.sol') }}
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
@@ -34,7 +50,7 @@ jobs:
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup dependencies
-        run: task setup
+        run: task setup-ci
 
       - name: Setup environment 
         run: cp .env.example .env
