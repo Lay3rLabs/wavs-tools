@@ -3,7 +3,7 @@ src = 'src'
 out = 'out'
 libs = ['../../../submodules']
 solidity_version = '0.8.27'
-evm_version = 'shanghai'
+evm_version = 'cancun'
 via_ir = true
 fs_permissions = [{ access = "read-write", path = "./" }]
 
