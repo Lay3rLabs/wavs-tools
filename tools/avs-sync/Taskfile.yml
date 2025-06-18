@@ -229,7 +229,7 @@ tasks:
 
         # Step 2: Add weight to operator
         echo "Step 3: Adding weight to operator..."
-        task add-weight AMOUNT=1000000000000000000  # 1 ETH
+        task add-weight AMOUNT=1000000000000000000
         echo ""
 
         # Step 3: Trigger blocks again to process the weight update
