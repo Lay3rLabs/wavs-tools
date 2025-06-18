@@ -47,9 +47,9 @@ tasks:
     requires:
       vars: [ADDRESS, EVM_RPC_URL]
 
-  copy-eigenlayer-abi:
+  build-eigenlayer-abi:
     internal: true
-    dir: "./submodules/eigenlayer-middleware/out"
+    dir: "./submodules/eigenlayer-middleware"
     cmds:
       - mkdir -p {{.ABI_DIR}}
       - forge build

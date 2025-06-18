@@ -1,3 +1,38 @@
+This repo contains various tools and services that make up the WAVS ecosystem.
+
+# PROJECTS
+
+## [avs-sync](tools/avs-sync) 
+A tool for syncing AVS operators (TODO: explain more).
+
+# SYSTEM REQUIREMENTS
+
+<details>
+<summary>Tooling</summary>
+&nbsp;
+
+* [Docker](https://docs.docker.com/get-started/get-docker/)
+* [Taskfile](https://taskfile.dev/installation/)
+* [JQ](https://jqlang.org/download/)
+* [Node.js](https://nodejs.org/en/download)
+* [Rust](https://www.rust-lang.org/tools/install)
+* [Cargo Components](https://github.com/bytecodealliance/cargo-component#installation)
+* [wkg](https://crates.io/crates/wkg)
+* [Foundry](https://getfoundry.sh/introduction/installation#using-foundryup)
+
+</details>
+
+<details>
+<summary>System configuration</summary>
+
+### Setup default wkg registry 
+
+```bash docci-ignore
+wkg config --default-registry wa.dev
+```
+
+</details>
+
 # QUICKSTART
 
 ## First-time setup
@@ -7,7 +42,8 @@ Copy and edit your environment variables
 cp .env.example .env
 ```
 
-Install dependencies
+Install dependencies, compile core contracts, etc.
+This may take a while on first run.
 ```bash
 task setup
 ```

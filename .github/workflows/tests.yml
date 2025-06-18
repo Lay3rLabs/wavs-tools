@@ -15,7 +15,25 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          submodules: 'recursive'  # Fetch all submodules
+          submodules: 'recursive'
+
+      - name: Cache Submodules
+        id: cache-submodules
+        uses: actions/cache@v4
+        with:
+          path: ./submodules/eigenlayer-middleware
+          key: ${{ runner.os }}-submodules-${{ hashFiles('**/.gitmodules') }}-${{ hashFiles('submodules/**/.git') }}
+          restore-keys: |
+            ${{ runner.os }}-submodules-${{ hashFiles('**/.gitmodules') }}-
+
+      - name: Cache submodules forge build output
+        id: cache-forge-build
+        uses: actions/cache@v4
+        with:
+          path: ./submodules/eigenlayer-middleware/out
+          key: ${{ runner.os }}-forge-build-${{ hashFiles('**/*.sol') }}
+          restore-keys: |
+            ${{ runner.os }}-forge-build-
 
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1

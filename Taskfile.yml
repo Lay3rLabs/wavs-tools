@@ -19,7 +19,7 @@ tasks:
     cmds:
       - npm install
       - cd tests && npm install
-      - task: cli:copy-eigenlayer-abi
+      - task: cli:build-eigenlayer-abi
 
   test:
     dir: tests
