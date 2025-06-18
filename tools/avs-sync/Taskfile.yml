@@ -9,7 +9,7 @@ includes:
     taskfile: ../../taskfile/config.yml
     flatten: true
 
-silent: true
+silent: false
 
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
@@ -221,3 +221,20 @@ tasks:
         --to-block latest "OperatorWeightUpdated(address,uint256,uint256)"
         --address {{.STAKE_REGISTRY_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
+
+  add-weight:
+    dir: contracts
+    requires:
+      vars: [AMOUNT]
+    vars:
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+    env:
+      OPERATOR_ADDRESS:
+        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
+      LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
+      LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
+      STRATEGY_MANAGER_ADDRESS: '{{.MIDDLEWARE_STRATEGY_MANAGER_ADDRESS | default "0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6"}}'
+      AMOUNT: "{{.AMOUNT}}"
+    cmds:
+      - forge script script/AddWeight.s.sol:AddWeight --rpc-url {{.EVM_RPC_URL}} --broadcast --private-key {{.OPERATOR_PRIVATE_KEY}}
