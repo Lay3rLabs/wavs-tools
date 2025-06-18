@@ -203,10 +203,54 @@ tasks:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
 
   test:
+    desc: "Test the weight update flow - trigger blocks, check no events, add weight, trigger again, verify events"
+    vars:
+      SUBMIT_DELAY: 5
     cmds:
       - |
-        # We want to check the stake registry state here then call task trigger and validate state again
-        # Another test-case can be registering another operator (will need a slight refactor on the register-operator cmd)
+        echo "=== STARTING WEIGHT UPDATE TEST ==="
+        echo ""
+
+        # Step 1: Trigger blocks and check for events (should be none initially)
+        echo "Step 1: Triggering {{.BLOCK_INTERVAL}} blocks..."
+        task trigger
+        sleep {{.SUBMIT_DELAY}}
+        echo ""
+
+        echo "Step 2: Checking for OperatorWeightUpdated events (expecting none)..."
+        INITIAL_EVENTS=$(task get-submit-events)
+        if [ -z "$INITIAL_EVENTS" ]; then
+          echo "✓ No events found initially (as expected)"
+        else
+          echo "⚠ Found unexpected events:"
+          echo "$INITIAL_EVENTS"
+        fi
+        echo ""
+
+        # Step 2: Add weight to operator
+        echo "Step 3: Adding weight to operator..."
+        task add-weight AMOUNT=1000000000000000000  # 1 ETH
+        echo ""
+
+        # Step 3: Trigger blocks again to process the weight update
+        echo "Step 4: Triggering {{.BLOCK_INTERVAL}} more blocks to process weight update..."
+        task trigger
+        sleep {{.SUBMIT_DELAY}}
+        echo ""
+
+        # Step 4: Check for events again (should have OperatorWeightUpdated events now)
+        echo "Step 5: Checking for OperatorWeightUpdated events (expecting events now)..."
+        FINAL_EVENTS=$(task get-submit-events)
+        if [ -n "$FINAL_EVENTS" ]; then
+          echo "✓ Found OperatorWeightUpdated events after adding weight:"
+          echo "$FINAL_EVENTS"
+        else
+          echo "✗ No events found - weight update may not have been processed"
+          exit 1
+        fi
+        echo ""
+
+        echo "=== WEIGHT UPDATE TEST COMPLETED SUCCESSFULLY ==="
 
   get-submit-events:
     vars:
