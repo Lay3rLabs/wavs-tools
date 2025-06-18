@@ -28,13 +28,16 @@ vars:
   EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
   MIDDLEWARE_NODES_DIR: '{{joinPath .REPO_ROOT ".middleware-nodes"}}'
   MIDDLEWARE_DEPLOY_ENV: "LOCAL"
-  ENV_FILE: '{{joinPath .REPO_ROOT ".env"}}'
+  MIDDLEWARE_CHAIN_ID: 17000
+  MIDDLEWARE_METADATA_URI: 'https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json'
+  MIDDLEWARE_LST_CONTRACT_ADDRESS: '0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034'
+  MIDDLEWARE_LST_STRATEGY_ADDRESS: '0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3'
+  MIDDLEWARE_SERVICE_MANAGER_ADDRESS:
+    sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
+  MIDDLEWARE_STAKE_REGISTRY_ADDRESS:
+    sh: jq -r '.addresses.stakeRegistry // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .REPO_ROOT "target/wasm32-wasip1/release"}}'
   ABI_EIGENLAYER_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/eigenlayer-middleware"}}'
-  SERVICE_MANAGER_ADDRESS:
-    sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
-  STAKE_REGISTRY_ADDRESS:
-    sh: jq -r '.addresses.stakeRegistry // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
   DOCKER_SUDO:
     sh: |
       if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 

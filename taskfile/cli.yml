@@ -47,7 +47,19 @@ tasks:
     requires:
       vars: [ADDRESS, EVM_RPC_URL]
 
+  build-eigenlayer-abi-ci:
+    internal: true
+    status:
+      - test -d {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
+    cmds:
+      - task: build-eigenlayer-abi-inner
+
   build-eigenlayer-abi:
+    internal: true
+    cmds:
+      - task: build-eigenlayer-abi-inner
+
+  build-eigenlayer-abi-inner:
     internal: true
     dir: "./submodules/eigenlayer-middleware"
     cmds:

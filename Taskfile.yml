@@ -27,14 +27,6 @@ tasks:
       - cd tests && npm ci
       - task: cli:build-eigenlayer-abi
 
-  foo:
-    cmds:
-      - task: bar 
-
-  bar:
-    cmds:
-      - echo "BBBBAAAARRRR" 
-
   test:
     dir: tests
     cmds:
