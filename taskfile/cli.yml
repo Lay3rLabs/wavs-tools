@@ -54,4 +54,4 @@ tasks:
       - mkdir -p {{.ABI_DIR}}
       - forge build
       - for: ["ECDSAStakeRegistry.sol"]
-        cmd: cp -r {{.ITEM}} {{.ABI_DIR}}
+        cmd: cp -r "out/{{.ITEM}}" "{{.ABI_DIR}}/"
