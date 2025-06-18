@@ -85,8 +85,8 @@ tasks:
     vars:
       SCRIPT_NAME: "DeployAvsWriter"
     env:
-      SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
-      STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
+      SERVICE_MANAGER_ADDRESS: "{{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}}"
+      STAKE_REGISTRY_ADDRESS: "{{.MIDDLEWARE_STAKE_REGISTRY_ADDRESS}}"
     cmds:
       - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
 
@@ -102,7 +102,7 @@ tasks:
     cmds:
       - >
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
-        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/$CHAIN_ID/run-latest.json"
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
 
   get-service-hd-index:
     vars:
@@ -148,9 +148,9 @@ tasks:
           
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
           
-        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address={{.STAKE_REGISTRY_ADDRESS}},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address={{.MIDDLEWARE_STAKE_REGISTRY_ADDRESS}},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
           
-        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}} > /dev/null
 
         echo "Service configuration built successfully"
 
@@ -169,7 +169,7 @@ tasks:
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
-        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+        cast send {{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
 
   register-service-uri:
     vars:
@@ -193,7 +193,7 @@ tasks:
         sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
     cmds:
       - |
-        task middleware:register-operator WAVS_SERVICE_MANAGER_ADDRESS={{.SERVICE_MANAGER_ADDRESS}} -- {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} 0.001ether
+        task middleware:register-operator -- {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} 0.001ether
 
   trigger:
     desc: "Trigger component by mining blocks"
@@ -201,12 +201,6 @@ tasks:
       BLOCKS: '{{.CLI_ARGS | default "100"}}'
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
-
-  list-operators:
-    cmds:
-      - task: middleware:list-operators
-        vars:
-          WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
 
   test:
     cmds:

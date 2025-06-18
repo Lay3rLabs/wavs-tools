@@ -10,7 +10,7 @@ use anyhow::Result;
 sol!(
     #[sol(rpc)]
     ECDSAStakeRegistry,
-    "../../../abi/ECDSAStakeRegistry.sol/ECDSAStakeRegistry.json"
+    "../../../abi/eigenlayer-middleware/ECDSAStakeRegistry.sol/ECDSAStakeRegistry.json"
 );
 
 pub struct AvsReader<P> {

@@ -38,6 +38,7 @@ wkg config --default-registry wa.dev
 ## First-time setup
 
 Copy and edit your environment variables
+
 ```bash
 cp .env.example .env
 ```
@@ -77,6 +78,25 @@ task bootstrap
 # DEBUGGING
 
 Jaeger UI is at http://localhost:16686/
+
 Prometheus is at http://localhost:9090/
 
 wavs-cli can be executed via `task cli:wavs -- [command]` 
+
+# TASKFILES
+
+The `Taskfile.yml` in the root directory is used to run general commands like spinning up the backend, deploying middleware, etc. 
+
+Each project may have its own `Taskfile.yml` for specific tasks related to that tool.
+
+The files in [taskfile](taskfile) directory are imports, not run directly (by convention, the _only_ executable taskfiles are explicitly named `Taskfile.yml`).
+
+# CONFIGURATION 
+
+Global secrets like private keys are stored in the [.env](#first-time-setup) file.
+
+Other global configuration variables are set in [taskfile/config.yml](taskfile/config.yml). 
+
+These make their way automatically to wherever they are needed. For example, changing a port or endpoint is only necessary in one place, not also in dockerfile or other places.
+
+Of course, per-project Taskfiles and/or .env files may also contain their own configuration.
