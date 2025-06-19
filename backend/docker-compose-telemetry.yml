@@ -1,0 +1,23 @@
+name: "telemetry"
+services:
+  jaeger:
+    container_name: jaeger
+    image: "${COMPOSE_JAEGER_DOCKER_IMAGE}"
+    network_mode: "host"
+    stop_signal: SIGKILL
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    # ports managed by host network mode
+
+  # Prometheus is used to display metrics
+  prometheus:
+    container_name: prometheus
+    image: "${COMPOSE_PROMETHEUS_DOCKER_IMAGE}" 
+    network_mode: "host"
+    stop_signal: SIGKILL
+    # ports managed by host network mode
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--web.enable-otlp-receiver"

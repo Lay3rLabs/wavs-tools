@@ -1,7 +1,7 @@
 # This is mostly just a convenience to start common tasks from the root directory
 version: "3"
 
-silent: true
+# silent: true
 
 dotenv: [".env"]
 

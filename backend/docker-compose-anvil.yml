@@ -1,0 +1,8 @@
+name: "${COMPOSE_CONTAINER_NAME}"
+services:
+  anvil:
+    container_name: "${COMPOSE_CONTAINER_NAME}"
+    image: "${COMPOSE_FOUNDRY_DOCKER_IMAGE}"
+    stop_signal: SIGKILL
+    network_mode: "host"
+    command: ["anvil --fork-url ${COMPOSE_ANVIL_FORK_URL} --port ${COMPOSE_ANVIL_PORT}"]
