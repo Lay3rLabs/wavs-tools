@@ -56,9 +56,10 @@ task setup
 task backend:start
 ```
 
-### Deploy the middleware 
+You can also start the backend with multiple chains, where the first will fork holesky and the rest will be local-only:
+
 ```bash
-task middleware:deploy
+task backend:start CHAIN_COUNT=3 
 ```
 
 ### Stop the backend
@@ -74,6 +75,10 @@ There are many sub-steps to deploying and developing a tool. For convenience, ju
 cd tools/avs-sync
 task bootstrap
 ```
+
+## Middleware
+
+A middleware deployment is different per chain and service. Therefore, while the commands to work with it are defined in the root [taskfile/middleware.yml](taskfile/middleware.yml), the actual deployment is done in the tool's own Taskfile and writes to that tool's local `.tool-output/{chain-number}/{service-name}` directory.
 
 # DEBUGGING
 

@@ -9,11 +9,16 @@ includes:
   backend: ./taskfile/backend.yml
   cli: ./taskfile/cli.yml
   middleware: ./taskfile/middleware.yml
+  component: ./taskfile/component.yml
 
 tasks:
   default:
     cmds:
       - task --list-all
+
+  clean:
+    cmds:
+      - cd tools/avs-sync && task clean
 
   setup:
     cmds:
