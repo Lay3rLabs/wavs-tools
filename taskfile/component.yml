@@ -1,0 +1,96 @@
+version: "3"
+
+includes:
+  config:
+    taskfile: ./config.yml
+    flatten: true
+
+tasks:
+  build:
+    desc: "Builds a WASI component"
+    vars:
+      COMPONENT_OUTPUT_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir TOOL={{.TOOL}}
+    requires:
+      vars: [TOOL, COMPONENT_NAME, COMPONENT_SOURCE_DIR]
+    cmds:
+      - |
+        echo "Building component: {{.COMPONENT_NAME}} for {{.TOOL}}"
+        cd "{{.COMPONENT_SOURCE_DIR}}"
+        cargo component build --release
+        mkdir -p {{.COMPONENT_OUTPUT_DIR}}
+        cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENT_OUTPUT_DIR}}/
+  
+  clean-single:
+    desc: "Deletes a WASI component output directory"
+    vars:
+      COMPONENT_OUTPUT_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir TOOL={{.TOOL}}
+    requires:
+      vars: [TOOL, COMPONENT_NAME]
+    cmds:
+      - rm -f "{{.COMPONENT_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.wasm"
+
+  clean-all:
+    desc: "Deletes a WASI output directory"
+    vars:
+      COMPONENT_OUTPUT_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir TOOL={{.TOOL}}
+    requires:
+      vars: [TOOL]
+    cmds:
+      - rm -rf "{{.COMPONENT_OUTPUT_DIR}}"
+
+  upload:
+    desc: "Uploads a WASI component"
+    dir: "{{.REPO_ROOT}}"
+    requires:
+      vars: [TOOL, COMPONENT_NAME]
+    vars:
+      # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
+      COMPONENT_BINARY: "/wavs-tools/tools/{{.TOOL}}/{{.TOOL_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
+      DATA_DIR: "/wavs-tools/tools/{{.TOOL}}/{{.TOOL_OUTPUT_DIRNAME}}/.wavs-cli-data"
+      COMPONENT_DIGEST_FILE:
+        sh: task component:get-digest-filepath TOOL={{.TOOL}} COMPONENT_NAME={{.COMPONENT_NAME}}
+    cmds:
+      # unfortunately, the wavs-cli upload-component command doesn't write to JSON
+      # but, fortunately, the last line of the output is the digest
+      - |
+        OUTPUT=$(task component:docker-upload -- "{{.COMPONENT_BINARY}}" --data "{{.DATA_DIR}}")
+        DIGEST=$(echo "$OUTPUT" | tail -n 1)
+        if [[ "$OUTPUT" == *"Digest"* ]]; then
+          echo "Component uploaded successfully, digest is $DIGEST"
+          echo "$DIGEST" > "{{.COMPONENT_DIGEST_FILE}}"
+        else
+          echo "Failed to upload component."
+          exit 1
+        fi
+
+  docker-upload:
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -v {{.REPO_ROOT}}:/wavs-tools
+        -v {{.WAVS_HOME_DIR}}:/wavs-home 
+        {{.WAVS_DOCKER_IMAGE}}
+        wavs-cli upload-component {{.CLI_ARGS}} --json true --home /wavs-home --wavs-endpoint {{.WAVS_ENDPOINT}}
+
+  get-output-dir:
+    desc: "Get the path to the component output directory"
+    vars:
+      OUTPUT_DIR: '{{joinPath .REPO_ROOT "tools" .TOOL .TOOL_OUTPUT_DIRNAME "components"}}'
+    requires:
+      vars: [TOOL]
+    cmds:
+      - echo "{{.OUTPUT_DIR}}"
+
+  get-digest-filepath:
+    desc: "Get the path to the component digest text file"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      OUTPUT_DIR:
+        sh: task component:get-output-dir TOOL={{.TOOL}}
+    requires:
+      vars: [TOOL, COMPONENT_NAME]
+    cmds:
+      - echo "{{.OUTPUT_DIR}}/{{.COMPONENT_NAME}}.digest"

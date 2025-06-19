@@ -4,14 +4,16 @@ includes:
   config:
     taskfile: ./config.yml
     flatten: true
+  backend: ./backend.yml
 
 tasks:
   deploy:
     desc: "Deploy middleware for a given service"
+    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
     deps: 
       - task: clean
         vars:
@@ -22,7 +24,7 @@ tasks:
       vars: [TOOL, SERVICE_NAME]
     env:
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
@@ -49,32 +51,38 @@ tasks:
 
   clean:
     desc: "Clean up middleware nodes directory for a given service"
+    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [TOOL, SERVICE_NAME]
     cmds:
+      - |
+        echo "Cleaning up middleware nodes directory: {{.NODES_DIR}}"
       - rm -rf {{.NODES_DIR}}
 
   register-operator:
     desc: "Register an operator on a given service"
+    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [TOOL, SERVICE_NAME, AVS_SIGNING_ADDRESS, AMOUNT]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
-      NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
@@ -86,21 +94,23 @@ tasks:
         -e CHAIN_ID 
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -v {{.NODES_DIR}}:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.CLI_ARGS}}
+        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} {{.AMOUNT}} 
 
   list-operators:
     desc: "List registered operators for a given service"
+    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [TOOL, SERVICE_NAME]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
-      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
+      LOCAL_ETHEREUM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
-      NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host

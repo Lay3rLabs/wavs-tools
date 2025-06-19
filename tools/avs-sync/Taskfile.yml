@@ -5,6 +5,7 @@ dotenv: ["../../.env"]
 includes:
   cli: ../../taskfile/cli.yml
   middleware: ../../taskfile/middleware.yml
+  backend: ../../taskfile/backend.yml
   config:
     taskfile: ../../taskfile/config.yml
     flatten: true
@@ -14,24 +15,21 @@ silent: true
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
   # Seems to be some sort of data race
-  # For this reason, we sometimes need to redefined vars like SERVICE_URI
+  # For this reason, we sometimes need to redefined vars like .tool-output here 
   COMPONENT_NAME: avs_sync
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
-  WAVS_PORT: 8123
   SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
-  COMPONENTS_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".wasi-output"}}'
-  SERVICE_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".service-output"}}'
+  SERVICE_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".tool-output/services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
-  SERVICE_ID:
-    sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
-  COMPONENT_DIGEST_FILE: "{{.COMPONENTS_OUTPUT_DIR}}/{{.COMPONENT_NAME}}_digest.txt"
 
 tasks:
   bootstrap:
     desc: "A full deployment"
+    deps: [clean]
     cmds:
       - |
+        task middleware-deploy
         task components-build
         task components-upload
         task contracts-deploy
@@ -42,51 +40,51 @@ tasks:
         task deploy-service
         task register-operator
 
-  components-build:
-    desc: "Builds the WASI component for AVS Sync"
-    deps: [components-clean]
-    dir: component
+  clean:
+    desc: "Cleans up the AVS Sync tool"
     cmds:
-      - |
-        echo "Building component: {{.COMPONENT_NAME}}"
-        cargo component build --release
-        mkdir -p {{.COMPONENTS_OUTPUT_DIR}}
-        cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENTS_OUTPUT_DIR}}/
+      - rm -rf "{{.TOOL_OUTPUT_DIRNAME}}"
+      - rm -rf "contracts/broadcast"
+      - rm -rf "contracts/cache"
+      - rm -rf "contracts/out"
+
+  components-build:
+    desc: "Builds the WASI components for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    deps: [components-clean]
+    cmds:
+      - task component:build TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.REPO_ROOT}}/tools/avs-sync/component"
 
   components-clean:
-    desc: "Cleans the WASI component output directory"
-    dir: component
+    desc: "Deletes the WASI components for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
     cmds:
-      - rm -rf "{{.COMPONENTS_OUTPUT_DIR}}"
+      - task component:clean-all TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   components-upload:
-    desc: "Uploads the WASI component for AVS Sync"
-    vars:
-      # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
-      COMPONENT_BINARY: "/wavs-tools/tools/avs-sync/.wasi-output/{{.COMPONENT_NAME}}.wasm"
-      DATA_DIR: "/wavs-tools/tools/avs-sync/.wavs-cli-data"
+    desc: "Uploads the WASI components for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
     cmds:
-      # unfortunately, the cli:wavs upload-component command doesn't write to JSON
-      # but, fortunately, the last line of the output is the digest
-      - |
-        OUTPUT=$(task cli:upload-component -- "{{.COMPONENT_BINARY}}" --data "{{.DATA_DIR}}")
-        DIGEST=$(echo "$OUTPUT" | tail -n 1)
-        if [[ "$OUTPUT" == *"Digest"* ]]; then
-          echo "Component uploaded successfully, digest is $DIGEST"
-          echo "$DIGEST" > "{{.COMPONENT_DIGEST_FILE}}"
-        else
-          echo "Failed to upload component."
-          exit 1
-        fi
+      - task component:upload TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+
+  middleware-deploy:
+    desc: "Deploys the AVS Sync middleware"
+    dir: "{{.REPO_ROOT}}"
+    cmds:
+      - task middleware:deploy TOOL="avs-sync" SERVICE_NAME="avs-sync"
 
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"
     dir: contracts
     vars:
       SCRIPT_NAME: "DeployAvsWriter"
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url
     env:
-      SERVICE_MANAGER_ADDRESS: "{{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}}"
-      STAKE_REGISTRY_ADDRESS: "{{.MIDDLEWARE_STAKE_REGISTRY_ADDRESS}}"
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address 
+      STAKE_REGISTRY_ADDRESS:
+        sh: task get-stake-registry-address
     cmds:
       - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
 
@@ -96,40 +94,23 @@ tasks:
     cmds:
       - forge test -vv
 
-  get-submission-address:
-    vars:
-      CONTRACT_NAME: "AvsWriter"
-    cmds:
-      - >
-        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
-        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
-
-  get-service-hd-index:
-    vars:
-      SERVICE_HD_INDEX:
-        sh: curl -s {{.WAVS_ENDPOINT}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
-    cmds:
-      - echo "{{.SERVICE_HD_INDEX}}"
-
-  get-service-signing-address:
-    vars:
-      HD_INDEX:
-        sh: task get-service-hd-index
-      AVS_SIGNING_ADDRESS:
-        sh: cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index {{.HD_INDEX}}
-    cmds:
-      - echo "{{.AVS_SIGNING_ADDRESS}}"
-
   build-service:
     desc: "Build avs_sync service configuration"
+    dir: "{{.REPO_ROOT}}"
     deps: [clean-service]
     vars:
-      SERVICE_JSON_DOCKER_PATH: "/wavs-tools/tools/avs-sync/.service-output/{{.COMPONENT_NAME}}.json"
+      SERVICE_JSON_DOCKER_PATH: "/wavs-tools/tools/avs-sync/.tool-output/services/{{.COMPONENT_NAME}}.json"
       CMD: "service --json true --home /wavs-home --file {{.SERVICE_JSON_DOCKER_PATH}}"
       TRIGGER_CHAIN: "local"
       SUBMIT_CHAIN: "local"
       COMPONENT_DIGEST:
-        sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
+        sh: task get-component-digest
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      STAKE_REGISTRY_ADDRESS:
+        sh: task get-stake-registry-address
+      SUBMISSION_ADDRESS:
+        sh: task get-submission-address
     cmds:
       - |
         mkdir -p {{.SERVICE_OUTPUT_DIR}}
@@ -142,15 +123,15 @@ tasks:
         # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
           
-        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address $(task get-submission-address) --chain-name {{.SUBMIT_CHAIN}} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address {{.SUBMISSION_ADDRESS}} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
 
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}} > /dev/null
           
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
           
-        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address={{.MIDDLEWARE_STAKE_REGISTRY_ADDRESS}},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "ecdsa_stake_registry_address={{.STAKE_REGISTRY_ADDRESS}},lookback_blocks={{.PAST_BLOCKS}}" > /dev/null
           
-        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}} > /dev/null
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
 
         echo "Service configuration built successfully"
 
@@ -166,13 +147,21 @@ tasks:
 
   set-service-uri:
     vars:
+      SERVICE_ID:
+        sh: task get-service-id
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
-        cast send {{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
 
   register-service-uri:
     vars:
+      SERVICE_ID:
+        sh: task get-service-id
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
@@ -180,25 +169,27 @@ tasks:
 
   deploy-service:
     vars:
+      SERVICE_ID:
+        sh: task get-service-id
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
-      - |
+      - 
         task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
   register-operator:
     vars:
       AVS_SIGNING_ADDRESS:
         sh: task get-service-signing-address
-      OPERATOR_PRIVATE_KEY:
-        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
     cmds:
       - |
-        task middleware:register-operator -- {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} 0.001ether
+        task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" TOOL="avs-sync" SERVICE_NAME="avs-sync"
 
   trigger:
     desc: "Trigger component by mining blocks"
     vars:
       BLOCKS: '{{.CLI_ARGS | default "100"}}'
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
 
@@ -221,3 +212,83 @@ tasks:
         --to-block latest "OperatorWeightUpdated(address,uint256,uint256)"
         --address {{.STAKE_REGISTRY_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
+
+  get-component-digest:
+    desc: "Get the component digest for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      COMPONENT_DIGEST_FILE:
+        sh: task component:get-digest-filepath TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      COMPONENT_DIGEST:
+        sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
+    cmds:
+      - echo "{{.COMPONENT_DIGEST}}"
+
+  get-service-id:
+    desc: "Get the service ID for AVS Sync"
+    vars:
+      SERVICE_ID:
+        sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
+    cmds:
+      - echo "{{.SERVICE_ID}}"
+
+  get-service-manager-address:
+    desc: "Get the service manager address for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address TOOL="avs-sync" SERVICE_NAME="avs-sync"
+    cmds:
+      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+
+  get-stake-registry-address:
+    desc: "Get the stake registry address for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      STAKE_REGISTRY_ADDRESS:
+        sh: task middleware:get-stake-registry-address TOOL="avs-sync" SERVICE_NAME="avs-sync"
+    cmds:
+      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
+  
+  get-evm-rpc-url:
+    desc: "Get the EVM RPC URL for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      EVM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-1
+    cmds:
+      - echo "{{.EVM_RPC_URL}}"
+
+  get-submission-address:
+    vars:
+      CONTRACT_NAME: "AvsWriter"
+    cmds:
+      - >
+        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
+
+  get-service-hd-index:
+    vars:
+      SERVICE_ID:
+        sh: task get-service-id
+      SERVICE_HD_INDEX:
+        sh: curl -s {{.WAVS_ENDPOINT}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
+    cmds:
+      - echo "{{.SERVICE_HD_INDEX}}"
+
+  get-service-signing-address:
+    vars:
+      HD_INDEX:
+        sh: task get-service-hd-index
+      AVS_SIGNING_ADDRESS:
+        sh: cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index {{.HD_INDEX}}
+    cmds:
+      - echo "{{.AVS_SIGNING_ADDRESS}}"
+
+  list-operators:
+    desc:
+      "List registered operators for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    cmds:
+      - task middleware:list-operators TOOL="avs-sync" SERVICE_NAME="avs-sync"
+

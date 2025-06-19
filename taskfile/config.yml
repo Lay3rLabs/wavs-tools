@@ -17,10 +17,12 @@ vars:
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
-  ANVIL_FORK_URL: "https://1rpc.io/holesky"
-  ANVIL_BASE_PORT: 8548
   TOOL_OUTPUT_DIRNAME: ".tool-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
+  ANVIL_BASE_PORT: 8547 # Base port for Anvil, minus 1, so that chain 1 starts at 8548
+  ANVIL_FORK_URL: "https://1rpc.io/holesky"
+  WAVS_PORT: 8123 #TODO: read from wavs.toml
+  WAVS_AGGREGATOR_PORT: 8124 #TODO: read from wavs.toml
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
   WAVS_ENDPOINT: "http://localhost:{{.WAVS_PORT}}"
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
@@ -38,5 +40,3 @@ vars:
       else 
         echo "sudo"
       fi
-  WAVS_PORT: 8123 #TODO: read from wavs.toml
-  WAVS_AGGREGATOR_PORT: 8124 #TODO: read from wavs.toml
