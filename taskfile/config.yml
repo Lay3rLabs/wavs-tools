@@ -20,7 +20,7 @@ vars:
   TOOL_OUTPUT_DIRNAME: ".tool-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_BASE_PORT: 8547 # Base port for Anvil, minus 1, so that chain 1 starts at 8548
-  ANVIL_FORK_URL: "https://1rpc.io/holesky"
+  ANVIL_HOLESKY_FORK_URL: "https://1rpc.io/holesky"
   WAVS_PORT: 8123 #TODO: read from wavs.toml
   WAVS_AGGREGATOR_PORT: 8124 #TODO: read from wavs.toml
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'

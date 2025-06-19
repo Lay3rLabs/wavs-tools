@@ -107,13 +107,18 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
-      COMPOSE_ANVIL_FORK_URL: "{{.ANVIL_FORK_URL}}"
+      COMPOSE_ANVIL_FORK_CMD:
+            # For right now, the setup is that chain #1 is the Holesky fork, and all others are local Anvil instances. 
+            # We can add more fork URLs here as needed or move this to a map, json, or other structure in the future.
+            sh: |
+              case {{.CHAIN_NUMBER}} in
+                1) echo "--fork-url {{.ANVIL_HOLESKY_FORK_URL}}" ;;
+                *) echo "" ;;
+              esac
       COMPOSE_CONTAINER_NAME: "chain-anvil-{{.CHAIN_NUMBER}}"
       COMPOSE_ANVIL_PORT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}} 
     cmds:
-      - |
-        echo "Starting Anvil chain #{{.CHAIN_NUMBER}} on port ${COMPOSE_ANVIL_PORT} with fork URL ${COMPOSE_ANVIL_FORK_URL}"
       - |
         {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
 
