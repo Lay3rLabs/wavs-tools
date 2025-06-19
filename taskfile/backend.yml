@@ -47,8 +47,15 @@ tasks:
 
   stop-chains:
     vars:
-      # Optional - pass this in, or 1 by default
-      CHAIN_COUNT: '{{.CHAIN_COUNT | default "1"}}'
+      CHAIN_COUNT:
+        # look up how many docker contains start with the name "chain-anvil-"
+        # this is a bit of a hack, but it works for now
+        sh: |
+          if [ -z "{{.CHAIN_COUNT}}" ]; then
+            echo $(docker ps --filter "name=chain-anvil-" --format "{{.Names}}" | wc -l)
+          else
+            echo "{{.CHAIN_COUNT}}"
+          fi
       # Automatically generated range for CHAIN_COUNT
       CHAIN_RANGE:
         sh: seq 1 {{.CHAIN_COUNT}}
