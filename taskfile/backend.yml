@@ -92,9 +92,9 @@ tasks:
     internal: true
     dir: "{{.BACKEND_DIR}}"
     env:
-      COMPOSE_ANVIL_FORK_URL: "{{.ANVIL_FORK_URL}}"
-      COMPOSE_CONTAINER_NAME: "anvil-all"
-      COMPOSE_ANVIL_PORT: "0"
+      COMPOSE_ANVIL_FORK_URL: "just-to-make-docker-happy"
+      COMPOSE_CONTAINER_NAME: "just-to-make-docker-happy"
+      COMPOSE_ANVIL_PORT: "just-to-make-docker-happy"
     cmds:
       - |
         {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml pull
@@ -120,10 +120,9 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
-      COMPOSE_ANVIL_FORK_URL: "{{.ANVIL_FORK_URL}}"
+      COMPOSE_ANVIL_FORK_URL: "just-to-make-docker-happy"
       COMPOSE_CONTAINER_NAME: "chain-anvil-{{.CHAIN_NUMBER}}"
-      COMPOSE_ANVIL_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}} 
+      COMPOSE_ANVIL_PORT: "just-to-make-docker-happy"
     cmds:
       - |
         echo "Stopping Anvil chain #{{.CHAIN_NUMBER}}"
