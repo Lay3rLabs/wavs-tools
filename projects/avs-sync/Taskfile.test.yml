@@ -1,0 +1,118 @@
+version: "3"
+
+silent: true
+
+tasks:
+  simple:
+    desc: "Test the weight update flow - trigger blocks, check no events, add weight, trigger again, verify events"
+    vars:
+      SUBMIT_DELAY: 5
+    cmds:
+      - |
+        echo "=== STARTING WEIGHT UPDATE TEST ==="
+        echo ""
+
+        # Step 1: Trigger blocks and check for events (should be none initially)
+        echo "Step 1: Triggering {{.BLOCK_INTERVAL}} blocks..."
+        task test:trigger
+        sleep {{.SUBMIT_DELAY}}
+        echo ""
+
+        echo "Step 2: Checking for OperatorWeightUpdated events (expecting none)..."
+        INITIAL_EVENTS=$(task test:get-submit-events)
+        if [ -z "$INITIAL_EVENTS" ]; then
+          echo "✓ No events found initially (as expected)"
+        else
+          echo "⚠ Found unexpected events:"
+          echo "$INITIAL_EVENTS"
+        fi
+        echo ""
+
+        # Step 2: Add weight to operator
+        echo "Step 3: Adding weight to operator..."
+        task test:add-weight AMOUNT=1000000000000000000
+        echo ""
+
+        # Step 3: Trigger blocks again to process the weight update
+        echo "Step 4: Triggering {{.BLOCK_INTERVAL}} more blocks to process weight update..."
+        task test:trigger
+        sleep {{.SUBMIT_DELAY}}
+        echo ""
+
+        # Step 4: Check for events again (should have OperatorWeightUpdated events now)
+        echo "Step 5: Checking for OperatorWeightUpdated events (expecting events now)..."
+        FINAL_EVENTS=$(task test:get-submit-events)
+        if [ -n "$FINAL_EVENTS" ]; then
+          echo "✓ Found OperatorWeightUpdated events after adding weight:"
+          echo "$FINAL_EVENTS"
+        else
+          echo "✗ No events found - weight update may not have been processed"
+          exit 1
+        fi
+        echo ""
+
+        echo "=== WEIGHT UPDATE TEST COMPLETED SUCCESSFULLY ==="
+
+  get-submit-events:
+    vars:
+      EVM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-1
+      BLOCK:
+        sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
+      BLOCK_START:
+        sh: echo $(( {{.BLOCK}} - 100 ))
+      STAKE_REGISTRY_ADDRESS:
+        sh: task get-stake-registry-address
+    cmds:
+      - >
+        cast logs 
+        --from-block {{.BLOCK_START}}
+        --to-block latest "OperatorWeightUpdated(address,uint256,uint256)"
+        --address {{.STAKE_REGISTRY_ADDRESS}} 
+        --rpc-url {{.EVM_RPC_URL}}
+
+  add-weight:
+    dir: contracts
+    requires:
+      vars: [AMOUNT]
+    vars:
+      EVM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-1
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+    env:
+      OPERATOR_ADDRESS:
+        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
+      LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
+      LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
+      AMOUNT: "{{.AMOUNT}}"
+      STRATEGY_MANAGER_ADDRESS: "{{.STRATEGY_MANAGER_ADDRESS}}"
+    cmds:
+      - forge script script/AddWeight.s.sol:AddWeight --rpc-url {{.EVM_RPC_URL}} --broadcast --private-key {{.OPERATOR_PRIVATE_KEY}}
+
+  trigger:
+    desc: "Trigger component by mining blocks"
+    vars:
+      BLOCKS: '{{.CLI_ARGS | default "100"}}'
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url
+    cmds:
+      - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
+
+  get-evm-rpc-url:
+    desc: "Get the EVM RPC URL for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      EVM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-1
+    cmds:
+      - echo "{{.EVM_RPC_URL}}"
+
+  get-stake-registry-address:
+    desc: "Get the stake registry address for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      STAKE_REGISTRY_ADDRESS:
+        sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+    cmds:
+      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
