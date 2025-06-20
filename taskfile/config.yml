@@ -17,27 +17,20 @@ vars:
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
-  ANVIL_FORK_URL: "https://1rpc.io/holesky"
-  WAVS_PORT: 8123
-  WAVS_AGGREGATOR_PORT: 8124
-  ANVIL_PORT: 8548
+  PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
+  ANVIL_BASE_PORT: 8547 # Base port for Anvil, minus 1, so that chain 1 starts at 8548
+  ANVIL_HOLESKY_FORK_URL: "https://1rpc.io/holesky"
+  WAVS_PORT: 8123 #TODO: read from wavs.toml
+  WAVS_AGGREGATOR_PORT: 8124 #TODO: read from wavs.toml
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
   WAVS_ENDPOINT: "http://localhost:{{.WAVS_PORT}}"
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
-  EVM_RPC_URL: "http://localhost:{{.ANVIL_PORT}}"
-  MIDDLEWARE_NODES_DIR: '{{joinPath .REPO_ROOT ".middleware-nodes"}}'
   MIDDLEWARE_DEPLOY_ENV: "LOCAL"
   MIDDLEWARE_CHAIN_ID: 17000
-  MIDDLEWARE_METADATA_URI: "https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json"
-  MIDDLEWARE_LST_CONTRACT_ADDRESS: "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034"
-  MIDDLEWARE_LST_STRATEGY_ADDRESS: "0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3"
-  MIDDLEWARE_SERVICE_MANAGER_ADDRESS:
-    sh: jq -r '.addresses.WavsServiceManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
-  MIDDLEWARE_STAKE_REGISTRY_ADDRESS:
-    sh: jq -r '.addresses.stakeRegistry // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
-  MIDDLEWARE_STRATEGY_MANAGER_ADDRESS:
-    sh: jq -r '.addresses.strategyManager // empty' "{{.MIDDLEWARE_NODES_DIR}}/avs_deploy.json" 2>/dev/null || true
+  MIDDLEWARE_METADATA_URI: 'https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json'
+  MIDDLEWARE_LST_CONTRACT_ADDRESS: '0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034'
+  MIDDLEWARE_LST_STRATEGY_ADDRESS: '0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3'
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .REPO_ROOT "target/wasm32-wasip1/release"}}'
   ABI_EIGENLAYER_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/eigenlayer-middleware"}}'
   DOCKER_SUDO:

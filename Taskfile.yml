@@ -9,11 +9,25 @@ includes:
   backend: ./taskfile/backend.yml
   cli: ./taskfile/cli.yml
   middleware: ./taskfile/middleware.yml
+  component: ./taskfile/component.yml
 
 tasks:
   default:
     cmds:
       - task --list-all
+
+  clean:
+    cmds:
+      # Clean up all projects by running `task clean` in each project directory
+      - |
+        for dir in projects/*/; do
+          if [ -d "$dir" ]; then
+            echo "Cleaning $dir"
+            cd "$dir"
+            task clean
+            cd "{{.REPO_ROOT}}"
+          fi
+        done
 
   setup:
     cmds:

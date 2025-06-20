@@ -2,7 +2,8 @@ This repo contains various tools and services that make up the WAVS ecosystem.
 
 # PROJECTS
 
-## [avs-sync](tools/avs-sync) 
+## [avs-sync](projects/avs-sync) 
+
 A tool for syncing AVS operators (TODO: explain more).
 
 # SYSTEM REQUIREMENTS
@@ -56,9 +57,10 @@ task setup
 task backend:start
 ```
 
-### Deploy the middleware 
+You can also start the backend with multiple chains, where the first will fork holesky and the rest will be local-only:
+
 ```bash
-task middleware:deploy
+task backend:start CHAIN_COUNT=3 
 ```
 
 ### Stop the backend
@@ -71,9 +73,13 @@ task backend:stop
 There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
 ```bash
-cd tools/avs-sync
+cd projects/avs-sync
 task bootstrap
 ```
+
+## Middleware
+
+A middleware deployment is different per chain and service. Therefore, while the commands to work with it are defined in the root [taskfile/middleware.yml](taskfile/middleware.yml), the actual deployment is done in the tool's own Taskfile and writes to that tool's local `.project-output/{chain-number}/{service-name}` directory.
 
 # DEBUGGING
 

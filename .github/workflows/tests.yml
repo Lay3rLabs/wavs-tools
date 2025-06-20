@@ -1,8 +1,11 @@
 name: Tests
 on:
   pull_request:
+    types: [opened, synchronize, ready_for_review]
   push:
     branches: [main]
+  issue_comment:
+    types: [created]
 
 jobs:
   tests:
@@ -11,6 +14,10 @@ jobs:
       contents: read
       issues: write
       pull-requests: write
+    if: >
+      github.event_name == 'push' ||
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -52,7 +59,7 @@ jobs:
       - name: Setup dependencies
         run: task setup-ci
 
-      - name: Setup environment 
+      - name: Setup environment
         run: cp .env.example .env
 
       - name: Run tests and generate report
@@ -61,9 +68,39 @@ jobs:
         working-directory: tests
         continue-on-error: true
 
-      - name: Comment PR with test results
+      - name: Check if we should comment
+        id: should-comment
+        run: |
+          SHOULD_COMMENT="false"
+
+          # Always comment if triggered by !test-report comment
+          if [ "${{ github.event_name }}" = "issue_comment" ]; then
+            SHOULD_COMMENT="true"
+            echo "Commenting due to !test-report trigger"
+          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.draft }}" = "false" ]; then
+            # Check if there are test failures
+            if [ -f tests/.test-reports/merged-report.json ]; then
+              failures=$(node -e "
+                const fs = require('fs');
+                const report = JSON.parse(fs.readFileSync('tests/.test-reports/merged-report.json', 'utf8'));
+                console.log(report.stats.failures || 0);
+              ")
+              if [ "$failures" -gt "0" ]; then
+                SHOULD_COMMENT="true"
+                echo "Commenting due to test failures in non-draft PR"
+              else
+                echo "No test failures, skipping comment"
+              fi
+            fi
+          else
+            echo "Draft PR or push to main, skipping comment"
+          fi
+
+          echo "should_comment=$SHOULD_COMMENT" >> $GITHUB_OUTPUT
+
+      - name: Comment with test results
         uses: actions/github-script@v7
-        if: github.event_name == 'pull_request' && always()
+        if: steps.should-comment.outputs.should_comment == 'true'
         with:
           script: |
             const { commentTestResults } = require('./.github/scripts/comment-test-results.js');

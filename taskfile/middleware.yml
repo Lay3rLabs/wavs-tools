@@ -4,14 +4,28 @@ includes:
   config:
     taskfile: ./config.yml
     flatten: true
+  backend: ./backend.yml
 
 tasks:
   deploy:
-    desc: "Deploy middleware"
-    deps: [clean]
+    desc: "Deploy middleware for a given service"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    deps: 
+      - task: clean
+        vars:
+          PROJECT: '{{.PROJECT}}'
+          SERVICE_NAME: '{{.SERVICE_NAME}}'
+          CHAIN_NUMBER: '{{.CHAIN_NUMBER}}'
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
     env:
+      LOCAL_ETHEREUM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
-      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
@@ -21,7 +35,7 @@ tasks:
       ETHERSCAN_API_KEY: 
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
     cmds:
-      - mkdir -p {{.MIDDLEWARE_NODES_DIR}}
+      - mkdir -p {{.NODES_DIR}}
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e FUNDED_KEY 
@@ -32,25 +46,45 @@ tasks:
         -e LST_CONTRACT_ADDRESS 
         -e LST_STRATEGY_ADDRESS
         -e CHAIN_ID 
-        -v {{.TASKFILE_DIR}}:/wavs-tools
-        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
 
   clean:
-    desc: "Clean up middleware nodes directory"
+    desc: "Clean up middleware nodes directory for a given service"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
     cmds:
-      - rm -rf {{.MIDDLEWARE_NODES_DIR}}
+      - |
+        echo "Cleaning up middleware nodes directory: {{.NODES_DIR}}"
+      - rm -rf {{.NODES_DIR}}
 
   register-operator:
-    desc: "Register an operator"
+    desc: "Register an operator on a given service"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+    requires:
+      vars: [PROJECT, SERVICE_NAME, AVS_SIGNING_ADDRESS, AMOUNT]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
-      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
+      LOCAL_ETHEREUM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
-      WAVS_SERVICE_MANAGER_ADDRESS: "{{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}}"
+      WAVS_SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
+      - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
@@ -59,21 +93,77 @@ tasks:
         -e LST_STRATEGY_ADDRESS
         -e CHAIN_ID 
         -e WAVS_SERVICE_MANAGER_ADDRESS
-        -v {{.TASKFILE_DIR}}:/wavs-tools
-        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.CLI_ARGS}}
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} {{.AMOUNT}} 
 
   list-operators:
+    desc: "List registered operators for a given service"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
-      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
-      WAVS_SERVICE_MANAGER_ADDRESS: "{{.MIDDLEWARE_SERVICE_MANAGER_ADDRESS}}"
+      LOCAL_ETHEREUM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      WAVS_SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e LOCAL_ETHEREUM_RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
-        -v {{.TASKFILE_DIR}}:/wavs-tools
-        -v {{.MIDDLEWARE_NODES_DIR}}:/root/.nodes
+        -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} list_operator
+
+  get-output-dir:
+    desc: "Get the path to the middleware output directory"
+    vars:
+      CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
+      OUTPUT_DIR: '{{joinPath .REPO_ROOT "projects" .PROJECT .PROJECT_OUTPUT_DIRNAME .CHAIN_DIRNAME .SERVICE_NAME}}'
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    cmds:
+      - echo "{{.OUTPUT_DIR}}"
+
+  get-json-filepath:
+    desc: "Get the path to the middleware deploy JSON file"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
+      OUTPUT_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    cmds:
+      - echo "{{.OUTPUT_DIR}}/avs_deploy.json"
+
+  get-service-manager-address:
+    desc: "Get the WAVS Service Manager address from the middleware deploy JSON file"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      JSON_FILEPATH:
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    cmds:
+      - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+  
+  get-stake-registry-address:
+    desc: "Get the Stake Registry address from the middleware deploy JSON file"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      JSON_FILEPATH:
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    cmds:
+      - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
