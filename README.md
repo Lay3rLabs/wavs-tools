@@ -105,3 +105,4 @@ Other global configuration variables are set in [taskfile/config.yml](taskfile/c
 These make their way automatically to wherever they are needed. For example, changing a port or endpoint is only necessary in one place, not also in dockerfile or other places.
 
 Of course, per-project Taskfiles and/or .env files may also contain their own configuration.
+
