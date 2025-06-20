@@ -2,7 +2,8 @@ This repo contains various tools and services that make up the WAVS ecosystem.
 
 # PROJECTS
 
-## [avs-sync](tools/avs-sync) 
+## [avs-sync](projects/avs-sync) 
+
 A tool for syncing AVS operators (TODO: explain more).
 
 # SYSTEM REQUIREMENTS
@@ -72,7 +73,7 @@ task backend:stop
 There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
 ```bash
-cd tools/avs-sync
+cd projects/avs-sync
 task bootstrap
 ```
 
