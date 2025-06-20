@@ -22,5 +22,5 @@ tests/.test-reports
 infra/
 .claude
 abi/
-.tool-output/
+.project-output/
 .DS_Store

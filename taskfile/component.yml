@@ -10,12 +10,12 @@ tasks:
     desc: "Builds a WASI component"
     vars:
       COMPONENT_OUTPUT_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir TOOL={{.TOOL}}
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir PROJECT={{.PROJECT}}
     requires:
-      vars: [TOOL, COMPONENT_NAME, COMPONENT_SOURCE_DIR]
+      vars: [PROJECT, COMPONENT_NAME, COMPONENT_SOURCE_DIR]
     cmds:
       - |
-        echo "Building component: {{.COMPONENT_NAME}} for {{.TOOL}}"
+        echo "Building component: {{.COMPONENT_NAME}} for {{.PROJECT}}"
         cd "{{.COMPONENT_SOURCE_DIR}}"
         cargo component build --release
         mkdir -p {{.COMPONENT_OUTPUT_DIR}}
@@ -25,9 +25,9 @@ tasks:
     desc: "Deletes a WASI component output directory"
     vars:
       COMPONENT_OUTPUT_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir TOOL={{.TOOL}}
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir PROJECT={{.PROJECT}}
     requires:
-      vars: [TOOL, COMPONENT_NAME]
+      vars: [PROJECT, COMPONENT_NAME]
     cmds:
       - rm -f "{{.COMPONENT_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.wasm"
 
@@ -35,9 +35,9 @@ tasks:
     desc: "Deletes a WASI output directory"
     vars:
       COMPONENT_OUTPUT_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir TOOL={{.TOOL}}
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir PROJECT={{.PROJECT}}
     requires:
-      vars: [TOOL]
+      vars: [PROJECT]
     cmds:
       - rm -rf "{{.COMPONENT_OUTPUT_DIR}}"
 
@@ -45,13 +45,13 @@ tasks:
     desc: "Uploads a WASI component"
     dir: "{{.REPO_ROOT}}"
     requires:
-      vars: [TOOL, COMPONENT_NAME]
+      vars: [PROJECT, COMPONENT_NAME]
     vars:
       # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
-      COMPONENT_BINARY: "/wavs-tools/tools/{{.TOOL}}/{{.TOOL_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
-      DATA_DIR: "/wavs-tools/tools/{{.TOOL}}/{{.TOOL_OUTPUT_DIRNAME}}/.wavs-cli-data"
+      COMPONENT_BINARY: "/wavs-tools/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
+      DATA_DIR: "/wavs-tools/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/.wavs-cli-data"
       COMPONENT_DIGEST_FILE:
-        sh: task component:get-digest-filepath TOOL={{.TOOL}} COMPONENT_NAME={{.COMPONENT_NAME}}
+        sh: task component:get-digest-filepath PROJECT={{.PROJECT}} COMPONENT_NAME={{.COMPONENT_NAME}}
     cmds:
       # unfortunately, the wavs-cli upload-component command doesn't write to JSON
       # but, fortunately, the last line of the output is the digest
@@ -78,9 +78,9 @@ tasks:
   get-output-dir:
     desc: "Get the path to the component output directory"
     vars:
-      OUTPUT_DIR: '{{joinPath .REPO_ROOT "tools" .TOOL .TOOL_OUTPUT_DIRNAME "components"}}'
+      OUTPUT_DIR: '{{joinPath .REPO_ROOT "tools" .PROJECT .PROJECT_OUTPUT_DIRNAME "components"}}'
     requires:
-      vars: [TOOL]
+      vars: [PROJECT]
     cmds:
       - echo "{{.OUTPUT_DIR}}"
 
@@ -89,8 +89,8 @@ tasks:
     dir: "{{.REPO_ROOT}}"
     vars:
       OUTPUT_DIR:
-        sh: task component:get-output-dir TOOL={{.TOOL}}
+        sh: task component:get-output-dir PROJECT={{.PROJECT}}
     requires:
-      vars: [TOOL, COMPONENT_NAME]
+      vars: [PROJECT, COMPONENT_NAME]
     cmds:
       - echo "{{.OUTPUT_DIR}}/{{.COMPONENT_NAME}}.digest"

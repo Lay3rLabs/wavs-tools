@@ -13,15 +13,15 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     deps: 
       - task: clean
         vars:
-          TOOL: '{{.TOOL}}'
+          PROJECT: '{{.PROJECT}}'
           SERVICE_NAME: '{{.SERVICE_NAME}}'
           CHAIN_NUMBER: '{{.CHAIN_NUMBER}}'
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     env:
       LOCAL_ETHEREUM_RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
@@ -55,9 +55,9 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     cmds:
       - |
         echo "Cleaning up middleware nodes directory: {{.NODES_DIR}}"
@@ -69,11 +69,11 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_PRIVATE_KEY:
         sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
     requires:
-      vars: [TOOL, SERVICE_NAME, AVS_SIGNING_ADDRESS, AMOUNT]
+      vars: [PROJECT, SERVICE_NAME, AVS_SIGNING_ADDRESS, AMOUNT]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
@@ -82,7 +82,7 @@ tasks:
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
@@ -102,15 +102,15 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -125,9 +125,9 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
-      OUTPUT_DIR: '{{joinPath .REPO_ROOT "tools" .TOOL .TOOL_OUTPUT_DIRNAME .CHAIN_DIRNAME .SERVICE_NAME}}'
+      OUTPUT_DIR: '{{joinPath .REPO_ROOT "tools" .PROJECT .PROJECT_OUTPUT_DIRNAME .CHAIN_DIRNAME .SERVICE_NAME}}'
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     cmds:
       - echo "{{.OUTPUT_DIR}}"
 
@@ -138,9 +138,9 @@ tasks:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
       OUTPUT_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     cmds:
       - echo "{{.OUTPUT_DIR}}/avs_deploy.json"
 
@@ -150,9 +150,9 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       JSON_FILEPATH:
-        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     cmds:
       - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
   
@@ -162,8 +162,8 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       JSON_FILEPATH:
-        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} TOOL={{.TOOL}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [TOOL, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME]
     cmds:
       - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'

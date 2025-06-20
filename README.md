@@ -79,7 +79,7 @@ task bootstrap
 
 ## Middleware
 
-A middleware deployment is different per chain and service. Therefore, while the commands to work with it are defined in the root [taskfile/middleware.yml](taskfile/middleware.yml), the actual deployment is done in the tool's own Taskfile and writes to that tool's local `.tool-output/{chain-number}/{service-name}` directory.
+A middleware deployment is different per chain and service. Therefore, while the commands to work with it are defined in the root [taskfile/middleware.yml](taskfile/middleware.yml), the actual deployment is done in the tool's own Taskfile and writes to that tool's local `.project-output/{chain-number}/{service-name}` directory.
 
 # DEBUGGING
 
