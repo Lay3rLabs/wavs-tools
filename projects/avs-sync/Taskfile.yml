@@ -269,8 +269,18 @@ tasks:
     cmds:
       - echo "{{.AVS_SIGNING_ADDRESS}}"
 
-  list-operators:
-    desc: "List registered operators for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
+  get-operator-address:
+    desc: "Get the operator's address"
+    vars:
+      OPERATOR_ADDRESS:
+        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
     cmds:
-      - task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+      - echo "{{.OPERATOR_ADDRESS}}"
+
+  get-operator-private-key:
+    desc: "Get the operator's private key"
+    vars:
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+    cmds:
+      - echo "{{.OPERATOR_PRIVATE_KEY}}"

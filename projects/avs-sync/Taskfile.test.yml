@@ -79,10 +79,10 @@ tasks:
       EVM_RPC_URL:
         sh: task backend:get-evm-rpc-url-1
       OPERATOR_PRIVATE_KEY:
-        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+        sh: task get-operator-private-key
     env:
       OPERATOR_ADDRESS:
-        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
+        sh: task get-operator-address
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       AMOUNT: "{{.AMOUNT}}"
@@ -99,20 +99,8 @@ tasks:
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
 
-  get-evm-rpc-url:
-    desc: "Get the EVM RPC URL for AVS Sync"
+  list-operators:
+    desc: "List registered operators for AVS Sync"
     dir: "{{.REPO_ROOT}}"
-    vars:
-      EVM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-1
     cmds:
-      - echo "{{.EVM_RPC_URL}}"
-
-  get-stake-registry-address:
-    desc: "Get the stake registry address for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
-    vars:
-      STAKE_REGISTRY_ADDRESS:
-        sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
-    cmds:
-      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
+      - task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
