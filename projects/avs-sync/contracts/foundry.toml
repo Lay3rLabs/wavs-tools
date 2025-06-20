@@ -3,12 +3,14 @@ src = 'src'
 out = 'out'
 libs = ['../../../submodules']
 solidity_version = '0.8.27'
-evm_version = 'shanghai'
+evm_version = 'cancun'
 via_ir = true
 fs_permissions = [{ access = "read-write", path = "./" }]
 
 remappings = [
     "@eigenlayer-middleware/=../../../submodules/eigenlayer-middleware/",
+    "@eigenlayer-contracts/=../../../submodules/eigenlayer-middleware/lib/eigenlayer-contracts/",
     "forge-std/=../../../submodules/forge-std/src/",
     "@wavs=../../../node_modules/@wavs/solidity/contracts",
+    "@openzeppelin/=../../../submodules/openzeppelin-contracts/",
 ]

@@ -9,15 +9,16 @@ includes:
   config:
     taskfile: ../../taskfile/config.yml
     flatten: true
+  test: Taskfile.test.yml
 
 silent: true
 
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
-  # For this reason, we sometimes need to redefined vars like .project-output here 
+  # For this reason, we sometimes need to redefined vars like .project-output here
   # see: https://github.com/go-task/task/issues/2303
   COMPONENT_NAME: "avs_sync"
-  PROJECT: 
+  PROJECT:
     # project name is same as dir name of current directory
     sh: basename "$(pwd)"
   BLOCK_INTERVAL: 100
@@ -27,6 +28,8 @@ vars:
   PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
+  # This isn't included in the middleware json
+  STRATEGY_MANAGER_ADDRESS: "0xdfB5f6CE42aAA7830E94ECFCcAd411beF4d4D5b6"
 
 tasks:
   bootstrap:
@@ -53,7 +56,7 @@ tasks:
       - rm -rf "contracts/cache"
       - rm -rf "contracts/out"
       - cd "{{.REPO_ROOT}}" && cargo clean -p avs-sync
-  
+
   clean-output:
     desc: "Cleans up the AVS Sync output directory but not contracts or components"
     cmds:
@@ -95,17 +98,11 @@ tasks:
         sh: task get-evm-rpc-url
     env:
       SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address 
+        sh: task get-service-manager-address
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
     cmds:
       - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
-
-  contracts-test:
-    desc: "Runs tests for the AVS Sync contracts"
-    dir: contracts
-    cmds:
-      - forge test -vv
 
   build-service:
     desc: "Build avs_sync service configuration"
@@ -185,8 +182,7 @@ tasks:
         sh: task get-service-id
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
-      - 
-        task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+      - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
   register-operator:
     vars:
@@ -196,34 +192,10 @@ tasks:
       - |
         task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
 
-  trigger:
-    desc: "Trigger component by mining blocks"
-    vars:
-      BLOCKS: '{{.CLI_ARGS | default "100"}}'
-      EVM_RPC_URL:
-        sh: task get-evm-rpc-url
+  run-tests:
+    desc: "Run all test cases"
     cmds:
-      - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
-
-  test:
-    cmds:
-      - |
-        # We want to check the stake registry state here then call task trigger and validate state again
-        # Another test-case can be registering another operator (will need a slight refactor on the register-operator cmd)
-
-  get-submit-events:
-    vars:
-      BLOCK:
-        sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
-      BLOCK_START:
-        sh: echo $(( {{.BLOCK}} - 500 ))
-    cmds:
-      - >
-        cast logs 
-        --from-block {{.BLOCK_START}}
-        --to-block latest "OperatorWeightUpdated(address,uint256,uint256)"
-        --address {{.STAKE_REGISTRY_ADDRESS}} 
-        --rpc-url {{.EVM_RPC_URL}}
+      - task test:simple
 
   get-component-digest:
     desc: "Get the component digest for AVS Sync"
@@ -261,7 +233,7 @@ tasks:
         sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
-  
+
   get-evm-rpc-url:
     desc: "Get the EVM RPC URL for AVS Sync"
     dir: "{{.REPO_ROOT}}"
@@ -297,10 +269,18 @@ tasks:
     cmds:
       - echo "{{.AVS_SIGNING_ADDRESS}}"
 
-  list-operators:
-    desc:
-      "List registered operators for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
+  get-operator-address:
+    desc: "Get the operator's address"
+    vars:
+      OPERATOR_ADDRESS:
+        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
     cmds:
-      - task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+      - echo "{{.OPERATOR_ADDRESS}}"
 
+  get-operator-private-key:
+    desc: "Get the operator's private key"
+    vars:
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+    cmds:
+      - echo "{{.OPERATOR_PRIVATE_KEY}}"

@@ -4,6 +4,8 @@
 [submodule "submodules/openzeppelin-contracts"]
 	path = submodules/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	# Need to match eigenlayer's math lib
+	branch = release-v4.9
 [submodule "submodules/eigenlayer-middleware"]
 	path = submodules/eigenlayer-middleware
 	url = https://github.com/Lay3rLabs/eigenlayer-middleware.git

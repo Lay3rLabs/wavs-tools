@@ -19,8 +19,7 @@ contract DeployAvsWriter is Script {
         vm.startBroadcast(deployerPrivateKey);
 
         // Deploy AvsWriter contract
-        AvsWriter avsWriter =
-            new AvsWriter(IWavsServiceManager(serviceManagerAddress), ECDSAStakeRegistry(stakeRegistryAddress));
+        new AvsWriter(IWavsServiceManager(serviceManagerAddress), ECDSAStakeRegistry(stakeRegistryAddress));
 
         vm.stopBroadcast();
     }
