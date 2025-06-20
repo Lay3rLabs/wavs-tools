@@ -17,7 +17,9 @@ vars:
   # For this reason, we sometimes need to redefined vars like .project-output here 
   # see: https://github.com/go-task/task/issues/2303
   COMPONENT_NAME: "avs_sync"
-  PROJECT: "avs-sync"
+  PROJECT: 
+    # project name is same as dir name of current directory
+    sh: basename "$(pwd)"
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
   SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
