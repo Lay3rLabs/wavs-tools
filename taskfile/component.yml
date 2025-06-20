@@ -78,7 +78,7 @@ tasks:
   get-output-dir:
     desc: "Get the path to the component output directory"
     vars:
-      OUTPUT_DIR: '{{joinPath .REPO_ROOT "tools" .PROJECT .PROJECT_OUTPUT_DIRNAME "components"}}'
+      OUTPUT_DIR: '{{joinPath .REPO_ROOT "projects" .PROJECT .PROJECT_OUTPUT_DIRNAME "components"}}'
     requires:
       vars: [PROJECT]
     cmds:
