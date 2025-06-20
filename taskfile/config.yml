@@ -17,7 +17,7 @@ vars:
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
-  TOOL_OUTPUT_DIRNAME: ".tool-output"
+  PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_BASE_PORT: 8547 # Base port for Anvil, minus 1, so that chain 1 starts at 8548
   ANVIL_HOLESKY_FORK_URL: "https://1rpc.io/holesky"

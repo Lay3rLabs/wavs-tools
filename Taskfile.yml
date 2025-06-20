@@ -18,7 +18,16 @@ tasks:
 
   clean:
     cmds:
-      - cd tools/avs-sync && task clean
+      # Clean up all projects by running `task clean` in each project directory
+      - |
+        for dir in projects/*/; do
+          if [ -d "$dir" ]; then
+            echo "Cleaning $dir"
+            cd "$dir"
+            task clean
+            cd "{{.REPO_ROOT}}"
+          fi
+        done
 
   setup:
     cmds:

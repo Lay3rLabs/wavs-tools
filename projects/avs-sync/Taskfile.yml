@@ -14,13 +14,18 @@ silent: true
 
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
-  # Seems to be some sort of data race
-  # For this reason, we sometimes need to redefined vars like .tool-output here 
-  COMPONENT_NAME: avs_sync
+  # For this reason, we sometimes need to redefined vars like .project-output here 
+  # see: https://github.com/go-task/task/issues/2303
+  COMPONENT_NAME: "avs_sync"
+  PROJECT: 
+    # project name is same as dir name of current directory
+    sh: basename "$(pwd)"
   BLOCK_INTERVAL: 100
   PAST_BLOCKS: 500
   SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
-  SERVICE_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".tool-output/services"}}'
+  WAVS_CLI_SERVICE_JSON_PATH: "/wavs-tools/projects/avs-sync/.project-output/services/{{.COMPONENT_NAME}}.json"
+  PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
+  SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
 
 tasks:
@@ -42,36 +47,44 @@ tasks:
 
   clean:
     desc: "Cleans up the AVS Sync tool"
+    deps: [clean-output]
     cmds:
-      - rm -rf "{{.TOOL_OUTPUT_DIRNAME}}"
       - rm -rf "contracts/broadcast"
       - rm -rf "contracts/cache"
       - rm -rf "contracts/out"
+      - cd "{{.REPO_ROOT}}" && cargo clean -p avs-sync
+  
+  clean-output:
+    desc: "Cleans up the AVS Sync output directory but not contracts or components"
+    cmds:
+      - rm -rf "{{.PROJECT_OUTPUT_DIRNAME}}"
 
   components-build:
     desc: "Builds the WASI components for AVS Sync"
     dir: "{{.REPO_ROOT}}"
     deps: [components-clean]
+    vars:
+      COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
     cmds:
-      - task component:build TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.REPO_ROOT}}/tools/avs-sync/component"
+      - task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
 
   components-clean:
     desc: "Deletes the WASI components for AVS Sync"
     dir: "{{.REPO_ROOT}}"
     cmds:
-      - task component:clean-all TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   components-upload:
     desc: "Uploads the WASI components for AVS Sync"
     dir: "{{.REPO_ROOT}}"
     cmds:
-      - task component:upload TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   middleware-deploy:
     desc: "Deploys the AVS Sync middleware"
     dir: "{{.REPO_ROOT}}"
     cmds:
-      - task middleware:deploy TOOL="avs-sync" SERVICE_NAME="avs-sync"
+      - task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
 
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"
@@ -99,8 +112,7 @@ tasks:
     dir: "{{.REPO_ROOT}}"
     deps: [clean-service]
     vars:
-      SERVICE_JSON_DOCKER_PATH: "/wavs-tools/tools/avs-sync/.tool-output/services/{{.COMPONENT_NAME}}.json"
-      CMD: "service --json true --home /wavs-home --file {{.SERVICE_JSON_DOCKER_PATH}}"
+      CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       TRIGGER_CHAIN: "local"
       SUBMIT_CHAIN: "local"
       COMPONENT_DIGEST:
@@ -182,7 +194,7 @@ tasks:
         sh: task get-service-signing-address
     cmds:
       - |
-        task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" TOOL="avs-sync" SERVICE_NAME="avs-sync"
+        task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
 
   trigger:
     desc: "Trigger component by mining blocks"
@@ -218,7 +230,7 @@ tasks:
     dir: "{{.REPO_ROOT}}"
     vars:
       COMPONENT_DIGEST_FILE:
-        sh: task component:get-digest-filepath TOOL="avs-sync" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+        sh: task component:get-digest-filepath PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
       COMPONENT_DIGEST:
         sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
     cmds:
@@ -237,7 +249,7 @@ tasks:
     dir: "{{.REPO_ROOT}}"
     vars:
       SERVICE_MANAGER_ADDRESS:
-        sh: task middleware:get-service-manager-address TOOL="avs-sync" SERVICE_NAME="avs-sync"
+        sh: task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
     cmds:
       - echo "{{.SERVICE_MANAGER_ADDRESS}}"
 
@@ -246,7 +258,7 @@ tasks:
     dir: "{{.REPO_ROOT}}"
     vars:
       STAKE_REGISTRY_ADDRESS:
-        sh: task middleware:get-stake-registry-address TOOL="avs-sync" SERVICE_NAME="avs-sync"
+        sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
   
@@ -290,5 +302,5 @@ tasks:
       "List registered operators for AVS Sync"
     dir: "{{.REPO_ROOT}}"
     cmds:
-      - task middleware:list-operators TOOL="avs-sync" SERVICE_NAME="avs-sync"
+      - task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
 
