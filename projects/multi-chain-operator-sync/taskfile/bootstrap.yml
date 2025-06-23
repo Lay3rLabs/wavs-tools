@@ -46,7 +46,7 @@ tasks:
     dir: "{{.REPO_ROOT}}"
     deps: [clean-service]
     vars:
-      CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
+      CMD: 'service --json true --home /wavs-home --file "{{.SERVICE_JSON_PATH}}"'
       TRIGGER_CHAIN: "local"
       SUBMIT_CHAIN: "local"
       COMPONENT_DIGEST:
