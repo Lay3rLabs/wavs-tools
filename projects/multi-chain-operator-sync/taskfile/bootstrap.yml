@@ -25,10 +25,21 @@ tasks:
       - task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   middleware-deploy:
-    desc: "Deploys the AVS Sync middleware"
+    desc: "Deploys the middleware"
     dir: "{{.REPO_ROOT}}"
     cmds:
       - task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+
+  mirror-deploy:
+    desc: "Deploys the mirror contracts"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      SOURCE_RPC_URL:
+        sh: task get-source-rpc-url
+      MIRROR_RPC_URL:
+        sh: task get-mirror-rpc-url
+    cmds:
+      - task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" MODE="mirror" SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}"
 
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"

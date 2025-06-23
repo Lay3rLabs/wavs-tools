@@ -40,12 +40,21 @@ tasks:
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
-  get-evm-rpc-url:
-    desc: "Get the EVM RPC URL for AVS Sync"
+  get-source-rpc-url:
+    desc: "Get the source RPC URL for AVS Sync"
     dir: "{{.REPO_ROOT}}"
     vars:
       EVM_RPC_URL:
         sh: task backend:get-evm-rpc-url-1
+    cmds:
+      - echo "{{.EVM_RPC_URL}}"
+
+  get-mirror-rpc-url:
+    desc: "Get the source RPC URL for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      EVM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-2
     cmds:
       - echo "{{.EVM_RPC_URL}}"
 

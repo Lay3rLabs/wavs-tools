@@ -13,7 +13,7 @@ vars:
         dir="$(dirname "$dir")"
       done
   WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:35c96a4"
-  MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.0-rc"
+  MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0f1fb54"
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
@@ -28,9 +28,9 @@ vars:
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
   MIDDLEWARE_DEPLOY_ENV: "LOCAL"
   MIDDLEWARE_CHAIN_ID: 17000
-  MIDDLEWARE_METADATA_URI: 'https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json'
-  MIDDLEWARE_LST_CONTRACT_ADDRESS: '0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034'
-  MIDDLEWARE_LST_STRATEGY_ADDRESS: '0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3'
+  MIDDLEWARE_METADATA_URI: "https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json"
+  MIDDLEWARE_LST_CONTRACT_ADDRESS: "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034"
+  MIDDLEWARE_LST_STRATEGY_ADDRESS: "0x7D704507b76571a51d9caE8AdDAbBFd0ba0e63d3"
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .REPO_ROOT "target/wasm32-wasip1/release"}}'
   ABI_EIGENLAYER_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/eigenlayer-middleware"}}'
   DOCKER_SUDO:
