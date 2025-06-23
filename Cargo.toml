@@ -1,5 +1,8 @@
 [workspace]
-members = ["projects/avs-sync/component"]
+members = [
+    "projects/avs-sync/component",
+    "projects/multi-chain-operator-sync/component",
+]
 resolver = "2"
 
 [workspace.package]

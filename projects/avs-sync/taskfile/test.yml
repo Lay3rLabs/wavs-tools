@@ -86,7 +86,7 @@ tasks:
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       AMOUNT: "{{.AMOUNT}}"
-      STRATEGY_MANAGER_ADDRESS: "{{.STRATEGY_MANAGER_ADDRESS}}"
+      STRATEGY_MANAGER_ADDRESS: task middleware:get-strategy-manager-address
     cmds:
       - forge script script/AddWeight.s.sol:AddWeight --rpc-url {{.EVM_RPC_URL}} --broadcast --private-key {{.OPERATOR_PRIVATE_KEY}}
 
@@ -98,9 +98,3 @@ tasks:
         sh: task get-evm-rpc-url
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
-
-  list-operators:
-    desc: "List registered operators for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
-    cmds:
-      - task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"

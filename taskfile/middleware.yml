@@ -14,25 +14,25 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
-    deps: 
+    deps:
       - task: clean
         vars:
-          PROJECT: '{{.PROJECT}}'
-          SERVICE_NAME: '{{.SERVICE_NAME}}'
-          CHAIN_NUMBER: '{{.CHAIN_NUMBER}}'
+          PROJECT: "{{.PROJECT}}"
+          SERVICE_NAME: "{{.SERVICE_NAME}}"
+          CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
-      FUNDED_KEY: 
+      FUNDED_KEY:
         sh: "echo $MIDDLEWARE_FUNDED_KEY"
-      ETHERSCAN_API_KEY: 
+      ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
     cmds:
       - mkdir -p {{.NODES_DIR}}
@@ -77,7 +77,7 @@ tasks:
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
@@ -94,7 +94,7 @@ tasks:
         -e CHAIN_ID 
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -v {{.NODES_DIR}}:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} {{.AMOUNT}} 
+        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} {{.AMOUNT}}
 
   list-operators:
     desc: "List registered operators for a given service"
@@ -155,7 +155,7 @@ tasks:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
       - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
-  
+
   get-stake-registry-address:
     desc: "Get the Stake Registry address from the middleware deploy JSON file"
     dir: "{{.REPO_ROOT}}"
@@ -167,3 +167,11 @@ tasks:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
       - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+
+  get-strategy-manager-address:
+    desc: "Get the strategy manager address from the deployments JSON file"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      CHAIN_ID: "{{.CHAIN_ID | default 17000}}"
+    cmds:
+      - sh -c 'jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json" 2>/dev/null || true'

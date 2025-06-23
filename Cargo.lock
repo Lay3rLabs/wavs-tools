@@ -2064,6 +2064,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "multi-chain-operator-sync"
+version = "0.3.0"
+dependencies = [
+ "alloy-contract",
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-provider",
+ "alloy-rpc-types",
+ "alloy-sol-macro",
+ "alloy-sol-types",
+ "alloy-transport-http",
+ "anyhow",
+ "serde",
+ "serde_json",
+ "wavs-wasi-utils",
+ "wit-bindgen",
+ "wit-bindgen-rt 0.42.1",
+ "wstd",
+]
+
+[[package]]
 name = "native-tls"
 version = "0.2.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
