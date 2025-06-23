@@ -1,7 +1,10 @@
 #[allow(warnings)]
 mod bindings;
 
+use alloy_sol_macro::sol;
 use bindings::{export, wavs::worker::layer_types::WasmResponse, Guest, TriggerAction};
+
+sol!("../contracts/src/Types.sol");
 
 struct Component;
 
