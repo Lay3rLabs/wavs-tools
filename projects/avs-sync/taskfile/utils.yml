@@ -1,0 +1,92 @@
+version: "3"
+
+silent: true
+
+tasks:
+  get-component-digest:
+    desc: "Get the component digest for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      COMPONENT_DIGEST_FILE:
+        sh: task component:get-digest-filepath PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      COMPONENT_DIGEST:
+        sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
+    cmds:
+      - echo "{{.COMPONENT_DIGEST}}"
+
+  get-service-id:
+    desc: "Get the service ID for AVS Sync"
+    vars:
+      SERVICE_ID:
+        sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
+    cmds:
+      - echo "{{.SERVICE_ID}}"
+
+  get-service-manager-address:
+    desc: "Get the service manager address for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+    cmds:
+      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+
+  get-stake-registry-address:
+    desc: "Get the stake registry address for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      STAKE_REGISTRY_ADDRESS:
+        sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+    cmds:
+      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
+
+  get-evm-rpc-url:
+    desc: "Get the EVM RPC URL for AVS Sync"
+    dir: "{{.REPO_ROOT}}"
+    vars:
+      EVM_RPC_URL:
+        sh: task backend:get-evm-rpc-url-1
+    cmds:
+      - echo "{{.EVM_RPC_URL}}"
+
+  get-submission-address:
+    vars:
+      CONTRACT_NAME: "AvsWriter"
+    cmds:
+      - >
+        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
+
+  get-service-hd-index:
+    vars:
+      SERVICE_ID:
+        sh: task get-service-id
+      SERVICE_HD_INDEX:
+        sh: curl -s {{.WAVS_ENDPOINT}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
+    cmds:
+      - echo "{{.SERVICE_HD_INDEX}}"
+
+  get-service-signing-address:
+    vars:
+      HD_INDEX:
+        sh: task get-service-hd-index
+      AVS_SIGNING_ADDRESS:
+        sh: cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index {{.HD_INDEX}}
+    cmds:
+      - echo "{{.AVS_SIGNING_ADDRESS}}"
+
+  get-operator-address:
+    desc: "Get the operator's address"
+    vars:
+      OPERATOR_ADDRESS:
+        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
+    cmds:
+      - echo "{{.OPERATOR_ADDRESS}}"
+
+  get-operator-private-key:
+    desc: "Get the operator's private key"
+    vars:
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+    cmds:
+      - echo "{{.OPERATOR_PRIVATE_KEY}}"
