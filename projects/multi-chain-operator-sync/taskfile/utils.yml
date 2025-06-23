@@ -4,7 +4,7 @@ silent: true
 
 tasks:
   get-component-digest:
-    desc: "Get the component digest for AVS Sync"
+    desc: "Get the component digest"
     dir: "{{.REPO_ROOT}}"
     vars:
       COMPONENT_DIGEST_FILE:
@@ -15,7 +15,7 @@ tasks:
       - echo "{{.COMPONENT_DIGEST}}"
 
   get-service-id:
-    desc: "Get the service ID for AVS Sync"
+    desc: "Get the service ID"
     vars:
       SERVICE_ID:
         sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
@@ -23,7 +23,7 @@ tasks:
       - echo "{{.SERVICE_ID}}"
 
   get-service-manager-address:
-    desc: "Get the service manager address for AVS Sync"
+    desc: "Get the service manager address"
     dir: "{{.REPO_ROOT}}"
     vars:
       SERVICE_MANAGER_ADDRESS:
@@ -32,7 +32,7 @@ tasks:
       - echo "{{.SERVICE_MANAGER_ADDRESS}}"
 
   get-stake-registry-address:
-    desc: "Get the stake registry address for AVS Sync"
+    desc: "Get the stake registry address"
     dir: "{{.REPO_ROOT}}"
     vars:
       STAKE_REGISTRY_ADDRESS:
@@ -41,7 +41,7 @@ tasks:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
   get-source-rpc-url:
-    desc: "Get the source RPC URL for AVS Sync"
+    desc: "Get the source RPC URL"
     dir: "{{.REPO_ROOT}}"
     vars:
       EVM_RPC_URL:
@@ -50,7 +50,7 @@ tasks:
       - echo "{{.EVM_RPC_URL}}"
 
   get-mirror-rpc-url:
-    desc: "Get the source RPC URL for AVS Sync"
+    desc: "Get the source RPC URL"
     dir: "{{.REPO_ROOT}}"
     vars:
       EVM_RPC_URL:

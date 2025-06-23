@@ -38,6 +38,7 @@ tasks:
     cmds:
       - |
         task bootstrap:middleware-deploy
+        task bootstrap:mirror-deploy
         task bootstrap:components-build
         task bootstrap:components-upload
         task bootstrap:contracts-deploy
