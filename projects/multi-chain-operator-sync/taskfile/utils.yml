@@ -58,14 +58,6 @@ tasks:
     cmds:
       - echo "{{.EVM_RPC_URL}}"
 
-  get-submission-address:
-    vars:
-      CONTRACT_NAME: "AvsWriter"
-    cmds:
-      - >
-        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
-        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
-
   get-service-hd-index:
     vars:
       SERVICE_ID:
