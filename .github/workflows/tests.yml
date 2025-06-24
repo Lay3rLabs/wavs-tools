@@ -45,8 +45,8 @@ jobs:
         with:
           version: stable
 
-      - uses: actions/setup-node@v4
-        name: Install Node.js
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 21
 
@@ -55,6 +55,12 @@ jobs:
 
       - name: Install cargo component
         run: cargo binstall cargo-component
+
+      - name: Install wkg
+        run: cargo binstall wkg
+
+      - name: Setup wkg
+        run: wkg config --default-registry wa.dev
 
       - name: Install Task
         uses: arduino/setup-task@v2

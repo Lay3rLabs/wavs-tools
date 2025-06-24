@@ -9,8 +9,7 @@ describe("AVS-SYNC", function () {
     // since it includes starting the backend, deploying middleware, registering operators, etc.
     this.timeout(300000); 
 
-    // just temporarily starting 2 chains for testing purposes
-    backendManager = new BackendManager({nChains: 2});
+    backendManager = new BackendManager({nChains: 1});
     await backendManager.start();
 
     await execAsync("task", ["bootstrap"], {
