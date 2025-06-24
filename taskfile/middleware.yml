@@ -14,11 +14,17 @@ tasks:
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       MODE: '{{.MODE | default "eigen"}}'
+    deps:
+      - task: clean
+        vars:
+          PROJECT: "{{.PROJECT}}"
+          SERVICE_NAME: "{{.SERVICE_NAME}}"
+          CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
@@ -73,7 +79,7 @@ tasks:
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
@@ -165,7 +171,6 @@ tasks:
 
   get-strategy-manager-address:
     desc: "Get the strategy manager address from the deployments JSON file"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_ID: "{{.CHAIN_ID | default 17000}}"
     cmds:

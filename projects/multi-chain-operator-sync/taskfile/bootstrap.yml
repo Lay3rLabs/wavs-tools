@@ -5,45 +5,39 @@ silent: true
 tasks:
   components-build:
     desc: "Builds the WASI components for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     deps: [components-clean]
     vars:
       COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
     cmds:
-      - task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
+      - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
 
   components-clean:
     desc: "Deletes the WASI components for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - cd "{{.REPO_ROOT}}" && task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   components-upload:
     desc: "Uploads the WASI components for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   middleware-deploy:
     desc: "Deploys the middleware"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
 
   mirror-deploy-*:
     desc: "Deploys the mirror contracts"
-    dir: "{{.REPO_ROOT}}"
     vars:
       SOURCE_RPC_URL:
         sh: task get-source-rpc-url
       MIRROR_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.index .MATCH 0}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.index .MATCH 0}}
     cmds:
-      - task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" MODE="mirror" SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" MODE="mirror" SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}"
 
   build-service:
     desc: "Build service configuration"
-    dir: "{{.REPO_ROOT}}"
     deps: [clean-service]
     vars:
       CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
@@ -59,6 +53,7 @@ tasks:
         sh: task get-submission-address
     cmds:
       - |
+        cd "{{.REPO_ROOT}}"
         mkdir -p {{.SERVICE_OUTPUT_DIR}}
 
         # Build service configuration using task cli:wavs
