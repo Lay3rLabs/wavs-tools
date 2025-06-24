@@ -1,14 +1,20 @@
 import { BackendManager } from "./helpers/backend";
-import { projectDirectory, execAsync } from "./helpers/utils";
+import { projectPath, execAsync } from "./helpers/utils";
 
 describe("AVS-SYNC", function () {
   let backendManager: BackendManager;
 
   before(async function () {
-    this.timeout(60000); // 1 minute timeout for setup
+    // 5 minute timeout for setup
+    // since it includes starting the backend, deploying middleware, registering operators, etc.
+    this.timeout(300000); 
 
     backendManager = new BackendManager();
     await backendManager.start();
+
+    await execAsync("task", ["bootstrap"], {
+      cwd: projectPath("avs-sync"),
+    });
   });
 
   after(async function () {
@@ -22,7 +28,7 @@ describe("AVS-SYNC", function () {
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {
-        cwd: projectDirectory("avs-sync"),
+        cwd: projectPath("avs-sync"),
       });
     });
   });

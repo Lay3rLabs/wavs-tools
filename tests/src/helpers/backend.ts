@@ -1,4 +1,4 @@
-import { execAsync, rootDirectory } from './utils';
+import { execAsync, rootPath} from './utils';
 
 export interface BackendManagerConfig {
   nChains: number
@@ -34,7 +34,7 @@ export class BackendManager {
       }
 
       await execAsync('task', args, {
-        cwd: rootDirectory(),
+        cwd: rootPath(),
       });
 
       console.log('Backend started successfully');
@@ -52,7 +52,7 @@ export class BackendManager {
       // change to root directory
       console.log('Stopping backend...');
       await execAsync('task', ['backend:stop'], {
-        cwd: rootDirectory(),
+        cwd: rootPath(),
       });
       console.log('Backend stopped successfully');
     }
