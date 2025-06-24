@@ -1,30 +1,23 @@
-import { exec, ExecException } from 'child_process';
-import fs from 'fs';
-import path from 'path';
-import { promisify } from 'util';
-import waitPort from 'wait-port';
+import { execAsync, rootPath} from './utils';
 
-const execPromise = promisify(exec);
+export interface BackendManagerConfig {
+  nChains: number
+}
+
+const defaultBackendManagerConfig:BackendManagerConfig = {
+  nChains: 1,
+};
 
 export class BackendManager {
   public error: any | undefined;
+  public config: BackendManagerConfig;
   isRunning: boolean = false;
 
-  constructor() {
+
+  constructor(config?: BackendManagerConfig) {
+    this.config = config || defaultBackendManagerConfig;
   }
 
-  rootDirectory(): string {
-    // find the repo root directory by looking for the presence of .git
-    let currentDir = process.cwd();
-    while (currentDir !== '/') {
-      if (fs.existsSync(`${currentDir}/.git`)) {
-        return currentDir;
-      }
-      currentDir = path.dirname(currentDir);
-    }
-
-    throw new Error('Could not find the root directory of the repository');
-  }
 
   // Due to https://github.com/mochajs/mocha/issues/4392
   // this always "succeeds", all interactions should require calling `assertRunning()` 
@@ -32,12 +25,18 @@ export class BackendManager {
   async start() {
     try {
       this.error = undefined;
-      // change to root directory
-      process.chdir(this.rootDirectory());
 
       // Start the backend using task
       console.log('Starting backend...');
-      const {stdout, stderr} = await execPromise('task backend:start');
+      const args = ['backend:start'];
+      if (this.config.nChains > 1) {
+        args.push(`CHAIN_COUNT=${this.config.nChains}`);
+      }
+
+      await execAsync('task', args, {
+        cwd: rootPath(),
+      });
+
       console.log('Backend started successfully');
 
       this.isRunning = true;
@@ -51,9 +50,10 @@ export class BackendManager {
     if(this.isRunning) {
       this.isRunning = false;
       // change to root directory
-      process.chdir(this.rootDirectory());
       console.log('Stopping backend...');
-      const {stdout, stderr} = await execPromise('task backend:stop');
+      await execAsync('task', ['backend:stop'], {
+        cwd: rootPath(),
+      });
       console.log('Backend stopped successfully');
     }
   }
