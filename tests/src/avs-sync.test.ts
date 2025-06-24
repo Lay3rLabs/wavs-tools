@@ -5,9 +5,9 @@ describe("AVS-SYNC", function () {
   let backendManager: BackendManager;
 
   before(async function () {
-    // 5 minute timeout for setup
+    // 15 minute timeout for setup
     // since it includes starting the backend, deploying middleware, registering operators, etc.
-    this.timeout(300000); 
+    this.timeout(900000); 
 
     backendManager = new BackendManager({nChains: 1});
     await backendManager.start();
