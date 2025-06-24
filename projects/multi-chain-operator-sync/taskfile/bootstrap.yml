@@ -1,7 +1,5 @@
 version: "3"
 
-silent: true
-
 tasks:
   components-build:
     desc: "Builds the WASI components for AVS Sync"
@@ -122,4 +120,4 @@ tasks:
         sh: task get-service-signing-address
     cmds:
       - |
-        task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"

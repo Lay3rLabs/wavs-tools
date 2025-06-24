@@ -25,7 +25,6 @@ vars:
   PROJECT:
     # project name is same as dir name of current directory
     sh: basename "$(pwd)"
-  SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
   WAVS_CLI_SERVICE_JSON_PATH: "/wavs-tools/projects/avs-sync/.project-output/services/{{.COMPONENT_NAME}}.json"
   PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'

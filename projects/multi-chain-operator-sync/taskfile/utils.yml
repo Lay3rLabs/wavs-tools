@@ -1,7 +1,5 @@
 version: "3"
 
-silent: true
-
 tasks:
   get-component-digest:
     desc: "Get the component digest"
@@ -33,7 +31,7 @@ tasks:
     desc: "Get the stake registry address"
     vars:
       STAKE_REGISTRY_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" &&  task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
