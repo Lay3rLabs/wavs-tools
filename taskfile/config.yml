@@ -19,7 +19,7 @@ vars:
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
   PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
-  ANVIL_BASE_PORT: 8547 # Base port for Anvil, minus 1, so that chain 1 starts at 8548
+  ANVIL_BASE_PORT: 8548 # Base port for Anvil, subsequent ports will be incremented by 1 for each instance
   ANVIL_HOLESKY_FORK_URL: "https://1rpc.io/holesky"
   WAVS_PORT: 8123 #TODO: read from wavs.toml
   WAVS_AGGREGATOR_PORT: 8124 #TODO: read from wavs.toml
