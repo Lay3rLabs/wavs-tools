@@ -94,11 +94,19 @@ tasks:
       # Wait for the Anvil chain to be up and running
       # The deps here will ensure that the docker-start-chain-* task is run first
       - |
-        while ! nc -z localhost {{.ANVIL_PORT}}; do
+        for ((i=0; i<5; i++)); do
+          if nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
+            break
+          fi
           echo "Waiting for Anvil chain #{{.CHAIN_NUMBER}} to start on port {{.ANVIL_PORT}}..."
           sleep 1
         done
-      - echo "Anvil is up and running!"
+        if ! nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
+          echo "Anvil did not start after $MAX_WAIT seconds"
+          exit 1
+        fi
+      - |
+        echo "Anvil chain #{{.CHAIN_NUMBER}} is up!"
 
   docker-pull-chains:
     internal: true
@@ -178,17 +186,31 @@ tasks:
       # Wait for WAVS and WAVS Aggregator to be up and running
       # the deps here will ensure that the docker-start-wavs task is run first
       - |
-        while ! nc -z localhost {{.WAVS_AGGREGATOR_PORT}}; do
+        for ((i=0; i<5; i++)); do
+          if nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
+            break
+          fi
           echo "Waiting for Aggregator to start on port {{.WAVS_AGGREGATOR_PORT}}..."
           sleep 1
         done
-      - echo "WAVS Aggregator is up and running!"
+        if ! nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
+          echo "Aggregator did not start after 5 seconds"
+          exit 1
+        fi
+      - echo "Aggregator is up!"
       - |
-        while ! nc -z localhost {{.WAVS_PORT}}; do
+        for ((i=0; i<5; i++)); do
+          if nc -z 127.0.0.1 {{.WAVS_PORT}}; then
+            break
+          fi
           echo "Waiting for WAVS to start on port {{.WAVS_PORT}}..."
           sleep 1
         done
-      - echo "WAVS is up and running!"
+        if ! nc -z 127.0.0.1 {{.WAVS_PORT}}; then
+          echo "WAVS did not start after 5 seconds"
+          exit 1
+        fi
+      - echo "WAVS is up!"
 
   docker-start-wavs:
     internal: true
