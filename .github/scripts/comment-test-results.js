@@ -2,6 +2,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const {countFail} = require('./utils');
 
 async function commentTestResults({ github, context }) {
   try {
@@ -18,7 +19,7 @@ async function commentTestResults({ github, context }) {
     
     const stats = report.stats;
     const passing = stats.passes;
-    const failing = stats.failures;
+    const failing = countFail(report);
     const pending = stats.pending || 0;
     const skipped = stats.skipped || 0;
     const total = stats.tests;
@@ -97,6 +98,18 @@ function recurseSuites(suites, callback) {
   });
 }
 
+function recurseHooks(hooks, callback) {
+  hooks.forEach(hook => {
+    callback(hook);
+    if (hook.beforeHooks) {
+      recurseHooks(hook.beforeHooks, callback);
+    }
+    if (hook.afterHooks) {
+      recurseHooks(hook.afterHooks, callback);
+    }
+  });
+}
+
 function extractFailures(report) {
   const failures = [];
 
@@ -108,6 +121,11 @@ function extractFailures(report) {
             failures.push(test);
           }
         });
+      }
+    });
+    recurseHooks(report.results, hook => {
+      if (hook.fail === true) {
+        failures.push(hook);
       }
     });
   }

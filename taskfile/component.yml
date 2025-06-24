@@ -43,7 +43,6 @@ tasks:
 
   upload:
     desc: "Uploads a WASI component"
-    dir: "{{.REPO_ROOT}}"
     requires:
       vars: [PROJECT, COMPONENT_NAME]
     vars:
@@ -51,11 +50,12 @@ tasks:
       COMPONENT_BINARY: "/wavs-tools/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
       DATA_DIR: "/wavs-tools/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/.wavs-cli-data"
       COMPONENT_DIGEST_FILE:
-        sh: task component:get-digest-filepath PROJECT={{.PROJECT}} COMPONENT_NAME={{.COMPONENT_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task component:get-digest-filepath PROJECT={{.PROJECT}} COMPONENT_NAME={{.COMPONENT_NAME}}
     cmds:
       # unfortunately, the wavs-cli upload-component command doesn't write to JSON
       # but, fortunately, the last line of the output is the digest
       - |
+        cd "{{.REPO_ROOT}}" 
         OUTPUT=$(task component:docker-upload -- "{{.COMPONENT_BINARY}}" --data "{{.DATA_DIR}}")
         DIGEST=$(echo "$OUTPUT" | tail -n 1)
         if [[ "$OUTPUT" == *"Digest"* ]]; then
@@ -86,10 +86,9 @@ tasks:
 
   get-digest-filepath:
     desc: "Get the path to the component digest text file"
-    dir: "{{.REPO_ROOT}}"
     vars:
       OUTPUT_DIR:
-        sh: task component:get-output-dir PROJECT={{.PROJECT}}
+        sh: cd "{{.REPO_ROOT}}" && task component:get-output-dir PROJECT={{.PROJECT}}
     requires:
       vars: [PROJECT, COMPONENT_NAME]
     cmds:

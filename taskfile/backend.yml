@@ -28,8 +28,6 @@ tasks:
     desc: "Stops all backend services"
     deps:
       - task: stop-chains
-        vars:
-          CHAIN_COUNT: "{{.CHAIN_COUNT}}"
       - task: stop-wavs
       - task: stop-telemetry
 
@@ -48,14 +46,21 @@ tasks:
   stop-chains:
     vars:
       CHAIN_COUNT:
-        # look up how many docker contains start with the name "chain-anvil-"
+        # look up how many docker containers start with the name "chain-anvil-"
         # this is a bit of a hack, but it works for now
-        sh: |
-          if [ -z "{{.CHAIN_COUNT}}" ]; then
-            echo $(docker ps --filter "name=chain-anvil-" --format "{{.Names}}" | wc -l)
-          else
-            echo "{{.CHAIN_COUNT}}"
-          fi
+        sh: docker ps --filter "name=chain-anvil-" --format "{{.Names}}" | wc -l | xargs
+    cmds:
+      - |
+        if [ {{.CHAIN_COUNT}} -gt 0 ]; then
+          task backend:stop-chains-inner CHAIN_COUNT={{.CHAIN_COUNT}}
+        else
+          echo "No chains to stop (CHAIN_COUNT={{.CHAIN_COUNT}})"
+        fi
+
+  stop-chains-inner:
+    requires: 
+      vars: [CHAIN_COUNT]
+    vars:
       # Automatically generated range for CHAIN_COUNT
       CHAIN_RANGE:
         sh: seq 1 {{.CHAIN_COUNT}}
@@ -89,21 +94,28 @@ tasks:
       # Wait for the Anvil chain to be up and running
       # The deps here will ensure that the docker-start-chain-* task is run first
       - |
-        while ! nc -z localhost {{.ANVIL_PORT}}; do
+        for ((i=0; i<5; i++)); do
+          if nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
+            break
+          fi
           echo "Waiting for Anvil chain #{{.CHAIN_NUMBER}} to start on port {{.ANVIL_PORT}}..."
           sleep 1
         done
-      - echo "Anvil is up and running!"
+        if ! nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
+          echo "Anvil did not start after 5 seconds"
+          exit 1
+        fi
+      - |
+        echo "Anvil chain #{{.CHAIN_NUMBER}} is up!"
 
   docker-pull-chains:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml pull
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml pull
 
   docker-start-chain-*:
-    dir: "{{.BACKEND_DIR}}"
+    internal: true
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
@@ -120,11 +132,10 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
 
   docker-stop-chain-*:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
@@ -133,24 +144,24 @@ tasks:
       - |
         echo "Stopping Anvil chain #{{.CHAIN_NUMBER}}"
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans || true
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans || true
 
   # HELPERS
   get-anvil-port-*:
     desc: "Get the Anvil port for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      ANVIL_PORT: "{{add .ANVIL_BASE_PORT .CHAIN_NUMBER}}"
+      # We use 1 as the CHAIN_NUMBER, so subtract 1 to keep the base port the same 
+      ANVIL_PORT: "{{sub (add .ANVIL_BASE_PORT .CHAIN_NUMBER) 1}}"
     cmds:
       - echo "{{.ANVIL_PORT}}"
 
   get-evm-rpc-url-*:
     desc: "Get the RPC URL for a chain number"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       ANVIL_PORT:
-        sh: task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - echo "http://localhost:{{.ANVIL_PORT}}"
 
@@ -165,10 +176,9 @@ tasks:
 
   docker-pull-wavs:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml pull
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml pull
 
   start-wavs-inner:
     internal: true
@@ -177,35 +187,47 @@ tasks:
       # Wait for WAVS and WAVS Aggregator to be up and running
       # the deps here will ensure that the docker-start-wavs task is run first
       - |
-        while ! nc -z localhost {{.WAVS_AGGREGATOR_PORT}}; do
+        for ((i=0; i<5; i++)); do
+          if nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
+            break
+          fi
           echo "Waiting for Aggregator to start on port {{.WAVS_AGGREGATOR_PORT}}..."
           sleep 1
         done
-      - echo "WAVS Aggregator is up and running!"
+        if ! nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
+          echo "Aggregator did not start after 5 seconds"
+          exit 1
+        fi
+      - echo "Aggregator is up!"
       - |
-        while ! nc -z localhost {{.WAVS_PORT}}; do
+        for ((i=0; i<5; i++)); do
+          if nc -z 127.0.0.1 {{.WAVS_PORT}}; then
+            break
+          fi
           echo "Waiting for WAVS to start on port {{.WAVS_PORT}}..."
           sleep 1
         done
-      - echo "WAVS is up and running!"
+        if ! nc -z 127.0.0.1 {{.WAVS_PORT}}; then
+          echo "WAVS did not start after 5 seconds"
+          exit 1
+        fi
+      - echo "WAVS is up!"
 
   docker-start-wavs:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
         echo "Starting WAVS on port {{.WAVS_PORT}} and WAVS Aggregator on port {{.WAVS_AGGREGATOR_PORT}}"
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml up --force-recreate -d
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml up --force-recreate -d
 
   docker-stop-wavs:
     aliases: [stop-wavs]
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
         echo "Stopping WAVS"
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true  
 
   ###################################################################
   ##################### TELEMETRY ###################################
@@ -219,10 +241,9 @@ tasks:
 
   docker-pull-telemetry:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml pull
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml pull
 
   start-telemetry-inner:
     internal: true
@@ -245,18 +266,12 @@ tasks:
 
   docker-start-telemetry:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - |
-        echo "Starting Telemetry"
-      - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
+      - echo "Starting Telemetry"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
 
   docker-stop-telemetry:
     aliases: [stop-telemetry]
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - |
-        echo "Stopping Telemetry"
-      - |
-        {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans || true
+      - echo "Stopping Telemetry"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans || true

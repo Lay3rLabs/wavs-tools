@@ -9,17 +9,16 @@ includes:
 tasks:
   deploy:
     desc: "Deploy middleware for a given service"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       MODE: '{{.MODE | default "eigen"}}'
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
@@ -50,11 +49,10 @@ tasks:
 
   clean:
     desc: "Clean up middleware nodes directory for a given service"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -64,11 +62,10 @@ tasks:
 
   register-operator:
     desc: "Register an operator on a given service"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_PRIVATE_KEY:
         sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
     requires:
@@ -76,14 +73,14 @@ tasks:
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}} 
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
@@ -100,19 +97,18 @@ tasks:
 
   list-operators:
     desc: "List registered operators for a given service"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -135,12 +131,11 @@ tasks:
 
   get-json-filepath:
     desc: "Get the path to the middleware deploy JSON file"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
       OUTPUT_DIR:
-        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -148,11 +143,10 @@ tasks:
 
   get-service-manager-address:
     desc: "Get the WAVS Service Manager address from the middleware deploy JSON file"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       JSON_FILEPATH:
-        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -160,11 +154,10 @@ tasks:
 
   get-stake-registry-address:
     desc: "Get the Stake Registry address from the middleware deploy JSON file"
-    dir: "{{.REPO_ROOT}}"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       JSON_FILEPATH:
-        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:

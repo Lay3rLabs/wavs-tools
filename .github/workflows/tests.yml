@@ -18,8 +18,19 @@ jobs:
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
+
+  
     steps:
-      - name: Checkout
+      - name: Checkout (PR Comment)
+        if: github.event_name == 'issue_comment'
+        uses: actions/checkout@v4
+        with:
+          submodules: 'recursive'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: refs/pull/${{ github.event.issue.number }}/head
+
+      - name: Checkout (Push/PR)
+        if: github.event_name != 'issue_comment'
         uses: actions/checkout@v4
         with:
           submodules: 'recursive'
@@ -45,10 +56,22 @@ jobs:
         with:
           version: stable
 
-      - uses: actions/setup-node@v4
-        name: Install Node.js
+      - name: Install Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 21
+
+      - name: Install cargo binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install cargo component
+        run: cargo binstall cargo-component
+
+      - name: Install wkg
+        run: cargo binstall wkg
+
+      - name: Setup wkg
+        run: wkg config --default-registry wa.dev
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -80,11 +103,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.draft }}" = "false" ]; then
             # Check if there are test failures
             if [ -f tests/.test-reports/merged-report.json ]; then
-              failures=$(node -e "
-                const fs = require('fs');
-                const report = JSON.parse(fs.readFileSync('tests/.test-reports/merged-report.json', 'utf8'));
-                console.log(report.stats.failures || 0);
-              ")
+              failures=$(node ./.github/scripts/collect-failures.js)
               if [ "$failures" -gt "0" ]; then
                 SHOULD_COMMENT="true"
                 echo "Commenting due to test failures in non-draft PR"
@@ -110,11 +129,7 @@ jobs:
         if: always()
         run: |
           if [ -f tests/.test-reports/merged-report.json ]; then
-            failures=$(node -e "
-              const fs = require('fs');
-              const report = JSON.parse(fs.readFileSync('tests/.test-reports/merged-report.json', 'utf8'));
-              console.log(report.stats.failures || 0);
-            ")
+            failures=$(node ./.github/scripts/collect-failures.js)
             if [ "$failures" -gt "0" ]; then
               echo "Tests failed: $failures failure(s) found"
               exit 1

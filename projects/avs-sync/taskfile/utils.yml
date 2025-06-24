@@ -1,14 +1,11 @@
 version: "3"
 
-silent: true
-
 tasks:
   get-component-digest:
     desc: "Get the component digest for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     vars:
       COMPONENT_DIGEST_FILE:
-        sh: task component:get-digest-filepath PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+        sh: cd "{{.REPO_ROOT}}" && task component:get-digest-filepath PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
       COMPONENT_DIGEST:
         sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
     cmds:
@@ -24,28 +21,25 @@ tasks:
 
   get-service-manager-address:
     desc: "Get the service manager address for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     vars:
       SERVICE_MANAGER_ADDRESS:
-        sh: task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
     cmds:
       - echo "{{.SERVICE_MANAGER_ADDRESS}}"
 
   get-stake-registry-address:
     desc: "Get the stake registry address for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     vars:
       STAKE_REGISTRY_ADDRESS:
-        sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
   get-evm-rpc-url:
     desc: "Get the EVM RPC URL for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     vars:
       EVM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-1
     cmds:
       - echo "{{.EVM_RPC_URL}}"
 
