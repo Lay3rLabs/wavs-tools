@@ -124,4 +124,5 @@ tasks:
       AVS_SIGNING_ADDRESS:
         sh: task get-service-signing-address
     cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+      - |
+        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"

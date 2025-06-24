@@ -58,7 +58,7 @@ tasks:
         fi
 
   stop-chains-inner:
-    requires: 
+    requires:
       vars: [CHAIN_COUNT]
     vars:
       # Automatically generated range for CHAIN_COUNT
@@ -151,7 +151,7 @@ tasks:
     desc: "Get the Anvil port for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      # We use 1 as the CHAIN_NUMBER, so subtract 1 to keep the base port the same 
+      # We use 1 as the CHAIN_NUMBER, so subtract 1 to keep the base port the same
       ANVIL_PORT: "{{sub (add .ANVIL_BASE_PORT .CHAIN_NUMBER) 1}}"
     cmds:
       - echo "{{.ANVIL_PORT}}"
@@ -227,7 +227,7 @@ tasks:
       - |
         echo "Stopping WAVS"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true  
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true
 
   ###################################################################
   ##################### TELEMETRY ###################################

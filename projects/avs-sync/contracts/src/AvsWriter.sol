@@ -15,6 +15,10 @@ contract AvsWriter is IWavsServiceHandler {
         _serviceManager = serviceManager;
     }
 
+    function getServiceManager() external view returns (address) {
+        return address(_serviceManager);
+    }
+
     function handleSignedEnvelope(
         IWavsServiceHandler.Envelope calldata envelope,
         IWavsServiceHandler.SignatureData calldata signatureData

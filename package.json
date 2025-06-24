@@ -3,6 +3,6 @@
   "version": "1.0.0",
   "license": "MIT",
   "dependencies": {
-    "@wavs/solidity": "git+https://github.com/Lay3rLabs/wavs-middleware"
+    "@wavs/solidity": "git+https://github.com/Lay3rLabs/wavs-middleware.git#reece/getServiceManager"
   }
 }
