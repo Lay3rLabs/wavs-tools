@@ -32,7 +32,7 @@ tasks:
           task bootstrap:mirror-deploy-n CHAIN_NUM=$i
         done
 
-  mirror-deploy-*:
+  mirror-deploy-n:
     desc: "Deploys the mirror contracts for a chain"
     requires:
       vars: ["CHAIN_NUM"]
