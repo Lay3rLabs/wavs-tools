@@ -102,7 +102,7 @@ tasks:
           sleep 1
         done
         if ! nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
-          echo "Anvil did not start after $MAX_WAIT seconds"
+          echo "Anvil did not start after 5 seconds"
           exit 1
         fi
       - |
