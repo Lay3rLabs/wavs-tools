@@ -23,7 +23,7 @@ tasks:
     desc: "Get the service manager address"
     vars:
       SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
     cmds:
       - echo "{{.SERVICE_MANAGER_ADDRESS}}"
 
@@ -31,7 +31,7 @@ tasks:
     desc: "Get the stake registry address"
     vars:
       STAKE_REGISTRY_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 

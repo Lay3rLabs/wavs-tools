@@ -12,7 +12,7 @@ vars:
         fi
         dir="$(dirname "$dir")"
       done
-  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.4.0"
+  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:458f0f7" # add multiple aggregator submit
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0f1fb54"
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"

@@ -67,8 +67,8 @@ tasks:
         sh: task get-service-manager-address
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
-      SUBMISSION_ADDRESS:
-        sh: task get-submission-address
+      OPERATOR_REGISTERED_EVENT_HASH:
+        sh: cast keccak "OperatorRegistered(address,address)"
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
@@ -80,7 +80,7 @@ tasks:
         WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.TRIGGER_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}} > /dev/null
           
         task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address {{.SUBMISSION_ADDRESS}} --chain-name {{.SUBMIT_CHAIN}} > /dev/null
 
