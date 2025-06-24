@@ -50,8 +50,16 @@ tasks:
 
   deploy-mirror:
     desc: "Deploy mirror contracts for a given service"
+    deps:
+      - task: clean
+        vars:
+          PROJECT: "{{.PROJECT}}"
+          SERVICE_NAME: "{{.SERVICE_NAME}}"
+          CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      SOURCE_NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER=1 PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
@@ -65,6 +73,8 @@ tasks:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
     cmds:
       - mkdir -p {{.NODES_DIR}}
+      - cp {{.SOURCE_NODES_DIR}}/avs_deploy.json {{.NODES_DIR}}/avs_deploy.json
+      - cp {{.SOURCE_NODES_DIR}}/deployer {{.NODES_DIR}}/deployer
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV

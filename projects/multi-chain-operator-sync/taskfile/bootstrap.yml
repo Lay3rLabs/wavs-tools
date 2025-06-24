@@ -29,23 +29,24 @@ tasks:
     cmds:
       - |
         for i in $(seq 2 {{.CHAIN_COUNT}}); do
-          task bootstrap:mirror-deploy-n CHAIN_NUM=$i
+          task bootstrap:mirror-deploy-n CHAIN_NUMBER=$i
         done
 
   mirror-deploy-n:
     desc: "Deploys the mirror contracts for a chain"
     requires:
-      vars: ["CHAIN_NUM"]
+      vars: ["CHAIN_NUMBER"]
     vars:
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       SOURCE_RPC_URL:
         sh: task get-source-rpc-url
       MIRROR_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUM}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
     cmds:
       - >
-        cd "{{.REPO_ROOT}}" && task middleware:deploy-mirror 
+        cd "{{.REPO_ROOT}}" && task middleware:deploy-mirror
+        CHAIN_NUMBER="{{.CHAIN_NUMBER}}"
         PROJECT="{{.PROJECT}}" 
         SERVICE_NAME="{{.PROJECT}}" 
         MODE="mirror" 
