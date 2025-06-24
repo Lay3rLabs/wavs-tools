@@ -18,11 +18,21 @@ jobs:
       github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
+
+  
     steps:
-      - name: Checkout
+      - name: Checkout (PR Comment)
+        if: github.event_name == 'issue_comment'
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          submodules: 'recursive'
+          token: ${{ secrets.GITHUB_TOKEN }}
+          ref: refs/pull/${{ github.event.issue.number }}/head
+
+      - name: Checkout (Push/PR)
+        if: github.event_name != 'issue_comment'
+        uses: actions/checkout@v4
+        with:
           submodules: 'recursive'
 
       - name: Cache Submodules
