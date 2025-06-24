@@ -101,6 +101,5 @@ tasks:
 
   list-operators:
     desc: "List registered operators for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+      - cd "{{.REPO_ROOT}}" && task middleware:list-operators PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"

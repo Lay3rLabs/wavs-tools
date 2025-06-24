@@ -16,7 +16,7 @@ includes:
     taskfile: taskfile/utils.yml
     flatten: true
 
-silent: true
+# silent: true
 
 vars:
   # These are all locally defined here, do not depend on config.yml being loaded first

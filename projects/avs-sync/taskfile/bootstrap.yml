@@ -1,34 +1,30 @@
 version: "3"
 
-silent: true
+# silent: true
 
 tasks:
   components-build:
     desc: "Builds the WASI components for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     deps: [components-clean]
     vars:
       COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
     cmds:
-      - task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
+      - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
 
   components-clean:
     desc: "Deletes the WASI components for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - cd "{{.REPO_ROOT}}" && task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   components-upload:
     desc: "Uploads the WASI components for AVS Sync"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   middleware-deploy:
     desc: "Deploys the AVS Sync middleware"
-    dir: "{{.REPO_ROOT}}"
     cmds:
-      - task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+      - cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
 
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"
@@ -47,7 +43,6 @@ tasks:
 
   build-service:
     desc: "Build avs_sync service configuration"
-    dir: "{{.REPO_ROOT}}"
     deps: [clean-service]
     vars:
       CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
@@ -69,6 +64,8 @@ tasks:
         SERVICE_ID=$(task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
 
         WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
+
+        cd "{{.REPO_ROOT}}"
 
         # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}} > /dev/null
@@ -131,4 +128,4 @@ tasks:
         sh: task get-service-signing-address
     cmds:
       - |
-        task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
+        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="avs-sync"
