@@ -48,7 +48,7 @@ tasks:
       CHAIN_COUNT:
         # look up how many docker containers start with the name "chain-anvil-"
         # this is a bit of a hack, but it works for now
-        sh: docker ps --filter "name=chain-anvil-" --format "{{.Names}}" | wc -l | xargs
+        sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
     cmds:
       - |
         if [ {{.CHAIN_COUNT}} -gt 0 ]; then
