@@ -44,7 +44,7 @@ tasks:
   test:
     dir: tests
     cmds:
-      - npm run test 
+      - npm run test:report
 
   test:report:
     dir: tests
