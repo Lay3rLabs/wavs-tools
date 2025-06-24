@@ -1,7 +1,5 @@
 version: "3"
 
-silent: true
-
 tasks:
   get-component-digest:
     desc: "Get the component digest for AVS Sync"
