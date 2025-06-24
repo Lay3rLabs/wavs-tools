@@ -50,6 +50,12 @@ jobs:
         with:
           node-version: 21
 
+      - name: Install cargo binstall
+        uses: - uses: cargo-bins/cargo-binstall@main
+
+      - name: Install cargo component
+        run: cargo binstall cargo-component
+
       - name: Install Task
         uses: arduino/setup-task@v2
         with:
