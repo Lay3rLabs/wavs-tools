@@ -151,7 +151,8 @@ tasks:
     desc: "Get the Anvil port for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      ANVIL_PORT: "{{add .ANVIL_BASE_PORT .CHAIN_NUMBER}}"
+      # We use 1 as the CHAIN_NUMBER, so subtract 1 to keep the base port the same 
+      ANVIL_PORT: "{{sub (add .ANVIL_BASE_PORT .CHAIN_NUMBER) 1}}"
     cmds:
       - echo "{{.ANVIL_PORT}}"
 
