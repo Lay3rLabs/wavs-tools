@@ -84,7 +84,8 @@ tasks:
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       AMOUNT: "{{.AMOUNT}}"
-      STRATEGY_MANAGER_ADDRESS: task middleware:get-strategy-manager-address
+      STRATEGY_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-strategy-manager-address
     cmds:
       - forge script script/AddWeight.s.sol:AddWeight --rpc-url {{.EVM_RPC_URL}} --broadcast --private-key {{.OPERATOR_PRIVATE_KEY}}
 

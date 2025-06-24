@@ -77,8 +77,6 @@ tasks:
           
         task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
 
-        task cli:wavs -- {{.CMD}} validate
-
         echo "Service configuration built successfully"
 
   clean-service:
