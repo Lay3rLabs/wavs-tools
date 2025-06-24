@@ -57,13 +57,12 @@ tasks:
           SERVICE_NAME: "{{.SERVICE_NAME}}"
           CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     vars:
-      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       SOURCE_NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER=1 PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [PROJECT, SERVICE_NAME]
+      vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       SOURCE_RPC_URL: "{{.SOURCE_RPC_URL}}"
