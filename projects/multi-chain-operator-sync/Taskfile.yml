@@ -25,7 +25,7 @@ vars:
   PROJECT:
     # project name is same as dir name of current directory
     sh: basename "$(pwd)"
-  WAVS_CLI_SERVICE_JSON_PATH: "/wavs-tools/projects/avs-sync/.project-output/services/{{.COMPONENT_NAME}}.json"
+  WAVS_CLI_SERVICE_JSON_PATH: "/wavs-tools/projects/{{.PROJECT}}/.project-output/services/{{.COMPONENT_NAME}}.json"
   PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
@@ -42,7 +42,6 @@ tasks:
         task bootstrap:mirror-deploy
         task bootstrap:components-build
         task bootstrap:components-upload
-        task bootstrap:contracts-deploy
         task bootstrap:build-service
         task bootstrap:upload-service
         task bootstrap:set-service-uri

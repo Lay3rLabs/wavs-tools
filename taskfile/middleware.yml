@@ -83,6 +83,8 @@ tasks:
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} -m mirror deploy
+      - rm {{.NODES_DIR}}/deployer
+      - rm {{.NODES_DIR}}/avs_deploy.json
 
   clean:
     desc: "Clean up middleware nodes directory for a given service"
