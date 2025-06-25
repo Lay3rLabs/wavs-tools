@@ -165,6 +165,20 @@ tasks:
     cmds:
       - echo "http://localhost:{{.ANVIL_PORT}}"
 
+  get-chain-name-*:
+    desc: "Get the chain name for a chain number"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_NAME:
+        sh: |
+          if [ "{{.CHAIN_NUMBER}}" = "1" ]; then
+            echo "local"
+          else
+            echo "local{{.CHAIN_NUMBER}}"
+          fi
+    cmds:
+      - echo {{.CHAIN_NAME}}
+
   ###################################################################
   ######################## WAVS #####################################
   ###################################################################

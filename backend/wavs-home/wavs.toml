@@ -40,6 +40,30 @@ ws_endpoint = "ws://localhost:8548"
 http_endpoint = "http://localhost:8548"
 poll_interval_ms = 7000
 
+[default.chains.evm.local2]
+chain_id = "31338"
+ws_endpoint = "ws://localhost:8549"
+http_endpoint = "http://localhost:8549"
+poll_interval_ms = 7000
+
+[default.chains.evm.local3]
+chain_id = "31339"
+ws_endpoint = "ws://localhost:8550"
+http_endpoint = "http://localhost:8550"
+poll_interval_ms = 7000
+
+[default.chains.evm.local4]
+chain_id = "31340"
+ws_endpoint = "ws://localhost:8551"
+http_endpoint = "http://localhost:8551"
+poll_interval_ms = 7000
+
+[default.chains.evm.local5]
+chain_id = "31341"
+ws_endpoint = "ws://localhost:8552"
+http_endpoint = "http://localhost:8552"
+poll_interval_ms = 7000
+
 [default.chains.evm.sepolia]
 chain_id = "11155111"
 ws_endpoint = "wss://ethereum-sepolia-rpc.publicnode.com"
