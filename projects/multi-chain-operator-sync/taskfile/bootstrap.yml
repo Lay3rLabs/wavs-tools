@@ -28,6 +28,11 @@ tasks:
     desc: "Deploys the mirror contracts for all chains"
     cmds:
       - |
+        if [ {{.CHAIN_COUNT}} -lt 2 ]; then
+          echo "Error: CHAIN_COUNT must be 2 or greater"
+          exit 1
+        fi
+
         for i in $(seq 2 {{.CHAIN_COUNT}}); do
           task bootstrap:mirror-deploy-n CHAIN_NUMBER=$i
         done
@@ -59,8 +64,8 @@ tasks:
     deps: [clean-service]
     vars:
       CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
-      TRIGGER_CHAIN: "local"
-      SUBMIT_CHAIN: "local"
+      TRIGGER_CHAIN:
+        sh: cd {{.REPO_ROOT}} && task get-chain-name-1
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
