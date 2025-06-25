@@ -13,8 +13,8 @@ use wstd::runtime::block_on;
 
 use crate::{
     bindings::{
-        host::get_evm_chain_config,
-        wavs::worker::layer_types::{TriggerData, TriggerDataEvmContractEvent},
+        host::{self, get_evm_chain_config},
+        wavs::worker::layer_types::{LogLevel, TriggerData, TriggerDataEvmContractEvent},
     },
     ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
     IMirrorUpdateTypes::UpdateWithId,
@@ -93,11 +93,21 @@ async fn handle_register_event(
     operator: Address,
     block_height: u64,
 ) -> anyhow::Result<UpdateWithId> {
+    host::log(
+        LogLevel::Info,
+        &format!(
+            "Querying register info for operator {} at block {}",
+            operator, block_height
+        ),
+    );
+
     // Query the current signing key for operator
     let signing_key = stake_registry
         .getOperatorSigningKeyAtBlock(operator, Uint::from(block_height))
         .call()
         .await?;
+
+    host::log(LogLevel::Info, &format!("Signing key: {}", signing_key));
 
     // Get operator's stake
     let weight = stake_registry
@@ -105,11 +115,18 @@ async fn handle_register_event(
         .call()
         .await?;
 
+    host::log(LogLevel::Info, &format!("Weight: {}", weight));
+
     // Get the threshold weight
     let threshold_weight = stake_registry
         .getLastCheckpointThresholdWeightAtBlock(block_height.try_into()?)
         .call()
         .await?;
+
+    host::log(
+        LogLevel::Info,
+        &format!("Threshold weight: {}", threshold_weight),
+    );
 
     Ok(UpdateWithId {
         operators: vec![operator],
