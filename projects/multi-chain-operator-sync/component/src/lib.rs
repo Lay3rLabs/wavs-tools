@@ -105,13 +105,18 @@ async fn handle_register_event(
         .call()
         .await?;
 
-    #[allow(unreachable_code)]
+    // Get the threshold weight
+    let threshold_weight = stake_registry
+        .getLastCheckpointThresholdWeightAtBlock(block_height.try_into()?)
+        .call()
+        .await?;
+
     Ok(UpdateWithId {
         operators: vec![operator],
         signingKeys: vec![signing_key],
         weights: vec![weight],
-        triggerId: todo!(),
-        thresholdWeight: todo!(),
+        triggerId: block_height,
+        thresholdWeight: threshold_weight,
     })
 }
 
