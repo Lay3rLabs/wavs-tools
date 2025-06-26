@@ -99,7 +99,7 @@ tasks:
         WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
         for i in $(seq 2 {{.CHAIN_COUNT}}); do
           CHAIN_NAME=$(task backend:get-chain-name-$i)
@@ -108,17 +108,17 @@ tasks:
           cd {{.REPO_ROOT}}
 
           if [ "$i" -eq 2 ]; then
-            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME" > /dev/null
+            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
           else
-            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME" > /dev/null
+            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
           fi
         done
 
-        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}} > /dev/null
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
           
-        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true > /dev/null
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
           
-        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} > /dev/null
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
 
         echo "Service configuration built successfully"
 

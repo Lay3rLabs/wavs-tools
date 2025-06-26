@@ -205,6 +205,6 @@ tasks:
   get-strategy-manager-address:
     desc: "Get the strategy manager address from the deployments JSON file"
     vars:
-      CHAIN_ID: "{{.CHAIN_ID | default 17000}}"
+      CHAIN_ID: "{{.CHAIN_ID | default .MIDDLEWARE_CHAIN_ID}}"
     cmds:
       - sh -c 'jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json" 2>/dev/null || true'
