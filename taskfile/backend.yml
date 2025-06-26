@@ -271,7 +271,7 @@ tasks:
       WAVS_PORT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-port-{{.WAVS_NUMBER}}
     env:
-      COMPOSE_CONTAINER_NAME_WAVS: "wavs-{{.WAVS_NUMBER}}"
+      COMPOSE_CONTAINER_NAME: "wavs-{{.WAVS_NUMBER}}"
       COMPOSE_WAVS_PORT: "{{.WAVS_PORT}}"
     cmds:
       - |
@@ -282,20 +282,19 @@ tasks:
   stop-wavs:
     cmds:
       - |
-        # Stop aggregator
-        echo "Stopping WAVS Aggregator"
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml stop || true
-      - |
-        # Stop all WAVS instances
+        # Stop all WAVS instances first
         if [ {{.WAVS_COUNT}} -gt 0 ]; then
           task backend:stop-wavs-inner
         else
           echo "No WAVS instances to stop"
         fi
+      - task: stop-wavs-aggregator
+
+  stop-wavs-aggregator:
+    cmds:
       - |
-        # Clean up
+        echo "Stopping WAVS Aggregator"
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans || true
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans || true
 
   stop-wavs-inner:
     vars:
@@ -311,12 +310,12 @@ tasks:
     vars:
       WAVS_NUMBER: "{{index .MATCH 0}}"
     env:
-      COMPOSE_CONTAINER_NAME_WAVS: "wavs-{{.WAVS_NUMBER}}"
+      COMPOSE_CONTAINER_NAME: "wavs-{{.WAVS_NUMBER}}"
     cmds:
       - |
         echo "Stopping WAVS #{{.WAVS_NUMBER}}"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker stop wavs-{{.WAVS_NUMBER}} || true
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans || true
 
   # HELPERS
   get-wavs-port-*:

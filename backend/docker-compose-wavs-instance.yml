@@ -1,7 +1,7 @@
 name: "wavs-instances"
 services:
   wavs:
-    container_name: "${COMPOSE_CONTAINER_NAME_WAVS:-wavs}"
+    container_name: "${COMPOSE_CONTAINER_NAME}"
     image: "${COMPOSE_WAVS_DOCKER_IMAGE}"
     stop_signal: SIGKILL
     env_file: "../.env"
