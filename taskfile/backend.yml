@@ -1,7 +1,7 @@
 version: "3"
 
 includes:
-  config: 
+  config:
     taskfile: ./config.yml
     flatten: true
 
@@ -19,7 +19,7 @@ tasks:
     desc: "Starts all backend services"
     deps:
       - task: start-chains
-        vars: 
+        vars:
           CHAIN_COUNT: "{{.CHAIN_COUNT}}"
       - task: start-wavs
       - task: start-telemetry
@@ -35,7 +35,7 @@ tasks:
   ######################## Chains ###################################
   ###################################################################
   start-chains:
-    # Pull the latest images before starting 
+    # Pull the latest images before starting
     deps: [docker-pull-chains]
     cmds:
       - task: start-chains-inner
@@ -48,7 +48,7 @@ tasks:
       CHAIN_COUNT:
         # look up how many docker containers start with the name "chain-anvil-"
         # this is a bit of a hack, but it works for now
-        sh: docker ps --filter "name=chain-anvil-" --format "{{.Names}}" | wc -l | xargs
+        sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
     cmds:
       - |
         if [ {{.CHAIN_COUNT}} -gt 0 ]; then
@@ -58,7 +58,7 @@ tasks:
         fi
 
   stop-chains-inner:
-    requires: 
+    requires:
       vars: [CHAIN_COUNT]
     vars:
       # Automatically generated range for CHAIN_COUNT
@@ -87,7 +87,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       ANVIL_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}} 
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     deps:
       - task: docker-start-chain-{{index .MATCH 0}}
     cmds:
@@ -120,16 +120,16 @@ tasks:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
       COMPOSE_ANVIL_FORK_CMD:
-            # For right now, the setup is that chain #1 is the Holesky fork, and all others are local Anvil instances. 
-            # We can add more fork URLs here as needed or move this to a map, json, or other structure in the future.
-            sh: |
-              case {{.CHAIN_NUMBER}} in
-                1) echo "--fork-url {{.ANVIL_HOLESKY_FORK_URL}}" ;;
-                *) echo "" ;;
-              esac
+        # For right now, the setup is that chain #1 is the Holesky fork, and all others are local Anvil instances.
+        # We can add more fork URLs here as needed or move this to a map, json, or other structure in the future.
+        sh: |
+          case {{.CHAIN_NUMBER}} in
+            1) echo "--fork-url {{.ANVIL_HOLESKY_FORK_URL}}" ;;
+            *) echo "" ;;
+          esac
       COMPOSE_CONTAINER_NAME: "chain-anvil-{{.CHAIN_NUMBER}}"
       COMPOSE_ANVIL_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}} 
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - |
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
@@ -146,12 +146,12 @@ tasks:
       - |
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans || true
 
-  # HELPERS 
+  # HELPERS
   get-anvil-port-*:
     desc: "Get the Anvil port for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      # We use 1 as the CHAIN_NUMBER, so subtract 1 to keep the base port the same 
+      # We use 1 as the CHAIN_NUMBER, so subtract 1 to keep the base port the same
       ANVIL_PORT: "{{sub (add .ANVIL_BASE_PORT .CHAIN_NUMBER) 1}}"
     cmds:
       - echo "{{.ANVIL_PORT}}"
@@ -165,11 +165,25 @@ tasks:
     cmds:
       - echo "http://localhost:{{.ANVIL_PORT}}"
 
+  get-chain-name-*:
+    desc: "Get the chain name for a chain number"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_NAME:
+        sh: |
+          if [ "{{.CHAIN_NUMBER}}" = "1" ]; then
+            echo "local"
+          else
+            echo "local{{.CHAIN_NUMBER}}"
+          fi
+    cmds:
+      - echo {{.CHAIN_NAME}}
+
   ###################################################################
   ######################## WAVS #####################################
   ###################################################################
   start-wavs:
-    # Pull the latest images before starting 
+    # Pull the latest images before starting
     deps: [docker-pull-wavs]
     cmds:
       - task: start-wavs-inner
@@ -227,14 +241,14 @@ tasks:
       - |
         echo "Stopping WAVS"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true  
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true
 
   ###################################################################
   ##################### TELEMETRY ###################################
   ###################################################################
 
   start-telemetry:
-    # Pull the latest images before starting 
+    # Pull the latest images before starting
     deps: [docker-pull-telemetry]
     cmds:
       - task: start-telemetry-inner
@@ -267,15 +281,11 @@ tasks:
   docker-start-telemetry:
     internal: true
     cmds:
-      - |
-        echo "Starting Telemetry"
-      - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
+      - echo "Starting Telemetry"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
 
   docker-stop-telemetry:
     aliases: [stop-telemetry]
     cmds:
-      - |
-        echo "Stopping Telemetry"
-      - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans || true
+      - echo "Stopping Telemetry"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans || true
