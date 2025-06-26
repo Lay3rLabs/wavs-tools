@@ -175,6 +175,13 @@ tasks:
     cmds:
       - echo {{.CHAIN_NAME}}
 
+  get-wavs-endpoint-*:
+    desc: "Get the wavs endpoint for an instance"
+    vars:
+      WAVS_INSTANCE: "{{sub (index .MATCH 0) 1}}"
+    cmds:
+      - echo "http://localhost:{{add .WAVS_BASE_PORT .WAVS_INSTANCE}}"
+
   ###################################################################
   ######################## WAVS #####################################
   ###################################################################

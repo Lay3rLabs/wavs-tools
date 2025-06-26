@@ -16,8 +16,12 @@ tasks:
 
   components-upload:
     desc: "Uploads the WASI components for AVS Sync"
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
-      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
     desc: "Deploys the middleware"
@@ -130,12 +134,19 @@ tasks:
       - rm -rf "{{.SERVICE_OUTPUT_DIR}}"
 
   upload-service:
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - |
         curl -X POST "{{.WAVS_ENDPOINT}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
 
   set-service-uri:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
       SERVICE_MANAGER_ADDRESS:
@@ -149,6 +160,9 @@ tasks:
 
   register-service-uri:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
@@ -158,6 +172,9 @@ tasks:
 
   deploy-service:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"

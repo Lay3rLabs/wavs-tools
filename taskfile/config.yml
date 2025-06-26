@@ -24,7 +24,6 @@ vars:
   WAVS_BASE_PORT: 8123 # Base port for WAVS, subsequent ports will be incremented by 1 for each instance
   WAVS_AGGREGATOR_PORT: 8200
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
-  WAVS_ENDPOINT: "http://localhost:{{.WAVS_BASE_PORT}}"
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
   MIDDLEWARE_DEPLOY_ENV: "LOCAL"
   MIDDLEWARE_CHAIN_ID: 17000
