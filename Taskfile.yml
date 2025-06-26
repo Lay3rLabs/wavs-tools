@@ -37,7 +37,7 @@ tasks:
 
   setup-ci:
     cmds:
-      - npm ci 
+      - npm ci
       - cd tests && npm ci
       - task: cli:build-eigenlayer-abi
 

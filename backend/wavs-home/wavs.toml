@@ -87,8 +87,6 @@ poll_interval_ms = 7000
 # The directory to store the data.
 data = "~/wavs"
 
-port = 8123
-
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",
     "http://localhost:*",
@@ -110,8 +108,6 @@ data = "~/wavs/cli"
 [aggregator]
 # The directory to store the data.
 data = "~/wavs/aggregator"
-
-port = 8124
 
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",

@@ -30,8 +30,6 @@ vars:
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   SOURCE_CHAIN_NUMBER: 1 # changing this is not supported yet
-  CHAIN_COUNT:
-    sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
 
 tasks:
   bootstrap:
