@@ -39,7 +39,7 @@ tasks:
     desc: "Get the source RPC URL"
     vars:
       EVM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
     cmds:
       - echo "{{.EVM_RPC_URL}}"
 
