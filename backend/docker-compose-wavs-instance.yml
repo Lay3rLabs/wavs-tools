@@ -1,11 +1,11 @@
 name: "wavs-instances"
 services:
   wavs:
-    container_name: "${COMPOSE_CONTAINER_NAME}"
+    container_name: "${COMPOSE_CONTAINER_NAME:-wavs}"
     image: "${COMPOSE_WAVS_DOCKER_IMAGE}"
     stop_signal: SIGKILL
     env_file: "../.env"
-    command: ["wavs", "--home", "/wavs-home", "--port", "${COMPOSE_WAVS_PORT:-8123}"]
+    command: ["wavs", "--home", "/wavs-home", "--port", "${COMPOSE_WAVS_PORT:-0}"]
     volumes:
       - "${COMPOSE_WAVS_HOME}:/wavs-home"
     network_mode: "host"

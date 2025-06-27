@@ -45,6 +45,9 @@ tasks:
 
   get-service-hd-index:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
       SERVICE_HD_INDEX:

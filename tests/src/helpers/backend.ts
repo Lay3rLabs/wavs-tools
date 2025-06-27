@@ -30,7 +30,7 @@ export class BackendManager {
       console.log('Starting backend...');
       const args = ['backend:start'];
       if (this.config.nChains > 1) {
-        args.push(`CHAIN_COUNT=${this.config.nChains}`);
+        args.push(`ACTIVE_CHAIN_COUNT=${this.config.nChains}`);
       }
 
       await execAsync('task', args, {

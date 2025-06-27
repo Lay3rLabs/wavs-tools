@@ -48,17 +48,17 @@ tasks:
   stop-chains:
     cmds:
       - |
-        if [ {{.CHAIN_COUNT}} -gt 0 ]; then
-          task backend:stop-chains-inner CHAINS={{.CHAIN_COUNT}}
+        if [ {{.ACTIVE_CHAIN_COUNT}} -gt 0 ]; then
+          task backend:stop-chains-inner CHAINS={{.ACTIVE_CHAIN_COUNT}}
         else
-          echo "No chains to stop (CHAINS={{.CHAIN_COUNT}})"
+          echo "No chains to stop (CHAINS={{.ACTIVE_CHAIN_COUNT}})"
         fi
 
   stop-chains-inner:
     requires:
       vars: [CHAINS]
     vars:
-      # Automatically generated range for CHAIN_COUNT
+      # Automatically generated range for ACTIVE_CHAIN_COUNT
       CHAIN_RANGE:
         sh: seq 1 {{.CHAINS}}
     deps:
@@ -175,6 +175,13 @@ tasks:
     cmds:
       - echo {{.CHAIN_NAME}}
 
+  get-wavs-endpoint-*:
+    desc: "Get the wavs endpoint for an instance"
+    vars:
+      WAVS_INSTANCE: "{{sub (index .MATCH 0) 1}}"
+    cmds:
+      - echo "http://localhost:{{add .WAVS_BASE_PORT .WAVS_INSTANCE}}"
+
   ###################################################################
   ######################## WAVS #####################################
   ###################################################################
@@ -203,9 +210,9 @@ tasks:
     requires:
       vars: [OPERATORS]
     deps:
-      # Start single aggregator first
+      # Start single aggregator
       - task: start-wavs-aggregator
-      # Then start multiple WAVS instances in parallel
+      # and start multiple WAVS instances in parallel
       - for: { var: OPERATORS_RANGE }
         task: start-wavs-{{.ITEM}}
 
@@ -283,7 +290,7 @@ tasks:
     cmds:
       - |
         # Stop all WAVS instances first
-        if [ {{.WAVS_COUNT}} -gt 0 ]; then
+        if [ {{.ACTIVE_WAVS_COUNT}} -gt 0 ]; then
           task backend:stop-wavs-inner
         else
           echo "No WAVS instances to stop"
@@ -299,7 +306,7 @@ tasks:
   stop-wavs-inner:
     vars:
       WAVS_RANGE:
-        sh: seq 1 {{.WAVS_COUNT}}
+        sh: seq 1 {{.ACTIVE_WAVS_COUNT}}
     deps:
       # All of these are stopped in parallel
       - for: { var: WAVS_RANGE }
