@@ -181,12 +181,11 @@ tasks:
     cmds:
       - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
-  # this is not need for now, because they share the same mount
   deploy-service-*:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-1
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       BASE_WAVS_ENDPOINT:
         sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-1
       SERVICE_ID:
@@ -197,8 +196,17 @@ tasks:
 
   register-operator:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       AVS_SIGNING_ADDRESS:
-        sh: task get-service-signing-address
+        sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
     cmds:
       - |
         cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+
+  wavs-*:
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+    cmds:
+      - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
+      - task register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
