@@ -209,4 +209,4 @@ tasks:
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
-      - task register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      - task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
