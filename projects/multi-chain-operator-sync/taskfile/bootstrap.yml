@@ -205,7 +205,7 @@ tasks:
 
   wavs-*:
     vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_INSTANCE: "{{index .MATCH 0}}"
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
