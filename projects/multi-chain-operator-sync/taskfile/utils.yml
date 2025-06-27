@@ -57,25 +57,34 @@ tasks:
 
   get-service-signing-address:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       HD_INDEX:
         sh: task get-service-hd-index
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       AVS_SIGNING_ADDRESS:
-        sh: cast wallet address --mnemonic-path "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index {{.HD_INDEX}}
+        sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index {{.HD_INDEX}}
     cmds:
       - echo "{{.AVS_SIGNING_ADDRESS}}"
 
   get-operator-address:
     desc: "Get the operator's address"
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       OPERATOR_ADDRESS:
-        sh: cast wallet address --mnemonic "$WAVS_SUBMISSION_MNEMONIC"
+        sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}"
     cmds:
       - echo "{{.OPERATOR_ADDRESS}}"
 
   get-operator-private-key:
     desc: "Get the operator's private key"
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       OPERATOR_PRIVATE_KEY:
-        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+        sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
       - echo "{{.OPERATOR_PRIVATE_KEY}}"

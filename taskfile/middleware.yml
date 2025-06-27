@@ -103,10 +103,13 @@ tasks:
     desc: "Register an operator on a given service"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      OPERATOR_NUMBER: '{{.OPERATOR_NUMBER | default "1"}}'
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.OPERATOR_NUMBER}}
       OPERATOR_PRIVATE_KEY:
-        sh: cast wallet private-key --mnemonic "$WAVS_SUBMISSION_MNEMONIC" --mnemonic-index 0
+        sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     requires:
       vars: [PROJECT, SERVICE_NAME, AVS_SIGNING_ADDRESS, AMOUNT]
     env:
