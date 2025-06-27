@@ -20,7 +20,7 @@ tasks:
         cargo component build --release
         mkdir -p {{.COMPONENT_OUTPUT_DIR}}
         cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENT_OUTPUT_DIR}}/
-  
+
   clean-single:
     desc: "Deletes a WASI component output directory"
     vars:
@@ -44,7 +44,7 @@ tasks:
   upload:
     desc: "Uploads a WASI component"
     requires:
-      vars: [PROJECT, COMPONENT_NAME]
+      vars: [PROJECT, COMPONENT_NAME, WAVS_ENDPOINT]
     vars:
       # here it's relative to docker volume mount, where /wavs-tools is the root of this repo
       COMPONENT_BINARY: "/wavs-tools/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
@@ -56,7 +56,7 @@ tasks:
       # but, fortunately, the last line of the output is the digest
       - |
         cd "{{.REPO_ROOT}}" 
-        OUTPUT=$(task component:docker-upload -- "{{.COMPONENT_BINARY}}" --data "{{.DATA_DIR}}")
+        OUTPUT=$(task component:docker-upload WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}" -- "{{.COMPONENT_BINARY}}" --data "{{.DATA_DIR}}")
         DIGEST=$(echo "$OUTPUT" | tail -n 1)
         if [[ "$OUTPUT" == *"Digest"* ]]; then
           echo "Component uploaded successfully, digest is $DIGEST"
@@ -67,6 +67,8 @@ tasks:
         fi
 
   docker-upload:
+    requires:
+      vars: [WAVS_ENDPOINT]
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host

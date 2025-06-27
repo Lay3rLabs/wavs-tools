@@ -60,7 +60,13 @@ task backend:start
 You can also start the backend with multiple chains, where the first will fork holesky and the rest will be local-only:
 
 ```bash
-task backend:start CHAIN_COUNT=3 
+task backend:start CHAINS=3 
+```
+
+You can also spin up multipler operator instances:
+
+```bash
+task backend:start OPERATORS=4
 ```
 
 ### Stop the backend

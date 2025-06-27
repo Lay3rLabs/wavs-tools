@@ -20,8 +20,10 @@ tasks:
     deps:
       - task: start-chains
         vars:
-          CHAIN_COUNT: "{{.CHAIN_COUNT}}"
+          CHAINS: "{{.CHAINS}}"
       - task: start-wavs
+        vars:
+          OPERATORS: "{{.OPERATORS}}"
       - task: start-telemetry
 
   stop:
@@ -41,29 +43,24 @@ tasks:
       - task: start-chains-inner
         # Optional - pass this in, or 1 by default
         vars:
-          CHAIN_COUNT: '{{.CHAIN_COUNT | default "1"}}'
+          CHAINS: '{{.CHAINS | default "1"}}'
 
   stop-chains:
-    vars:
-      CHAIN_COUNT:
-        # look up how many docker containers start with the name "chain-anvil-"
-        # this is a bit of a hack, but it works for now
-        sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
     cmds:
       - |
-        if [ {{.CHAIN_COUNT}} -gt 0 ]; then
-          task backend:stop-chains-inner CHAIN_COUNT={{.CHAIN_COUNT}}
+        if [ {{.ACTIVE_CHAIN_COUNT}} -gt 0 ]; then
+          task backend:stop-chains-inner CHAINS={{.ACTIVE_CHAIN_COUNT}}
         else
-          echo "No chains to stop (CHAIN_COUNT={{.CHAIN_COUNT}})"
+          echo "No chains to stop (CHAINS={{.ACTIVE_CHAIN_COUNT}})"
         fi
 
   stop-chains-inner:
     requires:
-      vars: [CHAIN_COUNT]
+      vars: [CHAINS]
     vars:
-      # Automatically generated range for CHAIN_COUNT
+      # Automatically generated range for ACTIVE_CHAIN_COUNT
       CHAIN_RANGE:
-        sh: seq 1 {{.CHAIN_COUNT}}
+        sh: seq 1 {{.CHAINS}}
     deps:
       # All of these are stopped in parallel
       - for: { var: CHAIN_RANGE }
@@ -72,11 +69,10 @@ tasks:
   start-chains-inner:
     internal: true
     vars:
-      # Automatically generated range for CHAIN_COUNT
       CHAIN_RANGE:
-        sh: seq 1 {{.CHAIN_COUNT}}
+        sh: seq 1 {{.CHAINS}}
     requires:
-      vars: [CHAIN_COUNT]
+      vars: [CHAINS]
     deps:
       # All of these are started in parallel
       - for: { var: CHAIN_RANGE }
@@ -179,6 +175,13 @@ tasks:
     cmds:
       - echo {{.CHAIN_NAME}}
 
+  get-wavs-endpoint-*:
+    desc: "Get the wavs endpoint for an instance"
+    vars:
+      WAVS_INSTANCE: "{{sub (index .MATCH 0) 1}}"
+    cmds:
+      - echo "http://localhost:{{add .WAVS_BASE_PORT .WAVS_INSTANCE}}"
+
   ###################################################################
   ######################## WAVS #####################################
   ###################################################################
@@ -187,19 +190,38 @@ tasks:
     deps: [docker-pull-wavs]
     cmds:
       - task: start-wavs-inner
+        # Optional - pass this in, or 1 by default
+        vars:
+          OPERATORS: '{{.OPERATORS | default "1"}}'
 
   docker-pull-wavs:
     internal: true
     cmds:
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml pull
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml pull
+      - |
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml pull
 
   start-wavs-inner:
     internal: true
-    deps: [docker-start-wavs]
+    vars:
+      OPERATORS_RANGE:
+        sh: seq 1 {{.OPERATORS}}
+    requires:
+      vars: [OPERATORS]
+    deps:
+      # Start single aggregator
+      - task: start-wavs-aggregator
+      # and start multiple WAVS instances in parallel
+      - for: { var: OPERATORS_RANGE }
+        task: start-wavs-{{.ITEM}}
+
+  start-wavs-aggregator:
+    internal: true
+    deps:
+      - task: docker-start-wavs-aggregator
     cmds:
-      # Wait for WAVS and WAVS Aggregator to be up and running
-      # the deps here will ensure that the docker-start-wavs task is run first
+      # Wait for WAVS Aggregator to be up and running
       - |
         for ((i=0; i<5; i++)); do
           if nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
@@ -213,35 +235,104 @@ tasks:
           exit 1
         fi
       - echo "Aggregator is up!"
+
+  start-wavs-*:
+    internal: true
+    vars:
+      WAVS_NUMBER: "{{index .MATCH 0}}"
+      WAVS_PORT:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-port-{{.WAVS_NUMBER}}
+    deps:
+      - task: docker-start-wavs-{{index .MATCH 0}}
+    cmds:
+      # Wait for WAVS instance to be up and running
       - |
         for ((i=0; i<5; i++)); do
           if nc -z 127.0.0.1 {{.WAVS_PORT}}; then
             break
           fi
-          echo "Waiting for WAVS to start on port {{.WAVS_PORT}}..."
+          echo "Waiting for WAVS #{{.WAVS_NUMBER}} to start on port {{.WAVS_PORT}}..."
           sleep 1
         done
         if ! nc -z 127.0.0.1 {{.WAVS_PORT}}; then
-          echo "WAVS did not start after 5 seconds"
+          echo "WAVS #{{.WAVS_NUMBER}} did not start after 5 seconds"
           exit 1
         fi
-      - echo "WAVS is up!"
+      - |
+        echo "WAVS #{{.WAVS_NUMBER}} is up!"
 
-  docker-start-wavs:
+  docker-start-wavs-aggregator:
     internal: true
+    env:
+      COMPOSE_WAVS_AGGREGATOR_PORT: "{{.WAVS_AGGREGATOR_PORT}}"
     cmds:
       - |
-        echo "Starting WAVS on port {{.WAVS_PORT}} and WAVS Aggregator on port {{.WAVS_AGGREGATOR_PORT}}"
+        echo "Starting WAVS Aggregator on port {{.WAVS_AGGREGATOR_PORT}}"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml up --force-recreate -d
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml up --force-recreate -d
 
-  docker-stop-wavs:
-    aliases: [stop-wavs]
+  docker-start-wavs-*:
+    internal: true
+    vars:
+      WAVS_NUMBER: "{{index .MATCH 0}}"
+      WAVS_PORT:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-port-{{.WAVS_NUMBER}}
+    env:
+      COMPOSE_CONTAINER_NAME: "wavs-{{.WAVS_NUMBER}}"
+      COMPOSE_WAVS_PORT: "{{.WAVS_PORT}}"
     cmds:
       - |
-        echo "Stopping WAVS"
+        echo "Starting WAVS #{{.WAVS_NUMBER}} on port {{.WAVS_PORT}}"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs.yml down --remove-orphans || true
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate -d
+
+  stop-wavs:
+    cmds:
+      - |
+        # Stop all WAVS instances first
+        if [ {{.ACTIVE_WAVS_COUNT}} -gt 0 ]; then
+          task backend:stop-wavs-inner
+        else
+          echo "No WAVS instances to stop"
+        fi
+      - task: stop-wavs-aggregator
+
+  stop-wavs-aggregator:
+    cmds:
+      - |
+        echo "Stopping WAVS Aggregator"
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans || true
+
+  stop-wavs-inner:
+    vars:
+      WAVS_RANGE:
+        sh: seq 1 {{.ACTIVE_WAVS_COUNT}}
+    deps:
+      # All of these are stopped in parallel
+      - for: { var: WAVS_RANGE }
+        task: docker-stop-wavs-{{.ITEM}}
+
+  docker-stop-wavs-*:
+    internal: true
+    vars:
+      WAVS_NUMBER: "{{index .MATCH 0}}"
+    env:
+      COMPOSE_CONTAINER_NAME: "wavs-{{.WAVS_NUMBER}}"
+    cmds:
+      - |
+        echo "Stopping WAVS #{{.WAVS_NUMBER}}"
+      - |
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans || true
+
+  # HELPERS
+  get-wavs-port-*:
+    desc: "Get the WAVS port for a wavs number"
+    vars:
+      WAVS_NUMBER: "{{index .MATCH 0}}"
+      # We use 1 as the WAVS_NUMBER, so subtract 1 to keep the base port the same
+      WAVS_PORT: "{{sub (add .WAVS_BASE_PORT .WAVS_NUMBER) 1}}"
+    cmds:
+      - echo "{{.WAVS_PORT}}"
 
   ###################################################################
   ##################### TELEMETRY ###################################
