@@ -3,7 +3,7 @@ mod bindings;
 mod utils;
 
 use alloy_network::Ethereum;
-use alloy_primitives::{Address, Uint};
+use alloy_primitives::Address;
 use alloy_provider::RootProvider;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
@@ -103,23 +103,20 @@ async fn handle_register_event(
 
     // Query the current signing key for operator
     let signing_key = stake_registry
-        .getOperatorSigningKeyAtBlock(operator, Uint::from(block_height))
+        .getLatestOperatorSigningKey(operator)
         .call()
         .await?;
 
     host::log(LogLevel::Info, &format!("Signing key: {}", signing_key));
 
     // Get operator's stake
-    let weight = stake_registry
-        .getOperatorWeightAtBlock(operator, block_height.try_into()?)
-        .call()
-        .await?;
+    let weight = stake_registry.getOperatorWeight(operator).call().await?;
 
     host::log(LogLevel::Info, &format!("Weight: {}", weight));
 
     // Get the threshold weight
     let threshold_weight = stake_registry
-        .getLastCheckpointThresholdWeightAtBlock(block_height.try_into()?)
+        .getLastCheckpointThresholdWeight()
         .call()
         .await?;
 
