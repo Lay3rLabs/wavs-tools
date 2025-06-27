@@ -32,12 +32,12 @@ tasks:
     desc: "Deploys the mirror contracts for all chains"
     cmds:
       - |
-        if [ {{.CHAIN_COUNT}} -lt 2 ]; then
-          echo "Error: CHAIN_COUNT must be 2 or greater"
+        if [ {{.ACTIVE_CHAIN_COUNT}} -lt 2 ]; then
+          echo "Error: ACTIVE_CHAIN_COUNT must be 2 or greater"
           exit 1
         fi
 
-        for i in $(seq 1 {{.CHAIN_COUNT}}); do
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
             task bootstrap:mirror-deploy-$i
           fi
@@ -107,7 +107,7 @@ tasks:
         # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
-        for i in $(seq 2 {{.CHAIN_COUNT}}); do
+        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
           CHAIN_NAME=$(task backend:get-chain-name-$i)
           cd {{.ROOT_DIR}}
           SUBMISSION_ADDRESS=$(task bootstrap:get-submission-address-$i)
