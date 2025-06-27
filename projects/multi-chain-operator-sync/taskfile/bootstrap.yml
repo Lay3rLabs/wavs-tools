@@ -181,6 +181,20 @@ tasks:
     cmds:
       - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
+  # this is not need for now, because they share the same mount
+  deploy-service-*:
+    vars:
+      WAVS_INSTANCE: "{{index .MATCH 0}}"
+      WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-1
+      BASE_WAVS_ENDPOINT:
+        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-1
+      SERVICE_ID:
+        sh: task get-service-id
+      SERVICE_URI: "{{.BASE_WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
+    cmds:
+      - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+
   register-operator:
     vars:
       AVS_SIGNING_ADDRESS:
