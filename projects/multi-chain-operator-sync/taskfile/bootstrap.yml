@@ -92,8 +92,6 @@ tasks:
         sh: task get-service-manager-address
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
-      OPERATOR_REGISTERED_EVENT_HASH:
-        sh: cast keccak "OperatorRegistered(address,address)"
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
@@ -101,10 +99,35 @@ tasks:
 
         # Build service configuration using task cli:wavs
         SERVICE_ID=$(task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+      - task: build-register-workflow
+        vars:
+          CMD: "{{.CMD}}"
+          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
+          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
+          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+      - task: build-deregister-workflow
+        vars:
+          CMD: "{{.CMD}}"
+          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
+          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
+          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+      - |
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
+
+        echo "Service configuration built successfully"
+
+  build-register-workflow:
+    desc: "Configure and register a workflow"
+    requires:
+      vars: [CMD, SOURCE_CHAIN, STAKE_REGISTRY_ADDRESS, COMPONENT_DIGEST]
+    vars:
+      OPERATOR_REGISTERED_EVENT_HASH:
+        sh: cast keccak "OperatorRegistered(address,address)"
+    cmds:
+      - |
+        cd "{{.REPO_ROOT}}"
 
         WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
-
-        # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
         for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
@@ -121,12 +144,41 @@ tasks:
         done
 
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
-          
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
-          
-        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
 
-        echo "Service configuration built successfully"
+        echo "Workflow registered"
+
+  build-deregister-workflow:
+    desc: "Configure and register a workflow"
+    requires:
+      vars: [CMD, SOURCE_CHAIN, STAKE_REGISTRY_ADDRESS, COMPONENT_DIGEST]
+    vars:
+      OPERATOR_DEREGISTERED_EVENT_HASH:
+        sh: cast keccak "OperatorDeregistered(address,address)"
+    cmds:
+      - |
+        cd "{{.REPO_ROOT}}"
+
+        WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
+
+        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
+          CHAIN_NAME=$(task backend:get-chain-name-$i)
+          cd {{.ROOT_DIR}}
+          SUBMISSION_ADDRESS=$(task bootstrap:get-submission-address-$i)
+          cd {{.REPO_ROOT}}
+
+          if [ "$i" -eq 2 ]; then
+            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
+          else
+            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
+          fi
+        done
+
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
+
+        echo "Workflow registered"
 
   clean-service:
     desc: "Cleans up the service configuration"
