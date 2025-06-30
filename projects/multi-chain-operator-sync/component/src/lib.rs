@@ -200,6 +200,14 @@ async fn handle_deregister_event(
     operator: Address,
     block_height: u64,
 ) -> anyhow::Result<UpdateWithId> {
+    host::log(
+        LogLevel::Info,
+        &format!(
+            "Querying deregister info for operator {} at block {}",
+            operator, block_height
+        ),
+    );
+
     // Get the threshold weight
     let threshold_weight = stake_registry
         .getLastCheckpointThresholdWeight()
