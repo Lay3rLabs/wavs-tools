@@ -42,23 +42,33 @@ tasks:
     requires:
       vars: [ADDRESS, EVM_RPC_URL]
 
-  build-eigenlayer-abi-ci:
+  build-abi-ci:
     internal: true
     status:
       - test -d {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
     cmds:
-      - task: build-eigenlayer-abi-inner
+      - task: build-eigenlayer-abi
 
-  build-eigenlayer-abi:
+  build-abi:
     internal: true
     cmds:
-      - task: build-eigenlayer-abi-inner
+      - task: build-eigenlayer-abi
+      - task: build-wavs-abi
 
-  build-eigenlayer-abi-inner:
+  build-eigenlayer-abi:
     internal: true
     dir: "./submodules/eigenlayer-middleware"
     cmds:
       - mkdir -p {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
       - forge build
-      - for: ["ECDSAStakeRegistry.sol"]
+      - for: ["ECDSAStakeRegistry.sol", "AllocationManager.sol"]
         cmd: cp -r "out/{{.ITEM}}" "{{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}/"
+
+  build-wavs-abi:
+    internal: true
+    dir: "./node_modules/@wavs/solidity/contracts"
+    cmds:
+      - mkdir -p {{.ABI_WAVS_MIDDLEWARE_DIR}}
+      - forge build -C eigenlayer
+      - for: ["WavsServiceManager.sol"]
+        cmd: cp -r "out/{{.ITEM}}" "{{.ABI_WAVS_MIDDLEWARE_DIR}}/"
