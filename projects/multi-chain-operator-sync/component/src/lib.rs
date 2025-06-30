@@ -3,7 +3,7 @@ mod bindings;
 mod utils;
 
 use alloy_network::Ethereum;
-use alloy_primitives::Address;
+use alloy_primitives::{Address, Uint};
 use alloy_provider::RootProvider;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
@@ -70,10 +70,23 @@ impl Guest for Component {
         block_on(async move {
             let maybe_register_event: anyhow::Result<ECDSAStakeRegistry::OperatorRegistered> =
                 decode_event_log_data!(log.clone());
-            if let Ok(register_event) = maybe_register_event {
-                let ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ } = register_event;
-
+            let maybe_deregister_event: anyhow::Result<ECDSAStakeRegistry::OperatorDeregistered> =
+                decode_event_log_data!(log.clone());
+            if let Ok(ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ }) =
+                maybe_register_event
+            {
                 let result = handle_register_event(stake_registry, operator, block_height)
+                    .await
+                    .map_err(|e| e.to_string())?;
+
+                return Ok(Some(WasmResponse {
+                    payload: result.abi_encode(),
+                    ordering: None,
+                }));
+            } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered { operator, avs: _ }) =
+                maybe_deregister_event
+            {
+                let result = handle_deregister_event(stake_registry, operator, block_height)
                     .await
                     .map_err(|e| e.to_string())?;
 
@@ -131,6 +144,31 @@ async fn handle_register_event(
         weights: vec![weight],
         triggerId: block_height,
         thresholdWeight: threshold_weight,
+    })
+}
+
+async fn handle_deregister_event(
+    stake_registry: ECDSAStakeRegistryInstance<RootProvider>,
+    operator: Address,
+    block_height: u64,
+) -> anyhow::Result<UpdateWithId> {
+    // Get the threshold weight
+    let threshold_weight = stake_registry
+        .getLastCheckpointThresholdWeight()
+        .call()
+        .await?;
+
+    host::log(
+        LogLevel::Info,
+        &format!("Threshold weight: {}", threshold_weight),
+    );
+
+    Ok(UpdateWithId {
+        triggerId: block_height,
+        thresholdWeight: threshold_weight,
+        operators: vec![operator],
+        signingKeys: vec![Address::ZERO],
+        weights: vec![Uint::ZERO],
     })
 }
 
