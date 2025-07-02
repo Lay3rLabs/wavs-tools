@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  trigger-register-*:
+    desc: "Registers a new operator"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+    cmds:
+      - |
+        cd {{.ROOT_DIR}}
+        task bootstrap:build-paused-service
+
+        task bootstrap:wavs-{{.OPERATOR}}

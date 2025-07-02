@@ -27,6 +27,14 @@ tasks:
     cmds:
       - echo "{{.SERVICE_HASH}}"
 
+  get-paused-service-hash:
+    desc: "Get the service hash"
+    vars:
+      SERVICE_HASH:
+        sh: jq -r '.hash // empty' "{{.PAUSED_SERVICE_HASH_JSON_PATH}}" 2>/dev/null || true
+    cmds:
+      - echo "{{.SERVICE_HASH}}"
+
   get-service-manager-address:
     desc: "Get the service manager address"
     vars:
