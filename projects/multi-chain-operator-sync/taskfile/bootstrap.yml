@@ -174,17 +174,16 @@ tasks:
       - |
         cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
 
-  register-service-uri:
+  register-service:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_HASH:
-        sh: task get-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"
+      SERVICE_ID:
+        sh: task get-service-id
     cmds:
       - |
-        curl -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" -H "Content-Type: application/json" -d "{\"uri\": \"{{.SERVICE_URI}}\"}"
+        curl -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" -H "Content-Type: application/json" -d "{\"service_id\": \"{{.SERVICE_URI}}\"}"
 
   deploy-service:
     vars:
