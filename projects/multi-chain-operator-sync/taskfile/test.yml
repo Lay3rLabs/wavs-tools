@@ -8,6 +8,4 @@ tasks:
     cmds:
       - |
         cd {{.ROOT_DIR}}
-        task bootstrap:build-paused-service
-
         task bootstrap:wavs-{{.OPERATOR}}
