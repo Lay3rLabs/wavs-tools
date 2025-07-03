@@ -84,9 +84,6 @@ poll_interval_ms = 7000
 # WAVS specific settings
 # ----------------------------
 [wavs]
-# The directory to store the data.
-data = "~/wavs"
-
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",
     "http://localhost:*",
