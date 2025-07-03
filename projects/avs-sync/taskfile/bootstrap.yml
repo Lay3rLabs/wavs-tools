@@ -107,7 +107,7 @@ tasks:
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       EVM_RPC_URL:
-        sh: task get-source-rpc-url
+        sh: task get-evm-rpc-url
       SERVICE_HASH:
         sh: task get-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"
