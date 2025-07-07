@@ -1,11 +1,53 @@
 version: "3"
 
 tasks:
+  trigger-register:
+    desc: "Registers all available operators and verifies they were synced"
+    cmds:
+      - |
+        for OPERATOR in $(seq 2 {{.ACTIVE_WAVS_COUNT}}); do
+          task test:trigger-register-$OPERATOR
+        done
+
   trigger-register-*:
-    desc: "Registers a new operator"
+    desc: "Registers a new operator and validates it was synced"
     vars:
       OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
     cmds:
       - |
         cd {{.ROOT_DIR}}
         task bootstrap:wavs-{{.OPERATOR}}
+      - |
+        for CHAIN_NUMBER in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
+          echo "Fetching event for chain $CHAIN_NUMBER..."
+          RESULT=$(task test:get-operator-weight-updated-event CHAIN_NUMBER=$CHAIN_NUMBER OPERATOR_ADDRESS={{.OPERATOR_ADDRESS}})
+
+          if [ -z "$RESULT" ]; then
+            echo "⚠️ No events found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+            exit 1
+          else
+            echo "✅ Event found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+          fi
+        done
+
+  get-operator-weight-updated-event:
+    requires:
+      vars: [CHAIN_NUMBER, OPERATOR_ADDRESS]
+    vars:
+      TOPIC_0:
+        sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
+      TOPIC_1:
+        sh: cast abi-encode "p(address)" {{.OPERATOR_ADDRESS}}
+      EVM_RPC_URL:
+        sh: cd {{.REPO_ROOT}} && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      STAKE_REGISTRY_ADDRESS:
+        sh: task get-mirror-stake-registry-address-{{.CHAIN_NUMBER}}
+    cmds:
+      - >
+        cast logs 
+        --from-block 0
+        --to-block latest {{.TOPIC_0}} {{.TOPIC_1}}
+        --address {{.STAKE_REGISTRY_ADDRESS}} 
+        --rpc-url {{.EVM_RPC_URL}}

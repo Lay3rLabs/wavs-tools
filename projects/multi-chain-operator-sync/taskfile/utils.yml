@@ -43,6 +43,15 @@ tasks:
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
+  get-mirror-stake-registry-address-*:
+    desc: "Get the mirror stake registry address"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      STAKE_REGISTRY_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-stake-registry-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+    cmds:
+      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
+
   get-source-rpc-url:
     desc: "Get the source RPC URL"
     vars:

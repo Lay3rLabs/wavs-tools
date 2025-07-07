@@ -35,7 +35,7 @@ vars:
   ACTIVE_CHAIN_COUNT:
     sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
   ACTIVE_WAVS_COUNT:
-    sh: docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+    sh: docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
   DOCKER_SUDO:
     sh: |
       if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 

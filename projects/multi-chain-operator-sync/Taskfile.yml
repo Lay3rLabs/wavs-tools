@@ -70,4 +70,4 @@ tasks:
   run-tests:
     desc: "Run all test cases"
     cmds:
-      - task test:trigger-register-2
+      - task test:trigger-register
