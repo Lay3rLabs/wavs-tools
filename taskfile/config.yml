@@ -12,7 +12,7 @@ vars:
         fi
         dir="$(dirname "$dir")"
       done
-  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:a7c5448"
+  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:900f9fe"
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.1"
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
