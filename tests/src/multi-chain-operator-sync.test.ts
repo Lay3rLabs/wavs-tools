@@ -9,7 +9,7 @@ describe("MULTI-CHAIN-OPERATOR-SYNC", function () {
     // since it includes starting the backend, deploying middleware, registering operators, etc.
     this.timeout(900000); 
 
-    backendManager = new BackendManager({nChains: 3});
+    backendManager = new BackendManager({nChains: 3, nOperators: 3});
     await backendManager.start();
 
     await execAsync("task", ["bootstrap"], {
