@@ -2,7 +2,7 @@ version: "3"
 
 tasks:
   components-build:
-    desc: "Builds the WASI components for AVS Sync"
+    desc: "Builds the WASI components"
     deps: [components-clean]
     vars:
       COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
@@ -10,12 +10,12 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
 
   components-clean:
-    desc: "Deletes the WASI components for AVS Sync"
+    desc: "Deletes the WASI components"
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   components-upload:
-    desc: "Uploads the WASI components for AVS Sync"
+    desc: "Uploads the WASI components"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
