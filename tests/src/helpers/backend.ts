@@ -38,6 +38,9 @@ export class BackendManager {
         args.push(`OPERATORS=${this.config.nOperators}`);
       }
 
+      await execAsync('task', ['backend:stop-wavs'], {
+        cwd: rootPath(),
+      });
       await execAsync('task', args, {
         cwd: rootPath(),
       });
