@@ -142,23 +142,25 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e LOCAL_ETHEREUM_RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e ETHERSCAN_API_KEY
         -v {{.NODES_DIR}}:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} list_operator
+        {{.MIDDLEWARE_DOCKER_IMAGE}} list_operators
 
   get-output-dir:
     desc: "Get the path to the middleware output directory"
@@ -183,6 +185,18 @@ tasks:
     cmds:
       - echo "{{.OUTPUT_DIR}}/avs_deploy.json"
 
+  get-mirror-json-filepath:
+    desc: "Get the path to the middleware mirror JSON file"
+    vars:
+      CHAIN_PORT: "{{.CHAIN_PORT | default 31337}}"
+      CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
+      OUTPUT_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
+    cmds:
+      - echo "{{.OUTPUT_DIR}}/mirror-{{.CHAIN_PORT}}.json"
+
   get-service-manager-address:
     desc: "Get the WAVS Service Manager address from the middleware deploy JSON file"
     vars:
@@ -202,6 +216,16 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
+    cmds:
+      - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+
+  get-mirror-stake-registry-address:
+    desc: "Get the Mirror Stake Registry address from the middleware JSON file"
+    vars:
+      JSON_FILEPATH:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
       - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
 

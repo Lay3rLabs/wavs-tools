@@ -2,10 +2,12 @@ import { execAsync, rootPath} from './utils';
 
 export interface BackendManagerConfig {
   nChains: number
+  nOperators: number
 }
 
 const defaultBackendManagerConfig:BackendManagerConfig = {
   nChains: 1,
+  nOperators: 1,
 };
 
 export class BackendManager {
@@ -30,7 +32,10 @@ export class BackendManager {
       console.log('Starting backend...');
       const args = ['backend:start'];
       if (this.config.nChains > 1) {
-        args.push(`ACTIVE_CHAIN_COUNT=${this.config.nChains}`);
+        args.push(`CHAINS=${this.config.nChains}`);
+      }
+      if (this.config.nOperators > 1) {
+        args.push(`OPERATORS=${this.config.nOperators}`);
       }
 
       await execAsync('task', args, {

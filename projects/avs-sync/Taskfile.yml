@@ -33,6 +33,7 @@ vars:
   PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
+  SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
 
 tasks:
   bootstrap:
@@ -47,7 +48,7 @@ tasks:
         task bootstrap:build-service
         task bootstrap:upload-service
         task bootstrap:set-service-uri
-        task bootstrap:register-service-uri
+        task bootstrap:register-service
         task bootstrap:deploy-service
         task bootstrap:register-operator
 

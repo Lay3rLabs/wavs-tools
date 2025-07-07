@@ -12,7 +12,7 @@ vars:
         fi
         dir="$(dirname "$dir")"
       done
-  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:657c653" # add multiple aggregator submit
+  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:900f9fe"
   MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0.4.1"
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
@@ -36,7 +36,7 @@ vars:
   ACTIVE_CHAIN_COUNT:
     sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
   ACTIVE_WAVS_COUNT:
-    sh: docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+    sh: docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
   DOCKER_SUDO:
     sh: |
       if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 

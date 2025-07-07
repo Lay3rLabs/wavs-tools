@@ -14,6 +14,7 @@ includes:
   utils:
     taskfile: taskfile/utils.yml
     flatten: true
+  test: taskfile/test.yml
 
 silent: true
 
@@ -29,6 +30,7 @@ vars:
   PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
+  SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
   SOURCE_CHAIN_NUMBER: 1 # changing this is not supported yet
 
 tasks:
@@ -38,15 +40,18 @@ tasks:
     cmds:
       - |
         task bootstrap:middleware-deploy
-        task bootstrap:mirror-deploy
         task bootstrap:components-build
         task bootstrap:components-upload
+        task bootstrap:build-empty-service
+        task bootstrap:upload-service
+        task bootstrap:set-service-uri
+        task bootstrap:register-service
+        task bootstrap:deploy-service
+        task bootstrap:register-operator
+        task bootstrap:mirror-deploy
         task bootstrap:build-service
         task bootstrap:upload-service
         task bootstrap:set-service-uri
-        task bootstrap:register-service-uri
-        task bootstrap:deploy-service
-        task bootstrap:register-operator
 
   clean:
     desc: "Cleans up the tool"
@@ -65,4 +70,4 @@ tasks:
   run-tests:
     desc: "Run all test cases"
     cmds:
-      - task test:simple
+      - task test:trigger-register
