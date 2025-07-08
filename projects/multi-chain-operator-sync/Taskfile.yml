@@ -32,6 +32,7 @@ vars:
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
   SOURCE_CHAIN_NUMBER: 1 # changing this is not supported yet
+  UPDATE_INTERVAL_BLOCKS: 100
 
 tasks:
   bootstrap:

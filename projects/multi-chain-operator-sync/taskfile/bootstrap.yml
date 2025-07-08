@@ -206,14 +206,12 @@ tasks:
           COMPONENT_DIGEST,
           SERVICE_MANAGER_ADDRESS,
         ]
-    vars:
-      N_BLOCKS: 100
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
 
         WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
-        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.SOURCE_CHAIN}} --n-blocks {{.N_BLOCKS}}
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.SOURCE_CHAIN}} --n-blocks {{.UPDATE_INTERVAL_BLOCKS}}
 
         for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
           CHAIN_NAME=$(task backend:get-chain-name-$i)
