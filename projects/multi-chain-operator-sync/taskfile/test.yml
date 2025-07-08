@@ -3,10 +3,14 @@ version: "3"
 tasks:
   trigger-register:
     desc: "Registers all available operators and verifies they were synced"
+    vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
     cmds:
       - |
-        for OPERATOR in $(seq 2 {{.ACTIVE_WAVS_COUNT}}); do
-          task test:trigger-register-$OPERATOR
+        for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
+            task test:trigger-register-$OPERATOR
+          fi
         done
 
   trigger-register-*:
@@ -20,15 +24,17 @@ tasks:
         cd {{.ROOT_DIR}}
         task bootstrap:wavs-{{.OPERATOR}}
       - |
-        for CHAIN_NUMBER in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          echo "Fetching event for chain $CHAIN_NUMBER..."
-          RESULT=$(task test:get-operator-weight-updated-event CHAIN_NUMBER=$CHAIN_NUMBER OPERATOR_ADDRESS={{.OPERATOR_ADDRESS}})
+        for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            echo "Fetching event for chain $CHAIN_NUMBER..."
+            RESULT=$(task test:get-operator-weight-updated-event CHAIN_NUMBER=$CHAIN_NUMBER OPERATOR_ADDRESS={{.OPERATOR_ADDRESS}})
 
-          if [ -z "$RESULT" ]; then
-            echo "⚠️ No events found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
-            exit 1
-          else
-            echo "✅ Event found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+            if [ -z "$RESULT" ]; then
+              echo "⚠️ No events found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+              exit 1
+            else
+              echo "✅ Event found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+            fi
           fi
         done
 
