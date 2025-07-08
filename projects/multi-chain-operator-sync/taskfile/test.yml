@@ -41,7 +41,7 @@ tasks:
       TOPIC_1:
         sh: cast abi-encode "p(address)" {{.OPERATOR_ADDRESS}}
       EVM_RPC_URL:
-        sh: cd {{.REPO_ROOT}} && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       STAKE_REGISTRY_ADDRESS:
         sh: task get-mirror-stake-registry-address-{{.CHAIN_NUMBER}}
     cmds:

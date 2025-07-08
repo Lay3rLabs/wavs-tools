@@ -19,7 +19,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
@@ -92,7 +92,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - >
         curl -X POST "{{.WAVS_ENDPOINT}}/save-service" 
@@ -103,7 +103,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       EVM_RPC_URL:
@@ -119,7 +119,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
     cmds:
@@ -130,7 +130,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_HASH:
         sh: task get-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"

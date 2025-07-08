@@ -19,7 +19,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
@@ -68,7 +68,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       OUT_DIR:
-        sh: cd {{.REPO_ROOT}} && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
     cmds:
       - |
         FILE=$(find {{.OUT_DIR}} -name "mirror-*.json" | head -n 1)
@@ -84,7 +84,7 @@ tasks:
     vars:
       CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd {{.REPO_ROOT}} && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
     cmds:
@@ -103,7 +103,7 @@ tasks:
     vars:
       CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd {{.REPO_ROOT}} && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
@@ -136,7 +136,7 @@ tasks:
           CHAIN_NAME=$(task backend:get-chain-name-$i)
           cd {{.ROOT_DIR}}
           SUBMISSION_ADDRESS=$(task bootstrap:get-submission-address-$i)
-          cd {{.REPO_ROOT}}
+          cd "{{.REPO_ROOT}}"
 
           if [ "$i" -eq 2 ]; then
             task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
@@ -159,7 +159,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - >
         curl -X POST "{{.WAVS_ENDPOINT}}/save-service" 
@@ -170,7 +170,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       EVM_RPC_URL:
@@ -186,7 +186,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
     cmds:
@@ -197,7 +197,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_HASH:
         sh: task get-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"
@@ -208,11 +208,11 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_HASH:
         sh: task get-service-hash
       SOURCE_WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-1
       SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
