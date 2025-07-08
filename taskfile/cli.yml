@@ -8,9 +8,14 @@ includes:
 tasks:
   wavs:
     desc: "Runs WAVS CLI commands"
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_SUBMISSION_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
+        -e WAVS_SUBMISSION_MNEMONIC="{{.WAVS_SUBMISSION_MNEMONIC}}"
         -v {{.REPO_ROOT}}:/wavs-tools
         -v {{.WAVS_HOME_DIR}}:/wavs-home 
         {{.WAVS_DOCKER_IMAGE}}

@@ -2,7 +2,7 @@ version: "3"
 
 tasks:
   components-build:
-    desc: "Builds the WASI components for AVS Sync"
+    desc: "Builds the WASI components"
     deps: [components-clean]
     vars:
       COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
@@ -10,16 +10,16 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
 
   components-clean:
-    desc: "Deletes the WASI components for AVS Sync"
+    desc: "Deletes the WASI components"
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
   components-upload:
-    desc: "Uploads the WASI components for AVS Sync"
+    desc: "Uploads the WASI components"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
@@ -59,7 +59,6 @@ tasks:
         CHAIN_NUMBER="{{.CHAIN_NUMBER}}"
         PROJECT="{{.PROJECT}}" 
         SERVICE_NAME="{{.PROJECT}}" 
-        MODE="mirror" 
         SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" 
         MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}" 
         WAVS_SERVICE_MANAGER_ADDRESS="{{.WAVS_SERVICE_MANAGER_ADDRESS}}"
@@ -69,7 +68,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       OUT_DIR:
-        sh: cd {{.REPO_ROOT}} && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
     cmds:
       - |
         FILE=$(find {{.OUT_DIR}} -name "mirror-*.json" | head -n 1)
@@ -79,39 +78,65 @@ tasks:
         fi
         jq -r '.addresses.MirrorServiceHandler' "$FILE"
 
-  build-service:
-    desc: "Build service configuration"
+  build-empty-service:
+    desc: "Build the empty service configuration"
     deps: [clean-service]
     vars:
       CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd {{.REPO_ROOT}} && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+    cmds:
+      - |
+        cd "{{.REPO_ROOT}}"
+        mkdir -p {{.SERVICE_OUTPUT_DIR}}
+
+        task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}}
+
+        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
+
+        echo "Service configuration built successfully"
+
+  build-service:
+    desc: "Build service configuration"
+    vars:
+      CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
+      SOURCE_CHAIN:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
+    cmds:
+      - task: build-register-workflow
+        vars:
+          CMD: "{{.CMD}}"
+          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
+          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
+          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+
+  build-register-workflow:
+    desc: "Configure and register a workflow"
+    requires:
+      vars: [CMD, SOURCE_CHAIN, STAKE_REGISTRY_ADDRESS, COMPONENT_DIGEST]
+    vars:
       OPERATOR_REGISTERED_EVENT_HASH:
         sh: cast keccak "OperatorRegistered(address,address)"
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
-        mkdir -p {{.SERVICE_OUTPUT_DIR}}
-
-        # Build service configuration using task cli:wavs
-        SERVICE_ID=$(task cli:wavs -- {{.CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
 
         WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
-
-        # Configure workflow
         task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
         for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
           CHAIN_NAME=$(task backend:get-chain-name-$i)
           cd {{.ROOT_DIR}}
           SUBMISSION_ADDRESS=$(task bootstrap:get-submission-address-$i)
-          cd {{.REPO_ROOT}}
+          cd "{{.REPO_ROOT}}"
 
           if [ "$i" -eq 2 ]; then
             task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
@@ -121,12 +146,9 @@ tasks:
         done
 
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
-          
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
-          
-        task cli:wavs -- {{.CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
 
-        echo "Service configuration built successfully"
+        echo "Workflow registered"
 
   clean-service:
     desc: "Cleans up the service configuration"
@@ -137,54 +159,78 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
-      - |
-        curl -X POST "{{.WAVS_ENDPOINT}}/save-service" -H "Content-Type: application/json" --data-binary "@{{.SERVICE_JSON_PATH}}"
+      - >
+        curl --fail-with-body -X POST "{{.WAVS_ENDPOINT}}/save-service" 
+        -H "Content-Type: application/json" 
+        --data-binary "@{{.SERVICE_JSON_PATH}}"
+        -o "{{.TEMP_SERVICE_HASH_JSON_PATH}}"
 
   set-service-uri:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_ID:
-        sh: task get-service-id
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       EVM_RPC_URL:
         sh: task get-source-rpc-url
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
+      TEMP_SERVICE_HASH:
+        sh: task get-temp-service-hash
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - |
         cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
 
-  register-service-uri:
+  register-service:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_ID:
         sh: task get-service-id
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
     cmds:
       - |
-        curl -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" -H "Content-Type: application/json" -d "{\"uri\": \"{{.SERVICE_URI}}\"}"
+        curl -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" -H "Content-Type: application/json" -d "{\"service_id\": \"{{.SERVICE_ID}}\"}"
 
   deploy-service:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
-        sh: cd {{.REPO_ROOT}} && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_ID:
-        sh: task get-service-id
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service/{{.SERVICE_ID}}"
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+      TEMP_SERVICE_HASH:
+        sh: task get-temp-service-hash
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
+  deploy-service-*:
+    vars:
+      WAVS_INSTANCE: "{{index .MATCH 0}}"
+      WAVS_ENDPOINT:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+      TEMP_SERVICE_HASH:
+        sh: task get-temp-service-hash
+      SOURCE_WAVS_ENDPOINT:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-1
+      SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
+    cmds:
+      - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+
   register-operator:
     vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       AVS_SIGNING_ADDRESS:
-        sh: task get-service-signing-address
+        sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
     cmds:
       - |
-        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+
+  wavs-*:
+    vars:
+      WAVS_INSTANCE: "{{index .MATCH 0}}"
+    cmds:
+      - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
+      - task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"

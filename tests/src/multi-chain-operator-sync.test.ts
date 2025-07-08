@@ -1,7 +1,7 @@
 import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
 
-describe("AVS-SYNC", function () {
+describe("MULTI-CHAIN-OPERATOR-SYNC", function () {
   let backendManager: BackendManager;
 
   before(async function () {
@@ -9,11 +9,11 @@ describe("AVS-SYNC", function () {
     // since it includes starting the backend, deploying middleware, registering operators, etc.
     this.timeout(900000); 
 
-    backendManager = new BackendManager({nChains: 1, nOperators: 1});
+    backendManager = new BackendManager({nChains: 2, nOperators: 2});
     await backendManager.start();
 
     await execAsync("task", ["bootstrap"], {
-      cwd: projectPath("avs-sync"),
+      cwd: projectPath("multi-chain-operator-sync"),
     });
   });
 
@@ -28,7 +28,7 @@ describe("AVS-SYNC", function () {
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {
-        cwd: projectPath("avs-sync"),
+        cwd: projectPath("multi-chain-operator-sync"),
       });
     });
   });
