@@ -162,6 +162,27 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} list_operators
 
+  delegate-to-operator:
+    desc: "Delegates an amount to an operator"
+    requires:
+      vars: [OPERATOR_ADDRESS, SERVICE_MANAGER_ADDRESS, DELEGATE_AMOUNT]
+    env:
+      OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+      WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      WAVS_DELEGATE_AMOUNT: "{{.DELEGATE_AMOUNT}}"
+      LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
+      LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e OPERATOR_ADDRESS
+        -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e WAVS_DELEGATE_AMOUNT
+        -e LST_CONTRACT_ADDRESS
+        -e LST_STRATEGY_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} delegate_to_operator
+
   get-output-dir:
     desc: "Get the path to the middleware output directory"
     vars:
