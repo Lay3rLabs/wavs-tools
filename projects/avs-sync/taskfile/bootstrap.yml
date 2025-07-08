@@ -95,9 +95,10 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     cmds:
       - >
-        curl -X POST "{{.WAVS_ENDPOINT}}/save-service" 
+        curl --fail-with-body -X POST "{{.WAVS_ENDPOINT}}/save-service" 
         -H "Content-Type: application/json" 
-        --data-binary "@{{.SERVICE_JSON_PATH}}" > {{.TEMP_SERVICE_HASH_JSON_PATH}}
+        --data-binary "@{{.SERVICE_JSON_PATH}}"
+        -o "{{.TEMP_SERVICE_HASH_JSON_PATH}}"
 
   set-service-uri:
     vars:
