@@ -209,7 +209,7 @@ tasks:
   get-mirror-json-filepath:
     desc: "Get the path to the middleware mirror JSON file"
     vars:
-      CHAIN_PORT: "{{.CHAIN_PORT | default 31337}}"
+      CHAIN_PORT: "{{.CHAIN_PORT | default .ANVIL_FORK_CHAIN_ID}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
       OUTPUT_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
