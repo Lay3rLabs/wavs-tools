@@ -19,6 +19,7 @@ vars:
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
   PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
+  ANVIL_FORK_CHAIN_ID: 31337
   ANVIL_HOLESKY_FORK_URL: "https://eth-holesky.g.alchemy.com/v2/Hr83A86i2pYH_ABCxFveDMBmKvhIo_Gi"
   ANVIL_BASE_PORT: 8548 # Base port for Anvil, subsequent ports will be incremented by 1 for each instance
   WAVS_BASE_PORT: 8123 # Base port for WAVS, subsequent ports will be incremented by 1 for each instance
