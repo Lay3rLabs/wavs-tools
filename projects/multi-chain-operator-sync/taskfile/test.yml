@@ -57,3 +57,36 @@ tasks:
         --to-block latest {{.TOPIC_0}} {{.TOPIC_1}}
         --address {{.STAKE_REGISTRY_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
+
+  trigger-update-*:
+    desc: "Delegates more weight to an operator and verifies it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      DELEGATE_AMOUNT: 1000000000000000000
+      SOURCE_RPC_URL:
+        sh: task get-source-rpc-url
+    cmds:
+      - >
+        cd "{{.REPO_ROOT}}" && task middleware:delegate-to-operator
+        OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
+        SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
+        DELEGATE_AMOUNT="{{.DELEGATE_AMOUNT}}"
+      - cast rpc anvil_mine {{.UPDATE_INTERVAL_BLOCKS}} --rpc-url {{.SOURCE_RPC_URL}}
+      - |
+        for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            echo "Fetching event for chain $CHAIN_NUMBER..."
+            RESULT=$(task test:get-operator-weight-updated-event CHAIN_NUMBER=$CHAIN_NUMBER OPERATOR_ADDRESS={{.OPERATOR_ADDRESS}})
+
+            if [ -z "$RESULT" ]; then
+              echo "⚠️ No events found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+              exit 1
+            else
+              echo "✅ Event found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
+            fi
+          fi
+        done
