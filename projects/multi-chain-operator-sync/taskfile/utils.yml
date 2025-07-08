@@ -19,13 +19,13 @@ tasks:
     cmds:
       - echo "{{.SERVICE_ID}}"
 
-  get-service-hash:
+  get-temp-service-hash:
     desc: "Get the service hash"
     vars:
-      SERVICE_HASH:
-        sh: jq -r '.hash // empty' "{{.SERVICE_HASH_JSON_PATH}}" 2>/dev/null || true
+      TEMP_SERVICE_HASH:
+        sh: jq -r '.hash // empty' "{{.TEMP_SERVICE_HASH_JSON_PATH}}" 2>/dev/null || true
     cmds:
-      - echo "{{.SERVICE_HASH}}"
+      - echo "{{.TEMP_SERVICE_HASH}}"
 
   get-service-manager-address:
     desc: "Get the service manager address"

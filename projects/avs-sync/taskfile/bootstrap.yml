@@ -97,7 +97,7 @@ tasks:
       - >
         curl -X POST "{{.WAVS_ENDPOINT}}/save-service" 
         -H "Content-Type: application/json" 
-        --data-binary "@{{.SERVICE_JSON_PATH}}" > {{.SERVICE_HASH_JSON_PATH}}
+        --data-binary "@{{.SERVICE_JSON_PATH}}" > {{.TEMP_SERVICE_HASH_JSON_PATH}}
 
   set-service-uri:
     vars:
@@ -108,9 +108,9 @@ tasks:
         sh: task get-service-manager-address
       EVM_RPC_URL:
         sh: task get-evm-rpc-url
-      SERVICE_HASH:
-        sh: task get-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"
+      TEMP_SERVICE_HASH:
+        sh: task get-temp-service-hash
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - |
         cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
@@ -131,9 +131,9 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_HASH:
-        sh: task get-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.SERVICE_HASH}}"
+      TEMP_SERVICE_HASH:
+        sh: task get-temp-service-hash
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
