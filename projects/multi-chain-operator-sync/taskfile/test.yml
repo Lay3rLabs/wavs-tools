@@ -111,7 +111,9 @@ tasks:
         sh: task get-source-rpc-url
     cmds:
       - >
-        cd "{{.REPO_ROOT}}" && task middleware:delegate-to-operator
+        cd "{{.REPO_ROOT}}" && 
+        task middleware:delegate-to-operator
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
         OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
         DELEGATE_AMOUNT="{{.DELEGATE_AMOUNT}}"
