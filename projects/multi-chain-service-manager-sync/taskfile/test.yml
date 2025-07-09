@@ -10,6 +10,7 @@ tasks:
         vars:
           QUORUM_NUMERATOR: 1
           QUORUM_DENOMINATOR: 2
+      - task: validate-quorum-threshold-updated-event
 
   update-quorum:
     desc: "Updates the service manager quorum"
@@ -26,3 +27,43 @@ tasks:
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
         QUORUM_NUMERATOR="{{.QUORUM_NUMERATOR}}"
         QUORUM_DENOMINATOR="{{.QUORUM_DENOMINATOR}}"
+
+  validate-quorum-threshold-updated-event:
+    cmds:
+      - |
+        sleep {{.SUBMIT_DELAY}}
+        for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            echo "Fetching event for chain $CHAIN_NUMBER..."
+            RESULT=$(task test:get-quorum-threshold-updated-event CHAIN_NUMBER=$CHAIN_NUMBER)
+
+            if [ -z "$RESULT" ]; then
+              echo "⚠️ No events found for chain $CHAIN_NUMBER."
+              exit 1
+            else
+              echo "✅ Event found for chain $CHAIN_NUMBER."
+            fi
+          fi
+        done
+
+  get-quorum-threshold-updated-event:
+    requires:
+      vars: [CHAIN_NUMBER]
+    vars:
+      EVM_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      CURRENT_BLOCK:
+        sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
+      BLOCK_START:
+        sh: echo $(( {{.CURRENT_BLOCK}} - 1 ))
+      TOPIC_0:
+        sh: cast keccak "QuorumThresholdUpdated(uint256,uint256)"
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-mirror-service-manager-address-{{.CHAIN_NUMBER}}
+    cmds:
+      - >
+        cast logs 
+        --from-block {{.BLOCK_START}}
+        --to-block latest {{.TOPIC_0}}
+        --address {{.SERVICE_MANAGER_ADDRESS}} 
+        --rpc-url {{.EVM_RPC_URL}}

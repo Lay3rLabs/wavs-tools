@@ -331,6 +331,16 @@ tasks:
     cmds:
       - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
 
+  get-mirror-service-manager-address:
+    desc: "Get the Mirror Service Manager address from the middleware JSON file"
+    vars:
+      JSON_FILEPATH:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
+    cmds:
+      - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+
   get-strategy-manager-address:
     desc: "Get the strategy manager address from the deployments JSON file"
     vars:

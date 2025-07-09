@@ -52,6 +52,15 @@ tasks:
     cmds:
       - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
+  get-mirror-service-manager-address-*:
+    desc: "Get the mirror service manager address"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+    cmds:
+      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+
   get-source-rpc-url:
     desc: "Get the source RPC URL"
     vars:
