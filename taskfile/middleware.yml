@@ -125,7 +125,6 @@ tasks:
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
-      - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
@@ -162,7 +161,6 @@ tasks:
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
-      - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV

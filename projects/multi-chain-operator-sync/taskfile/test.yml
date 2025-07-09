@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  SUBMIT_DELAY: 1
+
 tasks:
   trigger-register:
     desc: "Registers all available operators and verifies they were synced"
@@ -84,6 +87,7 @@ tasks:
       vars: [OPERATOR_ADDRESS]
     cmds:
       - |
+        sleep {{.SUBMIT_DELAY}}
         for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
             echo "Fetching event for chain $CHAIN_NUMBER..."
@@ -106,7 +110,7 @@ tasks:
         sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
-      DELEGATE_AMOUNT: 1000000000000000000
+      DELEGATE_AMOUNT: "0.001ether"
       SOURCE_RPC_URL:
         sh: task get-source-rpc-url
     cmds:

@@ -229,6 +229,8 @@ tasks:
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
 
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} config --values "service_manager_address={{.SERVICE_MANAGER_ADDRESS}}"
+
         echo "Workflow registered"
 
   clean-service:
