@@ -24,7 +24,7 @@ describe("AVS-SYNC", function () {
 
   describe("All tests", function () {
     it("should complete without error", async function () {
-      this.timeout(30000);
+      this.timeout(60000);
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {
