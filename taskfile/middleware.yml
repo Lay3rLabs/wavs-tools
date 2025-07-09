@@ -140,6 +140,39 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
+  deregister-operator:
+    desc: "Deregister an operator on a given service"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      WAVS_INSTANCE: '{{.WAVS_INSTANCE | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      LOCAL_ETHEREUM_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      ETHERSCAN_API_KEY:
+        sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
+      WAVS_SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      OPERATOR_KEY:
+        sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
+    cmds:
+      - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e ETHERSCAN_API_KEY 
+        -e LOCAL_ETHEREUM_RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e OPERATOR_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} deregister
+
   list-operators:
     desc: "List registered operators for a given service"
     vars:
