@@ -1,0 +1,9 @@
+version: "3"
+
+vars:
+  SUBMIT_DELAY: 1
+
+tasks:
+  placeholder:
+    cmds:
+      - echo "Placeholder"
