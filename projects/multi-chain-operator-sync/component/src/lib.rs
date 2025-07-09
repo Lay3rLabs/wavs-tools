@@ -3,7 +3,7 @@ mod bindings;
 mod utils;
 
 use alloy_network::Ethereum;
-use alloy_primitives::Address;
+use alloy_primitives::{Address, Uint};
 use alloy_provider::RootProvider;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
@@ -28,7 +28,7 @@ sol!(interface IMirrorUpdateTypes {
         uint64 triggerId;
         uint256 thresholdWeight;
         address[] operators;
-        address[] signingKeys;
+        address[] signingKeyAddresses;
         uint256[] weights;
     }
 });
@@ -70,10 +70,23 @@ impl Guest for Component {
         block_on(async move {
             let maybe_register_event: anyhow::Result<ECDSAStakeRegistry::OperatorRegistered> =
                 decode_event_log_data!(log.clone());
-            if let Ok(register_event) = maybe_register_event {
-                let ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ } = register_event;
-
+            let maybe_deregister_event: anyhow::Result<ECDSAStakeRegistry::OperatorDeregistered> =
+                decode_event_log_data!(log.clone());
+            if let Ok(ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ }) =
+                maybe_register_event
+            {
                 let result = handle_register_event(stake_registry, operator, block_height)
+                    .await
+                    .map_err(|e| e.to_string())?;
+
+                return Ok(Some(WasmResponse {
+                    payload: result.abi_encode(),
+                    ordering: None,
+                }));
+            } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered { operator, avs: _ }) =
+                maybe_deregister_event
+            {
+                let result = handle_deregister_event(stake_registry, operator, block_height)
                     .await
                     .map_err(|e| e.to_string())?;
 
@@ -102,12 +115,15 @@ async fn handle_register_event(
     );
 
     // Query the current signing key for operator
-    let signing_key = stake_registry
+    let signing_key_address = stake_registry
         .getLatestOperatorSigningKey(operator)
         .call()
         .await?;
 
-    host::log(LogLevel::Info, &format!("Signing key: {}", signing_key));
+    host::log(
+        LogLevel::Info,
+        &format!("Signing key address: {}", signing_key_address),
+    );
 
     // Get operator's stake
     let weight = stake_registry.getOperatorWeight(operator).call().await?;
@@ -127,10 +143,43 @@ async fn handle_register_event(
 
     Ok(UpdateWithId {
         operators: vec![operator],
-        signingKeys: vec![signing_key],
+        signingKeyAddresses: vec![signing_key_address],
         weights: vec![weight],
         triggerId: block_height,
         thresholdWeight: threshold_weight,
+    })
+}
+
+async fn handle_deregister_event(
+    stake_registry: ECDSAStakeRegistryInstance<RootProvider>,
+    operator: Address,
+    block_height: u64,
+) -> anyhow::Result<UpdateWithId> {
+    host::log(
+        LogLevel::Info,
+        &format!(
+            "Querying deregister info for operator {} at block {}",
+            operator, block_height
+        ),
+    );
+
+    // Get the threshold weight
+    let threshold_weight = stake_registry
+        .getLastCheckpointThresholdWeight()
+        .call()
+        .await?;
+
+    host::log(
+        LogLevel::Info,
+        &format!("Threshold weight: {}", threshold_weight),
+    );
+
+    Ok(UpdateWithId {
+        triggerId: block_height,
+        thresholdWeight: threshold_weight,
+        operators: vec![operator],
+        signingKeyAddresses: vec![Address::ZERO],
+        weights: vec![Uint::ZERO],
     })
 }
 

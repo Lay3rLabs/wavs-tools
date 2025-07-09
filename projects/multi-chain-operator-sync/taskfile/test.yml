@@ -27,6 +27,34 @@ tasks:
         vars:
           OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
 
+  trigger-deregister:
+    desc: "Deregisters all available operators and verifies they were synced"
+    vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
+    cmds:
+      - |
+        for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
+            task test:trigger-deregister-$OPERATOR
+          fi
+        done
+
+  trigger-deregister-*:
+    desc: "Registers a new operator and validates it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+    cmds:
+      - >
+        cd {{.REPO_ROOT}} &&
+        task middleware:deregister-operator 
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        WAVS_INSTANCE="{{.OPERATOR}}"
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+
   get-operator-weight-updated-event:
     requires:
       vars: [CHAIN_NUMBER, OPERATOR_ADDRESS]

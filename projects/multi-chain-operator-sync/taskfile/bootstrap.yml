@@ -117,6 +117,12 @@ tasks:
           SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
           COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+      - task: build-deregister-workflow
+        vars:
+          CMD: "{{.CMD}}"
+          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
+          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
+          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
 
   build-register-workflow:
     desc: "Configure and register a workflow"
@@ -137,6 +143,38 @@ tasks:
           cd {{.ROOT_DIR}}
           SUBMISSION_ADDRESS=$(task bootstrap:get-submission-address-$i)
           cd "{{.REPO_ROOT}}"
+
+          if [ "$i" -eq 2 ]; then
+            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
+          else
+            task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
+          fi
+        done
+
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
+        task cli:wavs -- {{.CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
+
+        echo "Workflow registered"
+
+  build-deregister-workflow:
+    desc: "Configure and register a workflow"
+    requires:
+      vars: [CMD, SOURCE_CHAIN, STAKE_REGISTRY_ADDRESS, COMPONENT_DIGEST]
+    vars:
+      OPERATOR_DEREGISTERED_EVENT_HASH:
+        sh: cast keccak "OperatorDeregistered(address,address)"
+    cmds:
+      - |
+        cd "{{.REPO_ROOT}}"
+
+        WORKFLOW_ID=$(task cli:wavs -- {{.CMD}} workflow add | jq -r .workflow_id)
+        task cli:wavs -- {{.CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
+
+        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
+          CHAIN_NAME=$(task backend:get-chain-name-$i)
+          cd {{.ROOT_DIR}}
+          SUBMISSION_ADDRESS=$(task bootstrap:get-submission-address-$i)
+          cd {{.REPO_ROOT}}
 
           if [ "$i" -eq 2 ]; then
             task cli:wavs -- {{.CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "$SUBMISSION_ADDRESS" --chain-name "$CHAIN_NAME"
@@ -221,11 +259,11 @@ tasks:
   register-operator:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      AVS_SIGNING_ADDRESS:
+      WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
     cmds:
       - |
-        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
 
   wavs-*:
     vars:
