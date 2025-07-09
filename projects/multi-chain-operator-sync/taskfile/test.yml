@@ -116,17 +116,6 @@ tasks:
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
         DELEGATE_AMOUNT="{{.DELEGATE_AMOUNT}}"
       - cast rpc anvil_mine {{.UPDATE_INTERVAL_BLOCKS}} --rpc-url {{.SOURCE_RPC_URL}}
-      - |
-        for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            echo "Fetching event for chain $CHAIN_NUMBER..."
-            RESULT=$(task test:get-operator-weight-updated-event CHAIN_NUMBER=$CHAIN_NUMBER OPERATOR_ADDRESS={{.OPERATOR_ADDRESS}})
-
-            if [ -z "$RESULT" ]; then
-              echo "⚠️ No events found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
-              exit 1
-            else
-              echo "✅ Event found for chain $CHAIN_NUMBER and operator {{.OPERATOR_ADDRESS}}."
-            fi
-          fi
-        done
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
