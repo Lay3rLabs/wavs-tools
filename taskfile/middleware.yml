@@ -108,11 +108,10 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
-      OPERATOR_PRIVATE_KEY:
-        sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     requires:
-      vars: [PROJECT, SERVICE_NAME, AVS_SIGNING_ADDRESS, AMOUNT]
+      vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY, AMOUNT]
     env:
+      WAVS_SIGNING_KEY: "{{.WAVS_SIGNING_KEY}}"
       DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
@@ -123,6 +122,8 @@ tasks:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      OPERATOR_KEY:
+        sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
       - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
@@ -134,8 +135,10 @@ tasks:
         -e LST_STRATEGY_ADDRESS
         -e CHAIN_ID 
         -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e OPERATOR_KEY
+        -e WAVS_SIGNING_KEY
         -v {{.NODES_DIR}}:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.OPERATOR_PRIVATE_KEY}} {{.AVS_SIGNING_ADDRESS}} {{.AMOUNT}}
+        {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
   list-operators:
     desc: "List registered operators for a given service"
