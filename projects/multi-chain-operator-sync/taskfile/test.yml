@@ -23,6 +23,66 @@ tasks:
       - |
         cd {{.ROOT_DIR}}
         task bootstrap:wavs-{{.OPERATOR}}
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+
+  trigger-deregister:
+    desc: "Deregisters all available operators and verifies they were synced"
+    vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
+    cmds:
+      - |
+        for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
+            task test:trigger-deregister-$OPERATOR
+          fi
+        done
+
+  trigger-deregister-*:
+    desc: "Registers a new operator and validates it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+    cmds:
+      - >
+        cd {{.REPO_ROOT}} &&
+        task middleware:deregister-operator 
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        WAVS_INSTANCE="{{.OPERATOR}}"
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+
+  get-operator-weight-updated-event:
+    requires:
+      vars: [CHAIN_NUMBER, OPERATOR_ADDRESS]
+    vars:
+      EVM_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      CURRENT_BLOCK:
+        sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
+      BLOCK_START:
+        sh: echo $(( {{.CURRENT_BLOCK}} - 3 ))
+      TOPIC_0:
+        sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
+      TOPIC_1:
+        sh: cast abi-encode "p(address)" {{.OPERATOR_ADDRESS}}
+      STAKE_REGISTRY_ADDRESS:
+        sh: task get-mirror-stake-registry-address-{{.CHAIN_NUMBER}}
+    cmds:
+      - >
+        cast logs 
+        --from-block {{.BLOCK_START}}
+        --to-block latest {{.TOPIC_0}} {{.TOPIC_1}}
+        --address {{.STAKE_REGISTRY_ADDRESS}} 
+        --rpc-url {{.EVM_RPC_URL}}
+
+  validate-operator-weight-updated-event:
+    requires:
+      vars: [OPERATOR_ADDRESS]
+    cmds:
       - |
         for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
@@ -37,26 +97,6 @@ tasks:
             fi
           fi
         done
-
-  get-operator-weight-updated-event:
-    requires:
-      vars: [CHAIN_NUMBER, OPERATOR_ADDRESS]
-    vars:
-      TOPIC_0:
-        sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
-      TOPIC_1:
-        sh: cast abi-encode "p(address)" {{.OPERATOR_ADDRESS}}
-      EVM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      STAKE_REGISTRY_ADDRESS:
-        sh: task get-mirror-stake-registry-address-{{.CHAIN_NUMBER}}
-    cmds:
-      - >
-        cast logs 
-        --from-block 0
-        --to-block latest {{.TOPIC_0}} {{.TOPIC_1}}
-        --address {{.STAKE_REGISTRY_ADDRESS}} 
-        --rpc-url {{.EVM_RPC_URL}}
 
   trigger-update-*:
     desc: "Delegates more weight to an operator and verifies it was synced"

@@ -38,9 +38,6 @@ export class BackendManager {
         args.push(`OPERATORS=${this.config.nOperators}`);
       }
 
-      await execAsync('task', ['backend:stop'], {
-        cwd: rootPath(),
-      });
       await execAsync('task', args, {
         cwd: rootPath(),
       });
@@ -49,7 +46,7 @@ export class BackendManager {
 
       this.isRunning = true;
     } catch (error) {
-      this.stop();
+      await this.stop();
       this.error = error;
     }
   }

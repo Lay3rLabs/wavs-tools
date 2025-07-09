@@ -33,7 +33,7 @@ sol!(interface IMirrorUpdateTypes {
         uint64 triggerId;
         uint256 thresholdWeight;
         address[] operators;
-        address[] signingKeys;
+        address[] signingKeyAddresses;
         uint256[] weights;
     }
 });
@@ -163,12 +163,15 @@ async fn handle_register_event(
     );
 
     // Query the current signing key for operator
-    let signing_key = stake_registry
+    let signing_key_address = stake_registry
         .getLatestOperatorSigningKey(operator)
         .call()
         .await?;
 
-    host::log(LogLevel::Info, &format!("Signing key: {}", signing_key));
+    host::log(
+        LogLevel::Info,
+        &format!("Signing key address: {}", signing_key_address),
+    );
 
     // Get operator's stake
     let weight = stake_registry.getOperatorWeight(operator).call().await?;
@@ -188,7 +191,7 @@ async fn handle_register_event(
 
     Ok(UpdateWithId {
         operators: vec![operator],
-        signingKeys: vec![signing_key],
+        signingKeyAddresses: vec![signing_key_address],
         weights: vec![weight],
         triggerId: block_height,
         thresholdWeight: threshold_weight,
@@ -223,7 +226,7 @@ async fn handle_deregister_event(
         triggerId: block_height,
         thresholdWeight: threshold_weight,
         operators: vec![operator],
-        signingKeys: vec![Address::ZERO],
+        signingKeyAddresses: vec![Address::ZERO],
         weights: vec![Uint::ZERO],
     })
 }

@@ -72,3 +72,4 @@ tasks:
     desc: "Run all test cases"
     cmds:
       - task test:trigger-register
+      - task test:trigger-deregister

@@ -302,11 +302,11 @@ tasks:
   register-operator:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      AVS_SIGNING_ADDRESS:
+      WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
     cmds:
       - |
-        cd "{{.REPO_ROOT}}" && task middleware:register-operator AVS_SIGNING_ADDRESS="{{.AVS_SIGNING_ADDRESS}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
 
   wavs-*:
     vars:
