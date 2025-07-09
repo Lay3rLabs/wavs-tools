@@ -28,7 +28,7 @@ tasks:
           OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
 
   trigger-deregister:
-    desc: "Deegisters all available operators and verifies they were synced"
+    desc: "Deregisters all available operators and verifies they were synced"
     vars:
       FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
     cmds:
