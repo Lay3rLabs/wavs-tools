@@ -279,10 +279,10 @@ async fn handle_update_event(
     let operators = allocation_manager.getMembers(operator_set).call().await?;
 
     let mut weights = vec![];
-    let mut signing_keys = vec![];
+    let mut signing_key_addresses = vec![];
     for operator in operators.iter() {
         let weight = stake_registry.getOperatorWeight(*operator).call().await?;
-        let signing_key = stake_registry
+        let signing_key_address = stake_registry
             .getLatestOperatorSigningKey(*operator)
             .call()
             .await?;
@@ -290,20 +290,20 @@ async fn handle_update_event(
         host::log(
             LogLevel::Info,
             &format!(
-                "Operator: {}, Weight: {}, Signing key: {}",
-                operator, weight, signing_key
+                "Operator: {}, Weight: {}, Signing key address: {}",
+                operator, weight, signing_key_address
             ),
         );
 
         weights.push(weight);
-        signing_keys.push(signing_key);
+        signing_key_addresses.push(signing_key_address);
     }
 
     Ok(UpdateWithId {
         triggerId: block_height,
         thresholdWeight: threshold_weight,
         operators,
-        signingKeys: signing_keys,
+        signingKeyAddresses: signing_key_addresses,
         weights,
     })
 }
