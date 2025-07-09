@@ -4,6 +4,25 @@ vars:
   SUBMIT_DELAY: 1
 
 tasks:
-  placeholder:
+  simple:
     cmds:
-      - echo "Placeholder"
+      - task: update-quorum
+        vars:
+          QUORUM_NUMERATOR: 1
+          QUORUM_DENOMINATOR: 2
+
+  update-quorum:
+    desc: "Updates the service manager quorum"
+    requires:
+      vars: [QUORUM_NUMERATOR, QUORUM_DENOMINATOR]
+    vars:
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+    cmds:
+      - >
+        cd "{{.REPO_ROOT}}" && 
+        task middleware:update-quorum
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
+        QUORUM_NUMERATOR="{{.QUORUM_NUMERATOR}}"
+        QUORUM_DENOMINATOR="{{.QUORUM_DENOMINATOR}}"
