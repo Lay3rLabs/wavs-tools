@@ -1,13 +1,12 @@
 import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
+import { TIMEOUTS } from "./helpers/constants";
 
 describe("MULTI-CHAIN-OPERATOR-SYNC", function () {
   let backendManager: BackendManager;
 
   before(async function () {
-    // 15 minute timeout for setup
-    // since it includes starting the backend, deploying middleware, registering operators, etc.
-    this.timeout(900000); 
+    this.timeout(TIMEOUTS.SETUP); 
 
     backendManager = new BackendManager({nChains: 2, nOperators: 2});
     await backendManager.start();
@@ -18,13 +17,13 @@ describe("MULTI-CHAIN-OPERATOR-SYNC", function () {
   });
 
   after(async function () {
-    this.timeout(30000); // 30 second timeout for cleanup
+    this.timeout(TIMEOUTS.TEARDOWN);
     await backendManager.stop();
   });
 
   describe("All tests", function () {
     it("should complete without error", async function () {
-      this.timeout(60000);
+      this.timeout(TIMEOUTS.TEST);
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {

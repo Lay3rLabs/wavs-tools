@@ -239,7 +239,7 @@ tasks:
   start-wavs-*:
     internal: true
     vars:
-      TIMEOUT: 5
+      TIMEOUT: 10
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_PORT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-port-{{.WAVS_INSTANCE}}
