@@ -76,7 +76,7 @@ tasks:
           echo "Error: No mirror-*.json file found in {{.OUT_DIR}}"
           exit 1
         fi
-        jq -r '.addresses.MirrorServiceHandler' "$FILE"
+        jq -r '.addresses.MirrorServiceManagerHandler' "$FILE"
 
   build-empty-service:
     desc: "Build the empty service configuration"
@@ -108,28 +108,26 @@ tasks:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
-      STAKE_REGISTRY_ADDRESS:
-        sh: task get-stake-registry-address
+      QUORUM_THRESHOLD_UPDATED_EVENT_HASH:
+        sh: cast keccak "QuorumThresholdUpdated(uint256,uint256)"
+      WORKFLOW_ID:
+        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
     cmds:
-      - task: build-register-workflow
-        vars:
-          SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
-          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
-          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
-          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
-      - task: build-deregister-workflow
-        vars:
-          SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
-          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
-          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
-          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
-      - task: build-update-workflow
-        vars:
-          SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
-          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
-          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
-          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
-          SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      - |
+        cd "{{.REPO_ROOT}}"
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} --event-hash {{.QUORUM_THRESHOLD_UPDATED_EVENT_HASH}}
+
+      - |
+        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
+          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        done
+
+      - |
+        cd "{{.REPO_ROOT}}"
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
+
+        echo "Workflow registered"
 
   build-submit-*:
     desc: "Submit workflow for a specific chain"
@@ -150,103 +148,6 @@ tasks:
         else
           task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
         fi
-
-  build-register-workflow:
-    desc: "Configure and register a workflow"
-    requires:
-      vars:
-        [
-          SERVICE_JSON_CMD,
-          SOURCE_CHAIN,
-          STAKE_REGISTRY_ADDRESS,
-          COMPONENT_DIGEST,
-        ]
-    vars:
-      OPERATOR_REGISTERED_EVENT_HASH:
-        sh: cast keccak "OperatorRegistered(address,address)"
-      WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
-
-      - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-        done
-
-      - |
-        cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
-
-        echo "Workflow registered"
-
-  build-deregister-workflow:
-    desc: "Configure and register a workflow"
-    requires:
-      vars:
-        [
-          SERVICE_JSON_CMD,
-          SOURCE_CHAIN,
-          STAKE_REGISTRY_ADDRESS,
-          COMPONENT_DIGEST,
-        ]
-    vars:
-      OPERATOR_DEREGISTERED_EVENT_HASH:
-        sh: cast keccak "OperatorDeregistered(address,address)"
-      WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
-
-      - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-        done
-
-      - |
-        cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
-
-        echo "Workflow registered"
-
-  build-update-workflow:
-    desc: "Configure and register a workflow"
-    requires:
-      vars:
-        [
-          SERVICE_JSON_CMD,
-          SOURCE_CHAIN,
-          STAKE_REGISTRY_ADDRESS,
-          COMPONENT_DIGEST,
-          SERVICE_MANAGER_ADDRESS,
-        ]
-    vars:
-      WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-block-interval --chain-name {{.SOURCE_CHAIN}} --n-blocks {{.UPDATE_INTERVAL_BLOCKS}}
-
-      - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-        done
-
-      - |
-        cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
-
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} config --values "service_manager_address={{.SERVICE_MANAGER_ADDRESS}}"
-
-        echo "Workflow registered"
 
   clean-service:
     desc: "Cleans up the service configuration"
@@ -305,19 +206,6 @@ tasks:
     cmds:
       - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
-  deploy-service-*:
-    vars:
-      WAVS_INSTANCE: "{{index .MATCH 0}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      TEMP_SERVICE_HASH:
-        sh: task get-temp-service-hash
-      SOURCE_WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-1
-      SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
-    cmds:
-      - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
-
   register-operator:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
@@ -326,11 +214,3 @@ tasks:
     cmds:
       - |
         cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-
-  wavs-*:
-    vars:
-      WAVS_INSTANCE: "{{index .MATCH 0}}"
-    cmds:
-      - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-      - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
-      - task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"

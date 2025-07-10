@@ -124,8 +124,10 @@ tasks:
       SERVICE_ID:
         sh: task get-service-id
     cmds:
-      - |
-        curl -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" -H "Content-Type: application/json" -d "{\"service_id\": \"{{.SERVICE_ID}}\"}"
+      - >
+        curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" 
+        -H "Content-Type: application/json" 
+        -d "{\"service_id\": \"{{.SERVICE_ID}}\"}"
 
   deploy-service:
     vars:
