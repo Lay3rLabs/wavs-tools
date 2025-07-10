@@ -172,7 +172,7 @@ tasks:
         {{.MIDDLEWARE_DOCKER_IMAGE}} deregister
 
   update-quorum:
-    desc: "Deregister an operator on a given service"
+    desc: "Update quorum threshold for a service"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
