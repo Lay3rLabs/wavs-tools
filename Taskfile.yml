@@ -53,6 +53,6 @@ tasks:
 
   lint:
     cmds:
-      - cargo fmt --all -- --check
+      - cargo +nightly fmt --all -- --check
       - cargo fix --allow-dirty --allow-staged
       - cargo clippy --all-targets -- -D warnings
