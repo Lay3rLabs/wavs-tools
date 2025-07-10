@@ -52,10 +52,10 @@ impl Guest for Component {
                     denominator,
                 };
 
-                return Ok(Some(WasmResponse {
+                Ok(Some(WasmResponse {
                     payload: result.abi_encode(),
                     ordering: None,
-                }));
+                }))
             }),
             _ => Err(format!(
                 "Component did not expect trigger action {:?}",
