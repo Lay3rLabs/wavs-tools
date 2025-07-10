@@ -35,7 +35,7 @@ tasks:
         for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
             echo "Fetching event for chain $CHAIN_NUMBER..."
-            RESULT=$(task test:get-quorum-threshold-updated-event CHAIN_NUMBER=$CHAIN_NUMBER)
+            RESULT=$(task test:get-quorum-threshold-updated-event-$CHAIN_NUMBER)
 
             if [ -z "$RESULT" ]; then
               echo "⚠️ No events found for chain $CHAIN_NUMBER."
@@ -46,10 +46,9 @@ tasks:
           fi
         done
 
-  get-quorum-threshold-updated-event:
-    requires:
-      vars: [CHAIN_NUMBER]
+  get-quorum-threshold-updated-event-*:
     vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
       EVM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       CURRENT_BLOCK:
