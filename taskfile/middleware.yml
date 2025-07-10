@@ -125,7 +125,6 @@ tasks:
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
-      - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
@@ -162,7 +161,6 @@ tasks:
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
-      - echo "Registering operator on chain {{.CHAIN_NUMBER}} with WAVS Service Manager address $WAVS_SERVICE_MANAGER_ADDRESS"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
@@ -197,6 +195,43 @@ tasks:
         -e ETHERSCAN_API_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} list_operators
+
+  delegate-to-operator:
+    desc: "Delegates an amount to an operator"
+    requires:
+      vars:
+        [
+          OPERATOR_ADDRESS,
+          SERVICE_MANAGER_ADDRESS,
+          DELEGATE_AMOUNT,
+          PROJECT,
+          SERVICE_NAME,
+        ]
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    env:
+      STAKER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+      LOCAL_ETHEREUM_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+      WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      WAVS_DELEGATE_AMOUNT: "{{.DELEGATE_AMOUNT}}"
+      LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
+      LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e OPERATOR_ADDRESS
+        -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e WAVS_DELEGATE_AMOUNT
+        -e LST_CONTRACT_ADDRESS
+        -e LST_STRATEGY_ADDRESS
+        -e LOCAL_ETHEREUM_RPC_URL
+        -e STAKER_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} delegate_to_operator
 
   get-output-dir:
     desc: "Get the path to the middleware output directory"

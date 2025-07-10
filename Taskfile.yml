@@ -33,13 +33,13 @@ tasks:
     cmds:
       - npm install
       - cd tests && npm install
-      - task: cli:build-eigenlayer-abi
+      - task: cli:build-abi
 
   setup-ci:
     cmds:
       - npm ci
       - cd tests && npm ci
-      - task: cli:build-eigenlayer-abi
+      - task: cli:build-abi
 
   test:
     dir: tests

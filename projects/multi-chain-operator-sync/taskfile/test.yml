@@ -1,5 +1,8 @@
 version: "3"
 
+vars:
+  SUBMIT_DELAY: 3
+
 tasks:
   trigger-register:
     desc: "Registers all available operators and verifies they were synced"
@@ -84,6 +87,7 @@ tasks:
       vars: [OPERATOR_ADDRESS]
     cmds:
       - |
+        sleep {{.SUBMIT_DELAY}}
         for CHAIN_NUMBER in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$CHAIN_NUMBER" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
             echo "Fetching event for chain $CHAIN_NUMBER..."
@@ -97,3 +101,27 @@ tasks:
             fi
           fi
         done
+
+  trigger-update-*:
+    desc: "Delegates more weight to an operator and verifies it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      DELEGATE_AMOUNT: "0.001ether"
+      SOURCE_RPC_URL:
+        sh: task get-source-rpc-url
+    cmds:
+      - >
+        cd "{{.REPO_ROOT}}" && 
+        task middleware:delegate-to-operator
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
+        SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
+        DELEGATE_AMOUNT="{{.DELEGATE_AMOUNT}}"
+      - cast rpc anvil_mine {{.UPDATE_INTERVAL_BLOCKS}} --rpc-url {{.SOURCE_RPC_URL}}
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
