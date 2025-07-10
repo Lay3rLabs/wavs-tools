@@ -1,4 +1,5 @@
 import { execAsync, rootPath} from './utils';
+import { TIMEOUTS } from './constants';
 
 export interface BackendManagerConfig {
   nChains: number
@@ -60,6 +61,10 @@ export class BackendManager {
         cwd: rootPath(),
       });
       console.log('Backend stopped successfully');
+      
+      // Wait for Docker to fully clean up resources (ports, networks, etc.)
+      console.log('Waiting for resource cleanup...');
+      await new Promise(resolve => setTimeout(resolve, TIMEOUTS.RESOURCE_CLEANUP));
     }
   }
 
