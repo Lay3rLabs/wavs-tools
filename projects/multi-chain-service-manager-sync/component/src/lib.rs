@@ -44,7 +44,7 @@ impl Guest for Component {
                 let QuorumThresholdUpdated {
                     numerator,
                     denominator,
-                } = decode_event_log_data!(log.clone()).map_err(|x| x.to_string())?;
+                } = decode_event_log_data!(log).map_err(|x| x.to_string())?;
 
                 let result = UpdateWithId {
                     triggerId: block_height,
