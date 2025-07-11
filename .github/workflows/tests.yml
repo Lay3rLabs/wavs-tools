@@ -69,7 +69,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: /tmp/docker-cache
-          key: ${{ runner.os }}-docker-${{ hashFiles('taskfile/config.yml') }}
+          key: ${{ runner.os }}-docker-${{ hashFiles('taskfile/docker.yml') }}
 
       - name: Load cached Docker images
         if: steps.cache-docker.outputs.cache-hit == 'true'
@@ -90,6 +90,8 @@ jobs:
           WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
           FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
           MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
+          JAEGER_IMAGE=$(grep 'JAEGER_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
+          PROMETHEUS_IMAGE=$(grep 'PROMETHEUS_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
 
           # Create cache directory
           mkdir -p /tmp/docker-cache
@@ -99,11 +101,15 @@ jobs:
           docker pull $WAVS_IMAGE
           docker pull $FOUNDRY_IMAGE  
           docker pull $MIDDLEWARE_IMAGE
+          docker pull $JAEGER_IMAGE
+          docker pull $PROMETHEUS_IMAGE
 
           # Save images to cache
           docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
           docker save $FOUNDRY_IMAGE -o /tmp/docker-cache/foundry.tar
           docker save $MIDDLEWARE_IMAGE -o /tmp/docker-cache/middleware.tar
+          docker save $JAEGER_IMAGE -o /tmp/docker-cache/jaeger.tar
+          docker save $PROMETHEUS_IMAGE -o /tmp/docker-cache/prometheus.tar
 
       # Tool installations
       - name: Install Foundry
