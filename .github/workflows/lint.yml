@@ -66,7 +66,7 @@ jobs:
 
       - name: Setup dependencies
         if: steps.cache-forge.outputs.cache-hit != 'true'
-        run: task setup
+        run: task setup-ci
 
       - name: Check formatting
         uses: actions-rs/cargo@v1
