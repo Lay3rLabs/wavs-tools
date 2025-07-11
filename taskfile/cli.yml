@@ -44,10 +44,15 @@ tasks:
 
   build-abi-ci:
     internal: true
+    requires:
+      vars: [BUILD_ABI]
     status:
+      - '[ "{{.BUILD_ABI}}" != "true" ]'
       - test -d {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
+      - test -d {{.ABI_WAVS_MIDDLEWARE_DIR}}
     cmds:
       - task: build-eigenlayer-abi
+      - task: build-wavs-abi
 
   build-abi:
     internal: true

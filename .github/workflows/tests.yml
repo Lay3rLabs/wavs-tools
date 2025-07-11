@@ -53,7 +53,6 @@ jobs:
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache Node modules
-        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: actions/cache@v4
         with:
           path: node_modules
@@ -91,16 +90,16 @@ jobs:
           WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
           FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
           MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
-          
+
           # Create cache directory
           mkdir -p /tmp/docker-cache
-          
+
           # Pull and save images
           echo "Pulling and caching Docker images..."
           docker pull $WAVS_IMAGE
           docker pull $FOUNDRY_IMAGE  
           docker pull $MIDDLEWARE_IMAGE
-          
+
           # Save images to cache
           docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
           docker save $FOUNDRY_IMAGE -o /tmp/docker-cache/foundry.tar
@@ -113,7 +112,6 @@ jobs:
           version: stable
 
       - name: Install Node.js
-        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 21
@@ -145,13 +143,7 @@ jobs:
 
       # Dependencies and environment
       - name: Setup dependencies
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        run: task setup-ci
-
-      - name: Setup test dependencies (cache hit)
-        if: steps.cache-forge.outputs.cache-hit == 'true'
-        run: npm ci
-        working-directory: tests
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env

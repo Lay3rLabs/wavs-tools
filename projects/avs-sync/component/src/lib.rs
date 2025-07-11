@@ -140,7 +140,7 @@ async fn perform_avs_sync(
 
     host::log(
         LogLevel::Info,
-        &format!("Querying OperatorRegistered events from block {from_block} to {block_height}",),
+        &format!("Querying OperatorRegistered events from block {from_block} to {block_height}"),
     );
 
     let active_operators = avs_reader
