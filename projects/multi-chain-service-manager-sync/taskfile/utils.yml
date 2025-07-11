@@ -1,0 +1,116 @@
+version: "3"
+
+tasks:
+  get-component-digest:
+    desc: "Get the component digest"
+    vars:
+      COMPONENT_DIGEST_FILE:
+        sh: cd "{{.REPO_ROOT}}" && task component:get-digest-filepath PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
+      COMPONENT_DIGEST:
+        sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
+    cmds:
+      - echo "{{.COMPONENT_DIGEST}}"
+
+  get-service-id:
+    desc: "Get the service ID"
+    vars:
+      SERVICE_ID:
+        sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
+    cmds:
+      - echo "{{.SERVICE_ID}}"
+
+  get-temp-service-hash:
+    desc: "Get the service hash"
+    vars:
+      TEMP_SERVICE_HASH:
+        sh: jq -r '.hash // empty' "{{.TEMP_SERVICE_HASH_JSON_PATH}}" 2>/dev/null || true
+    cmds:
+      - echo "{{.TEMP_SERVICE_HASH}}"
+
+  get-service-manager-address:
+    desc: "Get the service manager address"
+    vars:
+      SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+    cmds:
+      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+
+  get-stake-registry-address:
+    desc: "Get the stake registry address"
+    vars:
+      STAKE_REGISTRY_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+    cmds:
+      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
+
+  get-mirror-stake-registry-address-*:
+    desc: "Get the mirror stake registry address"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      STAKE_REGISTRY_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-stake-registry-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+    cmds:
+      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
+
+  get-mirror-service-manager-address-*:
+    desc: "Get the mirror service manager address"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+    cmds:
+      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+
+  get-source-rpc-url:
+    desc: "Get the source RPC URL"
+    vars:
+      EVM_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+    cmds:
+      - echo "{{.EVM_RPC_URL}}"
+
+  get-service-hd-index:
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+      SERVICE_ID:
+        sh: task get-service-id
+      SERVICE_HD_INDEX:
+        sh: curl -s {{.WAVS_ENDPOINT}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
+    cmds:
+      - echo "{{.SERVICE_HD_INDEX}}"
+
+  get-service-signing-address:
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      HD_INDEX:
+        sh: task get-service-hd-index
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      AVS_SIGNING_ADDRESS:
+        sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index {{.HD_INDEX}}
+    cmds:
+      - echo "{{.AVS_SIGNING_ADDRESS}}"
+
+  get-operator-address:
+    desc: "Get the operator's address"
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      OPERATOR_ADDRESS:
+        sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}"
+    cmds:
+      - echo "{{.OPERATOR_ADDRESS}}"
+
+  get-operator-private-key:
+    desc: "Get the operator's private key"
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      OPERATOR_PRIVATE_KEY:
+        sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
+    cmds:
+      - echo "{{.OPERATOR_PRIVATE_KEY}}"
