@@ -1,4 +1,5 @@
 #[allow(warnings)]
+#[rustfmt::skip]
 mod bindings;
 mod utils;
 
@@ -73,10 +74,10 @@ impl Guest for Component {
                 block_height,
             }) => {
                 let chain_config = get_evm_chain_config(&chain_name)
-                    .ok_or(format!("Could not get chain config for {}", chain_name))?;
+                    .ok_or(format!("Could not get chain config for {chain_name}"))?;
                 let endpoint = chain_config
                     .http_endpoint
-                    .ok_or(format!("No http endpoint configured for {}", chain_name))?;
+                    .ok_or(format!("No http endpoint configured for {chain_name}"))?;
 
                 let provider = new_evm_provider::<Ethereum>(endpoint);
                 let stake_registry =
@@ -96,10 +97,10 @@ impl Guest for Component {
                             .await
                             .map_err(|e: anyhow::Error| e.to_string())?;
 
-                        return Ok(Some(WasmResponse {
+                        Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
-                        }));
+                        }))
                     } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
                         operator,
                         avs: _,
@@ -110,12 +111,12 @@ impl Guest for Component {
                                 .await
                                 .map_err(|e| e.to_string())?;
 
-                        return Ok(Some(WasmResponse {
+                        Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
-                        }));
+                        }))
                     } else {
-                        return Err(format!("Could not decode the event {:?}", log));
+                        return Err(format!("Could not decode the event {log:?}"));
                     }
                 })
             }
@@ -135,15 +136,14 @@ impl Guest for Component {
                             .await
                             .map_err(|e| e.to_string())?;
 
-                    return Ok(Some(WasmResponse {
+                    Ok(Some(WasmResponse {
                         payload: result.abi_encode(),
                         ordering: None,
-                    }));
+                    }))
                 })
             }
             _ => Err(format!(
-                "Component did not expect trigger action {:?}",
-                action
+                "Component did not expect trigger action {action:?}"
             )),
         }
     }
@@ -156,10 +156,7 @@ async fn handle_register_event(
 ) -> anyhow::Result<UpdateWithId> {
     host::log(
         LogLevel::Info,
-        &format!(
-            "Querying register info for operator {} at block {}",
-            operator, block_height
-        ),
+        &format!("Querying register info for operator {operator} at block {block_height}"),
     );
 
     // Query the current signing key for operator
@@ -170,13 +167,13 @@ async fn handle_register_event(
 
     host::log(
         LogLevel::Info,
-        &format!("Signing key address: {}", signing_key_address),
+        &format!("Signing key address: {signing_key_address}"),
     );
 
     // Get operator's stake
     let weight = stake_registry.getOperatorWeight(operator).call().await?;
 
-    host::log(LogLevel::Info, &format!("Weight: {}", weight));
+    host::log(LogLevel::Info, &format!("Weight: {weight}"));
 
     // Get the threshold weight
     let threshold_weight = stake_registry
@@ -186,7 +183,7 @@ async fn handle_register_event(
 
     host::log(
         LogLevel::Info,
-        &format!("Threshold weight: {}", threshold_weight),
+        &format!("Threshold weight: {threshold_weight}"),
     );
 
     Ok(UpdateWithId {
@@ -205,10 +202,7 @@ async fn handle_deregister_event(
 ) -> anyhow::Result<UpdateWithId> {
     host::log(
         LogLevel::Info,
-        &format!(
-            "Querying deregister info for operator {} at block {}",
-            operator, block_height
-        ),
+        &format!("Querying deregister info for operator {operator} at block {block_height}"),
     );
 
     // Get the threshold weight
@@ -219,7 +213,7 @@ async fn handle_deregister_event(
 
     host::log(
         LogLevel::Info,
-        &format!("Threshold weight: {}", threshold_weight),
+        &format!("Threshold weight: {threshold_weight}"),
     );
 
     Ok(UpdateWithId {
@@ -237,7 +231,7 @@ async fn handle_update_event(
     service_manager_address: Address,
 ) -> anyhow::Result<UpdateWithId> {
     let chain_config = get_evm_chain_config(&chain_name)
-        .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
+        .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
 
     let provider = new_evm_provider::<Ethereum>(
         chain_config
@@ -251,12 +245,12 @@ async fn handle_update_event(
     let stake_registry_address = service_manager.stakeRegistry().call().await?;
     host::log(
         LogLevel::Info,
-        &format!("Stake registry address: {}", stake_registry_address),
+        &format!("Stake registry address: {stake_registry_address}"),
     );
     let allocation_manager_address = service_manager.allocationManager().call().await?;
     host::log(
         LogLevel::Info,
-        &format!("Allocation manager address: {}", allocation_manager_address),
+        &format!("Allocation manager address: {allocation_manager_address}"),
     );
 
     let stake_registry = ECDSAStakeRegistryInstance::new(stake_registry_address, provider.clone());
@@ -269,7 +263,7 @@ async fn handle_update_event(
         .await?;
     host::log(
         LogLevel::Info,
-        &format!("Threshold weight: {}", threshold_weight),
+        &format!("Threshold weight: {threshold_weight}"),
     );
 
     let operator_set = OperatorSet {
@@ -290,8 +284,7 @@ async fn handle_update_event(
         host::log(
             LogLevel::Info,
             &format!(
-                "Operator: {}, Weight: {}, Signing key address: {}",
-                operator, weight, signing_key_address
+                "Operator: {operator}, Weight: {weight}, Signing key address: {signing_key_address}"
             ),
         );
 

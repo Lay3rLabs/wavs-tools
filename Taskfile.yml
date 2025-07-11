@@ -50,3 +50,9 @@ tasks:
     dir: tests
     cmds:
       - npm run test:report:open
+
+  lint:
+    cmds:
+      - cargo fmt --all -- --check
+      - cargo fix --allow-dirty --allow-staged
+      - cargo clippy --all-targets -- -D warnings

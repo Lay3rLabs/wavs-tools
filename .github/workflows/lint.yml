@@ -1,0 +1,81 @@
+name: Lint
+
+on: [pull_request]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: "recursive"
+
+      - name: Cache Forge build
+        id: cache-forge
+        uses: actions/cache@v4
+        with:
+          path: abi
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'package-lock.json') }}
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Install Foundry
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        uses: foundry-rs/foundry-toolchain@v1
+        with:
+          version: stable
+
+      - name: Install Node.js
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 21
+
+      - name: Cache Node modules
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Task
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          components: rustfmt, clippy
+          override: true
+
+      - name: Setup dependencies
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        run: task setup-ci
+
+      - name: Check formatting
+        uses: actions-rs/cargo@v1
+        with:
+          command: fmt
+          args: --all -- --check
+
+      - name: Run clippy
+        uses: actions-rs/cargo@v1
+        with:
+          command: clippy
+          args: --all-targets -- -D warnings
