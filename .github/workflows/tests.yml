@@ -20,6 +20,7 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
 
     steps:
+      # Checkout
       - name: Checkout (PR Comment)
         if: github.event_name == 'issue_comment'
         uses: actions/checkout@v4
@@ -34,31 +35,48 @@ jobs:
         with:
           submodules: "recursive"
 
-      - name: Cache Submodules
-        id: cache-submodules
+      # Caches
+      - name: Cache Forge build
+        id: cache-forge
         uses: actions/cache@v4
         with:
-          path: ./submodules/eigenlayer-middleware
-          key: ${{ runner.os }}-submodules-${{ hashFiles('**/.gitmodules') }}-${{ hashFiles('submodules/**/.git') }}
+          path: abi
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'package-lock.json') }}
 
-      - name: Cache Forge Build Output
-        id: cache-forge-build
+      - name: Cache Cargo
         uses: actions/cache@v4
         with:
           path: |
-            ./submodules/eigenlayer-middleware/out
-            ./abi/eigenlayer-middleware
-          key: ${{ runner.os }}-eigenlayer-middleware-build-${{ hashFiles('**/*.sol') }}
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Cache Node modules
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      # Tool installations
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
           version: stable
 
       - name: Install Node.js
+        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 21
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          override: true
 
       - name: Install cargo binstall
         uses: cargo-bins/cargo-binstall@main
@@ -78,18 +96,22 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Dependencies and environment
       - name: Setup dependencies
+        if: steps.cache-forge.outputs.cache-hit != 'true'
         run: task setup-ci
 
       - name: Setup environment
         run: cp .env.example .env
 
+      # Tests
       - name: Run tests and generate report
         id: tests
         run: npm run test:report
         working-directory: tests
         continue-on-error: true
 
+      # Results processing
       - name: Check if we should comment
         id: should-comment
         run: |
