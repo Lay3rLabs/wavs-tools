@@ -65,6 +65,47 @@ jobs:
           path: tests/node_modules
           key: ${{ runner.os }}-tests-node-${{ hashFiles('tests/package-lock.json') }}
 
+      - name: Cache Docker images
+        id: cache-docker
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('taskfile/config.yml') }}
+
+      - name: Load cached Docker images
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        run: |
+          if [ -d "/tmp/docker-cache" ]; then
+            for image in /tmp/docker-cache/*.tar; do
+              if [ -f "$image" ]; then
+                echo "Loading cached image: $image"
+                docker load -i "$image"
+              fi
+            done
+          fi
+
+      - name: Pull and cache Docker images
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: |
+          # Extract image versions from config
+          WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
+          FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
+          MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/config.yml | cut -d'"' -f2)
+          
+          # Create cache directory
+          mkdir -p /tmp/docker-cache
+          
+          # Pull and save images
+          echo "Pulling and caching Docker images..."
+          docker pull $WAVS_IMAGE
+          docker pull $FOUNDRY_IMAGE  
+          docker pull $MIDDLEWARE_IMAGE
+          
+          # Save images to cache
+          docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
+          docker save $FOUNDRY_IMAGE -o /tmp/docker-cache/foundry.tar
+          docker save $MIDDLEWARE_IMAGE -o /tmp/docker-cache/middleware.tar
+
       # Tool installations
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
