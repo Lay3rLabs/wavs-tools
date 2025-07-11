@@ -20,18 +20,6 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
 
     steps:
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          # can try enabling these if above not enough
-          tool-cache: false
-          large-packages: false
-          swap-storage: false
-          docker-images: false
-
       - name: Checkout (PR Comment)
         if: github.event_name == 'issue_comment'
         uses: actions/checkout@v4
