@@ -68,18 +68,15 @@ impl Guest for Component {
         }?;
         host::log(
             LogLevel::Info,
-            &format!(
-                "Params: lookback_blocks={}, block_height={}",
-                lookback_blocks, block_height
-            ),
+            &format!("Params: lookback_blocks={lookback_blocks}, block_height={block_height}"),
         );
         host::log(
             LogLevel::Info,
-            &format!("Starting AVS sync for chain: {}", chain_name),
+            &format!("Starting AVS sync for chain: {chain_name}"),
         );
         host::log(
             LogLevel::Info,
-            &format!("ECDSA Stake Registry: {}", ecdsa_stake_registry_address),
+            &format!("ECDSA Stake Registry: {ecdsa_stake_registry_address}"),
         );
 
         block_on(async move {
@@ -120,7 +117,7 @@ async fn perform_avs_sync(
     lookback_blocks: u64,
 ) -> Result<AvsWriterPayload> {
     let chain_config = get_evm_chain_config(&chain_name)
-        .ok_or(anyhow!("Failed to get chain config for: {}", chain_name))?;
+        .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
 
     let provider = new_evm_provider::<Ethereum>(
         chain_config
@@ -135,7 +132,7 @@ async fn perform_avs_sync(
     let quorum_count = avs_reader.get_quorum_count().await?;
     host::log(
         LogLevel::Info,
-        &format!("ECDSAStakeRegistry has {} quorum", quorum_count),
+        &format!("ECDSAStakeRegistry has {quorum_count} quorum"),
     );
 
     // Get operators by querying OperatorRegistered events
@@ -143,10 +140,7 @@ async fn perform_avs_sync(
 
     host::log(
         LogLevel::Info,
-        &format!(
-            "Querying OperatorRegistered events from block {} to {}",
-            from_block, block_height
-        ),
+        &format!("Querying OperatorRegistered events from block {from_block} to {block_height}",),
     );
 
     let active_operators = avs_reader

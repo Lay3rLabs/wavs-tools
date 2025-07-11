@@ -59,8 +59,7 @@ impl Guest for Component {
                 }))
             }),
             _ => Err(format!(
-                "Component did not expect trigger action {:?}",
-                action
+                "Component did not expect trigger action {action:?}"
             )),
         }
     }
