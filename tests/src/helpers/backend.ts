@@ -69,11 +69,22 @@ export class BackendManager {
   }
 
   private async waitForResourceCleanup() {
-    const maxWaitTime = TIMEOUTS.RESOURCE_CLEANUP;
     const checkInterval = 500; // Check every 500ms
-    const startTime = Date.now();
+    
+    const timeoutPromise = new Promise<void>((resolve) => {
+      setTimeout(() => {
+        console.warn('Resource cleanup timeout reached, proceeding anyway');
+        resolve();
+      }, TIMEOUTS.RESOURCE_CLEANUP);
+    });
 
-    while (Date.now() - startTime < maxWaitTime) {
+    const cleanupPromise = this.pollForCleanup(checkInterval);
+
+    await Promise.race([cleanupPromise, timeoutPromise]);
+  }
+
+  private async pollForCleanup(checkInterval: number): Promise<void> {
+    while (true) {
       try {
         // Check if any wavs/chain containers are still running
         const result = await execAsync('docker', [
@@ -94,8 +105,6 @@ export class BackendManager {
         return;
       }
     }
-    
-    console.warn('Resource cleanup timeout reached, proceeding anyway');
   }
 
   assertRunning() {
