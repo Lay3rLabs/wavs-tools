@@ -12,6 +12,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -19,6 +25,9 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
           override: true
+
+      - name: Setup dependencies
+        run: task setup
 
       - name: Check formatting
         uses: actions-rs/cargo@v1
