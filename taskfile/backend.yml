@@ -4,6 +4,9 @@ includes:
   config:
     taskfile: ./config.yml
     flatten: true
+  docker:
+    taskfile: ./docker.yml
+    flatten: true
 
 env:
   # avoid namespace conflicts with other env vars
