@@ -1,5 +1,6 @@
 mod avs_reader;
 #[allow(warnings)]
+#[rustfmt::skip]
 mod bindings;
 
 use alloy_network::Ethereum;

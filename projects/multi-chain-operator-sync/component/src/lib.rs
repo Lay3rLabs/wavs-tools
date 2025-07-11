@@ -1,4 +1,5 @@
 #[allow(warnings)]
+#[rustfmt::skip]
 mod bindings;
 mod utils;
 
@@ -96,10 +97,10 @@ impl Guest for Component {
                             .await
                             .map_err(|e: anyhow::Error| e.to_string())?;
 
-                        return Ok(Some(WasmResponse {
+                        Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
-                        }));
+                        }))
                     } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
                         operator,
                         avs: _,
@@ -110,10 +111,10 @@ impl Guest for Component {
                                 .await
                                 .map_err(|e| e.to_string())?;
 
-                        return Ok(Some(WasmResponse {
+                        Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
-                        }));
+                        }))
                     } else {
                         return Err(format!("Could not decode the event {:?}", log));
                     }
@@ -135,10 +136,10 @@ impl Guest for Component {
                             .await
                             .map_err(|e| e.to_string())?;
 
-                    return Ok(Some(WasmResponse {
+                    Ok(Some(WasmResponse {
                         payload: result.abi_encode(),
                         ordering: None,
-                    }));
+                    }))
                 })
             }
             _ => Err(format!(
