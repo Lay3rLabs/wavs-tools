@@ -127,6 +127,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
+          target: wasm32-wasip1
           override: true
 
       - name: Install cargo binstall
