@@ -14,6 +14,29 @@ jobs:
         with:
           submodules: "recursive"
 
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache Forge build
+        uses: actions/cache@v4
+        with:
+          path: |
+            submodules/eigenlayer-middleware/out
+            abi
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'node_modules/@wavs/solidity/**/*.sol') }}
+
+      - name: Cache Cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
