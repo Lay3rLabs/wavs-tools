@@ -88,7 +88,7 @@ export class BackendManager {
       try {
         // Check if any wavs/chain containers are still running
         const result = await execAsync('docker', [
-          'ps', '--filter', 'name=wavs-', '--filter', 'name=chain-anvil-', '--format', '{{.Names}}'
+          'ps', '--filter', 'name=wavs-', '--filter', 'name=chain-anvil-', '--filter', 'name=jaeger', '--filter', 'name=prometheus', '--format', '{{.Names}}'
         ], { captureOutput: true });
 
         if (!result || !result.stdout.trim()) {

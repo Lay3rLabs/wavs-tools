@@ -4,7 +4,8 @@ services:
     container_name: jaeger
     image: "${COMPOSE_JAEGER_DOCKER_IMAGE:-}"
     network_mode: "host"
-    stop_signal: SIGKILL
+    stop_signal: SIGTERM
+    stop_grace_period: 3s
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     # ports managed by host network mode
@@ -14,7 +15,8 @@ services:
     container_name: prometheus
     image: "${COMPOSE_PROMETHEUS_DOCKER_IMAGE:-}" 
     network_mode: "host"
-    stop_signal: SIGKILL
+    stop_signal: SIGTERM
+    stop_grace_period: 3s
     # ports managed by host network mode
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml

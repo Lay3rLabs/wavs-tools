@@ -3,6 +3,7 @@ services:
   anvil:
     container_name: "${COMPOSE_CONTAINER_NAME:-}"
     image: "${COMPOSE_FOUNDRY_DOCKER_IMAGE:-}"
-    stop_signal: SIGKILL
+    stop_signal: SIGTERM
+    stop_grace_period: 3s
     network_mode: "host"
     command: ["anvil ${COMPOSE_ANVIL_FORK_CMD:-} --port ${COMPOSE_ANVIL_PORT:-}"]
