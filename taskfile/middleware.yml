@@ -60,8 +60,6 @@ tasks:
           SERVICE_NAME: "{{.SERVICE_NAME}}"
           CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     vars:
-      SOURCE_NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER=1 PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
@@ -71,12 +69,11 @@ tasks:
       SOURCE_RPC_URL: "{{.SOURCE_RPC_URL}}"
       MIRROR_RPC_URL: "{{.MIRROR_RPC_URL}}"
       WAVS_SERVICE_MANAGER_ADDRESS: "{{.WAVS_SERVICE_MANAGER_ADDRESS}}"
+      FUNDED_KEY: "{{.MIDDLEWARE_FUNDED_KEY}}"
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
     cmds:
       - mkdir -p {{.NODES_DIR}}
-      - cp {{.SOURCE_NODES_DIR}}/avs_deploy.json {{.NODES_DIR}}/avs_deploy.json
-      - cp {{.SOURCE_NODES_DIR}}/deployer {{.NODES_DIR}}/deployer
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
@@ -84,10 +81,9 @@ tasks:
         -e SOURCE_RPC_URL
         -e MIRROR_RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e FUNDED_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} -m mirror deploy
-      - rm {{.NODES_DIR}}/deployer
-      - rm {{.NODES_DIR}}/avs_deploy.json
 
   clean:
     desc: "Clean up middleware nodes directory for a given service"
