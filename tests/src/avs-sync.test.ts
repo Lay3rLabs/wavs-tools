@@ -2,7 +2,9 @@ import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
 import { TIMEOUTS } from "./helpers/constants";
 
-describe("AVS-SYNC", function () {
+const PROJECT_NAME = "avs-sync";
+
+describe(PROJECT_NAME.toUpperCase(), function () {
   let backendManager: BackendManager;
 
   before(async function () {
@@ -13,7 +15,7 @@ describe("AVS-SYNC", function () {
     backendManager.assertRunning();
 
     await execAsync("task", ["bootstrap"], {
-      cwd: projectPath("avs-sync"),
+      cwd: projectPath(PROJECT_NAME),
     });
   });
 
@@ -28,7 +30,7 @@ describe("AVS-SYNC", function () {
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {
-        cwd: projectPath("avs-sync"),
+        cwd: projectPath(PROJECT_NAME),
       });
     });
   });
