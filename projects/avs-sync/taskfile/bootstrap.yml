@@ -26,7 +26,7 @@ tasks:
   middleware-deploy:
     desc: "Deploys the AVS Sync middleware"
     cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
 
   contracts-deploy:
     desc: "Deploys the AVS Sync contracts"

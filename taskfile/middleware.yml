@@ -51,6 +51,41 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} deploy
 
+  deploy-mock:
+    desc: "Deploy mock middleware for a given service"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      MOCK_CONFIG_PATH: "{{.NODES_DIR}}/mock_config.json"
+    deps:
+      - task: clean
+        vars:
+          PROJECT: "{{.PROJECT}}"
+          SERVICE_NAME: "{{.SERVICE_NAME}}"
+          CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    env:
+      MOCK_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      MOCK_DEPLOYER_KEY:
+        sh: "echo $MIDDLEWARE_FUNDED_KEY"
+    cmds:
+      - mkdir -p {{.NODES_DIR}}
+      - |
+        echo '{"operators": [], "signingKeyAddresses": [], "weights": [], "threshold": 100, "quorumNumerator": 1, "quorumDenominator": 10}' > "{{.MOCK_CONFIG_PATH}}"
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e MOCK_DEPLOYER_KEY 
+        -e DEPLOY_ENV
+        -e MOCK_RPC_URL
+        -v {{.NODES_DIR}}:/root/.nodes
+        -v {{.MOCK_CONFIG_PATH}}:/wavs/contracts/deployments/wavs-mock-config.json
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock deploy
+      - mv {{.NODES_DIR}}/mock.json {{.NODES_DIR}}/avs_deploy.json
+
   deploy-mirror:
     desc: "Deploy mirror contracts for a given service"
     deps:
