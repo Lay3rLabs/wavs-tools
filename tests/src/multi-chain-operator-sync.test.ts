@@ -6,10 +6,11 @@ describe("MULTI-CHAIN-OPERATOR-SYNC", function () {
   let backendManager: BackendManager;
 
   before(async function () {
-    this.timeout(TIMEOUTS.SETUP); 
+    this.timeout(TIMEOUTS.SETUP);
 
-    backendManager = new BackendManager({nChains: 2, nOperators: 2});
+    backendManager = new BackendManager({ nChains: 2, nOperators: 2 });
     await backendManager.start();
+    backendManager.assertRunning();
 
     await execAsync("task", ["bootstrap"], {
       cwd: projectPath("multi-chain-operator-sync"),

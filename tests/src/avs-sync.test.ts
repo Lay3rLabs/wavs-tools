@@ -6,10 +6,11 @@ describe("AVS-SYNC", function () {
   let backendManager: BackendManager;
 
   before(async function () {
-    this.timeout(TIMEOUTS.SETUP); 
+    this.timeout(TIMEOUTS.SETUP);
 
-    backendManager = new BackendManager({nChains: 1, nOperators: 1});
+    backendManager = new BackendManager({ nChains: 1, nOperators: 1 });
     await backendManager.start();
+    backendManager.assertRunning();
 
     await execAsync("task", ["bootstrap"], {
       cwd: projectPath("avs-sync"),
