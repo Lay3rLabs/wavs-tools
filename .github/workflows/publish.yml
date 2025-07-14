@@ -1,9 +1,6 @@
 name: Publish Projects
 
-on:
-  push:
-    tags:
-      - "v*"
+on: [pull_request]
 
 jobs:
   publish_wit:
@@ -111,4 +108,4 @@ jobs:
           EOF
 
       - name: Publish components
-        run: task publish VERSION="${GITHUB_REF_NAME#v}" FLAGS="--config wkg-config.toml"
+        run: task publish VERSION="0.1.1" FLAGS="--config wkg-config.toml"
