@@ -1,18 +1,19 @@
-name: Lint
+name: Publish Projects
 
-on: [pull_request]
+on:
+  push:
+    tags:
+      - "v*"
 
 jobs:
-  lint:
-    name: "Lint"
+  publish_wit:
+    name: "Publish WIT"
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # Caches
       - name: Cache Git submodules
         id: cache-submodules
         uses: actions/cache@v4
@@ -71,21 +72,43 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          components: rustfmt, clippy
+          target: wasm32-wasip1
           override: true
+
+      - name: Install cargo binstall
+        uses: cargo-bins/cargo-binstall@main
+
+      - name: Install cargo component
+        run: cargo binstall cargo-component
+
+      - name: Install wkg
+        run: cargo binstall wkg
+
+      - name: Setup wkg
+        run: wkg config --default-registry wa.dev
 
       - name: Setup dependencies
         if: steps.cache-forge.outputs.cache-hit != 'true'
         run: task setup-ci
 
-      - name: Check formatting
-        uses: actions-rs/cargo@v1
-        with:
-          command: fmt
-          args: --all -- --check
+      - name: Setup environment
+        run: cp .env.example .env
 
-      - name: Run clippy
-        uses: actions-rs/cargo@v1
-        with:
-          command: clippy
-          args: --all-targets -- -D warnings
+      # Publish components
+      - name: Create warg config directory and write config.json and authentication flat-files
+        env: # https://docs.github.com/en/actions/security-for-github-actions/security-guides/using-secrets-in-github-actions#example-using-bash
+          WA_DEV_AUTH_TOKEN: ${{ secrets.WA_DEV_AUTH_TOKEN }}
+          WA_DEV_SIGNING_KEY: ${{ secrets.WA_DEV_SIGNING_KEY }}
+        # wkg cannot set the warg configuration for authentication at this time.
+        # This is a workaround to set the warg configuration without installing the `warg-cli`.
+        run: |
+          cat > wkg-config.toml << EOF
+          default_registry = "wavs.wa.dev"
+
+          [registry."wavs.wa.dev".warg]
+          auth_token = "$WA_DEV_AUTH_TOKEN"
+          signing_key = "$WA_DEV_SIGNING_KEY"
+          EOF
+
+      - name: Publish components
+        run: task publish VERSION="${GITHUB_REF_NAME#v}" FLAGS="--config wkg-config.toml"
