@@ -4,7 +4,15 @@ This repo contains various tools and services that make up the WAVS ecosystem.
 
 ## [avs-sync](projects/avs-sync) 
 
-A tool for syncing AVS operators (TODO: explain more).
+A service for synchronizing AVS operator registrations within a single blockchain network. This tool monitors ECDSAStakeRegistry contracts, tracks operator registration events, and maintains up-to-date operator sets for quorum management in AVS deployments.
+
+## [multi-chain-operator-sync](projects/multi-chain-operator-sync)
+
+A service for synchronizing operator registrations across multiple blockchain networks. This tool enables operators to maintain consistent state across different chains while participating in multi-chain AVS deployments.
+
+## [multi-chain-service-manager-sync](projects/multi-chain-service-manager-sync)
+
+A service manager synchronization tool that handles the coordination and mirroring of service manager contracts across multiple chains. It ensures service definitions and operator sets remain consistent across different blockchain environments.
 
 # SYSTEM REQUIREMENTS
 
@@ -79,7 +87,14 @@ task backend:stop
 There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
 ```bash
+# For any of the available projects:
 cd projects/avs-sync
+task bootstrap
+
+cd projects/multi-chain-operator-sync
+task bootstrap
+
+cd projects/multi-chain-service-manager-sync
 task bootstrap
 ```
 
