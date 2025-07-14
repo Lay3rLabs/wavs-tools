@@ -263,6 +263,7 @@ tasks:
         done
         if ! nc -z 127.0.0.1 {{.WAVS_PORT}}; then
           echo "WAVS #{{.WAVS_INSTANCE}} did not start after {{.TIMEOUT}} seconds"
+          {{.DOCKER_SUDO}} docker logs wavs-{{.WAVS_INSTANCE}}
           exit 1
         fi
       - |
