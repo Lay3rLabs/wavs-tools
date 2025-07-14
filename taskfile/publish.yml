@@ -1,0 +1,78 @@
+version: "3"
+
+tasks:
+  build-all-components:
+    internal: true
+    desc: "Build all WASI components across all projects"
+    vars:
+      PROJECTS:
+        sh: find {{.REPO_ROOT}}/projects -maxdepth 1 -type d -name "*" | grep -v "^{{.REPO_ROOT}}/projects$" | xargs -I {} basename {}
+    deps:
+      - for: { var: PROJECTS, split: "\n" }
+        task: build-component
+        vars:
+          PROJECT: "{{.ITEM}}"
+
+  publish:
+    desc: "Publish all components to wa.dev"
+    deps: ["build-all-components"]
+    vars:
+      PROJECTS:
+        sh: find {{.REPO_ROOT}}/projects -maxdepth 1 -type d -name "*" | grep -v "^{{.REPO_ROOT}}/projects$" | xargs -I {} basename {}
+    cmds:
+      - for: { var: PROJECTS, split: "\n" }
+        task: publish-component
+        vars:
+          PROJECT: "{{.ITEM}}"
+          VERSION: "{{.VERSION}}"
+          FLAGS: "{{.FLAGS}}"
+
+  build-component:
+    internal: true
+    desc: "Build component for a specific project"
+    requires:
+      vars: [PROJECT]
+    preconditions:
+      - test -d "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
+      - test -f "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml"
+    vars:
+      COMPONENT_NAME:
+        sh: task get-component-name PROJECT="{{.PROJECT}}"
+      COMPONENT_SOURCE_DIR: "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
+    cmds:
+      - echo "Building {{.COMPONENT_NAME}} for {{.PROJECT}}"
+      - task: component:build
+        vars:
+          PROJECT: "{{.PROJECT}}"
+          COMPONENT_NAME: "{{.COMPONENT_NAME}}"
+          COMPONENT_SOURCE_DIR: "{{.COMPONENT_SOURCE_DIR}}"
+
+  publish-component:
+    internal: true
+    desc: "Publish component for a specific project to wa.dev"
+    requires:
+      vars: [PROJECT]
+    preconditions:
+      - test -d "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
+      - test -f "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml"
+    vars:
+      COMPONENT_NAME:
+        sh: task get-component-name PROJECT="{{.PROJECT}}"
+      COMPONENT_PATH: "{{.REPO_ROOT}}/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
+      PACKAGE_NAME:
+        sh: echo "{{.COMPONENT_NAME}}" | tr '_' '-'
+      VERSION: '{{.VERSION | default "0.1.0"}}'
+      FLAGS: '{{.FLAGS | default ""}}'
+    cmds:
+      - echo "Publishing {{.COMPONENT_NAME}} for {{.PROJECT}} to wa.dev"
+      - wkg publish "{{.COMPONENT_PATH}}" --package="wavs-tools:{{.PACKAGE_NAME}}@{{.VERSION}}" {{.FLAGS}}
+
+  get-component-name:
+    desc: "Get component name for a project"
+    requires:
+      vars: [PROJECT]
+    cmds:
+      - >
+        grep "COMPONENT_NAME:" "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml" |
+        sed 's/.*: *"\(.*\)".*/\1/' |
+        tr -d '"'

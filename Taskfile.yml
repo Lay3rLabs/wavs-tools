@@ -10,6 +10,9 @@ includes:
   cli: ./taskfile/cli.yml
   middleware: ./taskfile/middleware.yml
   component: ./taskfile/component.yml
+  publish:
+    taskfile: ./taskfile/publish.yml
+    flatten: true
 
 tasks:
   default:

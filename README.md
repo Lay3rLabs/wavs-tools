@@ -98,6 +98,29 @@ cd projects/multi-chain-service-manager-sync
 task bootstrap
 ```
 
+## Publishing Components
+
+Build and publish all components to the wkg registry:
+
+```bash
+# Build and publish all components with default version (0.1.0)
+task publish
+
+# Publish with custom version
+task publish VERSION="1.2.0"
+
+# Publish with additional flags
+task publish FLAGS="--dry-run"
+
+# Publish with both custom version and flags
+task publish VERSION="1.2.0" FLAGS="--registry https://custom.registry.com"
+```
+
+This will:
+1. Build all WASI components across all projects
+2. Publish them to the wkg registry with package names like `wavs-tools:avs-sync@1.2.0`
+3. Component names are automatically converted from underscore format (e.g., `avs_sync`) to hyphen format (e.g., `avs-sync`) for package names
+
 ## Middleware
 
 A middleware deployment is different per chain and service. Therefore, while the commands to work with it are defined in the root [taskfile/middleware.yml](taskfile/middleware.yml), the actual deployment is done in the tool's own Taskfile and writes to that tool's local `.project-output/{chain-number}/{service-name}` directory.
