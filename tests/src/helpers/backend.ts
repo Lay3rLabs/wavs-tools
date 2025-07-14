@@ -1,4 +1,4 @@
-import { execAsync, rootPath} from './utils';
+import { execAsync, rootPath } from './utils';
 import { TIMEOUTS } from './constants';
 
 export interface BackendManagerConfig {
@@ -6,7 +6,7 @@ export interface BackendManagerConfig {
   nOperators: number
 }
 
-const defaultBackendManagerConfig:BackendManagerConfig = {
+const defaultBackendManagerConfig: BackendManagerConfig = {
   nChains: 1,
   nOperators: 1,
 };
@@ -53,7 +53,7 @@ export class BackendManager {
   }
 
   async stop() {
-    if(this.isRunning) {
+    if (this.isRunning) {
       this.isRunning = false;
       // change to root directory
       console.log('Stopping backend...');
@@ -61,7 +61,7 @@ export class BackendManager {
         cwd: rootPath(),
       });
       console.log('Backend stopped successfully');
-      
+
       // Actively wait for resources to be cleaned up
       console.log('Waiting for resource cleanup...');
       await this.waitForResourceCleanup();
@@ -70,7 +70,7 @@ export class BackendManager {
 
   private async waitForResourceCleanup() {
     const checkInterval = 500; // Check every 500ms
-    
+
     const timeoutPromise = new Promise<void>((resolve) => {
       setTimeout(() => {
         console.warn('Resource cleanup timeout reached, proceeding anyway');
@@ -88,15 +88,14 @@ export class BackendManager {
       try {
         // Check if any wavs/chain containers are still running
         const result = await execAsync('docker', [
-          'ps', '--filter', 'name=wavs-', '--filter', 'name=chain-anvil-', 
-          '--filter', 'name=wavs-aggregator', '--format', '{{.Names}}'
+          'ps', '--filter', 'name=wavs-', '--filter', 'name=chain-anvil-', '--format', '{{.Names}}'
         ], { captureOutput: true });
-        
+
         if (!result || !result.stdout.trim()) {
           console.log('All containers cleaned up successfully');
           return;
         }
-        
+
         console.log(`Containers still running: ${result.stdout.trim()}`);
         await new Promise(resolve => setTimeout(resolve, checkInterval));
       } catch (error) {
@@ -108,7 +107,7 @@ export class BackendManager {
   }
 
   assertRunning() {
-    if(this.error) {
+    if (this.error) {
       throw this.error;
     }
     if (!this.isRunning) {
