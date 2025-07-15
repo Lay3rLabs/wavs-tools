@@ -2,8 +2,6 @@ name: Tests
 on:
   pull_request:
     types: [opened, synchronize, ready_for_review]
-  push:
-    branches: [main]
   issue_comment:
     types: [created]
 
@@ -16,7 +14,6 @@ jobs:
       issues: write
       pull-requests: write
     if: >
-      github.event_name == 'push' ||
       github.event_name == 'pull_request' ||
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
 
@@ -183,19 +180,21 @@ jobs:
           if [ "${{ github.event_name }}" = "issue_comment" ]; then
             SHOULD_COMMENT="true"
             echo "Commenting due to !test-report trigger"
-          elif [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.pull_request.draft }}" = "false" ]; then
-            # Check if there are test failures
-            if [ -f tests/.test-reports/merged-report.json ]; then
-              failures=$(node ./.github/scripts/collect-failures.js)
-              if [ "$failures" -gt "0" ]; then
-                SHOULD_COMMENT="true"
-                echo "Commenting due to test failures in non-draft PR"
-              else
-                echo "No test failures, skipping comment"
+          elif [ "${{ github.event_name }}" = "pull_request" ]; then
+            if [ "${{ github.event.pull_request.draft }}" = "false" ]; then
+              # Non-draft PR: only comment if there are test failures
+              if [ -f tests/.test-reports/merged-report.json ]; then
+                failures=$(node ./.github/scripts/collect-failures.js)
+                if [ "$failures" -gt "0" ]; then
+                  SHOULD_COMMENT="true"
+                  echo "Commenting due to test failures in non-draft PR"
+                else
+                  echo "No test failures in non-draft PR, skipping comment"
+                fi
               fi
+            else
+              echo "Draft PR, skipping comment (only !test-report trigger allowed)"
             fi
-          else
-            echo "Draft PR or push to main, skipping comment"
           fi
 
           echo "should_comment=$SHOULD_COMMENT" >> $GITHUB_OUTPUT
