@@ -3,8 +3,7 @@ services:
   wavs:
     container_name: "${COMPOSE_CONTAINER_NAME:-}"
     image: "${COMPOSE_WAVS_DOCKER_IMAGE:-}"
-    stop_signal: SIGTERM
-    stop_grace_period: 3s
+    stop_signal: SIGKILL
     environment:
       - WAVS_SUBMISSION_MNEMONIC=${WAVS_SUBMISSION_MNEMONIC:-}
     command: ["wavs", "--home", "/wavs-home", "--data", "/var/${COMPOSE_CONTAINER_NAME:-}", "--port", "${COMPOSE_WAVS_PORT:-}"]

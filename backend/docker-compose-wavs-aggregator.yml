@@ -3,8 +3,7 @@ services:
   aggregator:
     container_name: "wavs-aggregator"
     image: "${COMPOSE_WAVS_DOCKER_IMAGE}"
-    stop_signal: SIGTERM
-    stop_grace_period: 3s
+    stop_signal: SIGKILL
     env_file: "../.env"
     command: ["wavs-aggregator", "--home", "/wavs-home", "--port", "${COMPOSE_WAVS_AGGREGATOR_PORT:-0}"]
     volumes:
