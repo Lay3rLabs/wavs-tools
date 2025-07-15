@@ -2,7 +2,7 @@ name: "telemetry"
 services:
   jaeger:
     container_name: jaeger
-    image: "${COMPOSE_JAEGER_DOCKER_IMAGE}"
+    image: "${COMPOSE_JAEGER_DOCKER_IMAGE:-}"
     network_mode: "host"
     stop_signal: SIGKILL
     environment:
@@ -12,9 +12,10 @@ services:
   # Prometheus is used to display metrics
   prometheus:
     container_name: prometheus
-    image: "${COMPOSE_PROMETHEUS_DOCKER_IMAGE}" 
+    image: "${COMPOSE_PROMETHEUS_DOCKER_IMAGE:-}" 
     network_mode: "host"
-    stop_signal: SIGKILL
+    stop_signal: SIGTERM
+    stop_grace_period: 3s
     # ports managed by host network mode
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml

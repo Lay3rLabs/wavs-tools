@@ -36,10 +36,14 @@ tasks:
       - task: cli:build-abi
 
   setup-ci:
+    vars:
+      BUILD_ABI: "{{.BUILD_ABI | default true}}"
     cmds:
       - npm ci
       - cd tests && npm ci
-      - task: cli:build-abi
+      - task: cli:build-abi-ci
+        vars:
+          BUILD_ABI: "{{.BUILD_ABI}}"
 
   test:
     dir: tests

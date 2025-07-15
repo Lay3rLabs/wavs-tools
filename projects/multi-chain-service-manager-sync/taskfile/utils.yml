@@ -11,14 +11,6 @@ tasks:
     cmds:
       - echo "{{.COMPONENT_DIGEST}}"
 
-  get-service-id:
-    desc: "Get the service ID"
-    vars:
-      SERVICE_ID:
-        sh: jq -r '.id // empty' "{{.SERVICE_JSON_PATH}}" 2>/dev/null || true
-    cmds:
-      - echo "{{.SERVICE_ID}}"
-
   get-temp-service-hash:
     desc: "Get the service hash"
     vars:
@@ -74,12 +66,22 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_ID:
-        sh: task get-service-id
-      SERVICE_HD_INDEX:
-        sh: curl -s {{.WAVS_ENDPOINT}}/service-key/{{.SERVICE_ID}} | jq -rc '.secp256k1.hd_index'
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      CHAIN_NAME:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
     cmds:
-      - echo "{{.SERVICE_HD_INDEX}}"
+      - >
+        curl -X POST "{{.WAVS_ENDPOINT}}/service-key" 
+        -H "Content-Type: application/json" 
+        -d "{
+          \"service_manager\": {
+            \"evm\": {
+              \"chain_name\": \"{{.CHAIN_NAME}}\",
+              \"address\": \"{{.SERVICE_MANAGER_ADDRESS}}\"
+            }
+          }
+        }" | jq -rc '.secp256k1.hd_index'
 
   get-service-signing-address:
     vars:

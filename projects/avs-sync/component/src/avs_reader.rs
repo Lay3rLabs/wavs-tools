@@ -1,4 +1,4 @@
-use crate::bindings::{host, wavs::worker::layer_types::LogLevel};
+use crate::bindings::host::{self, LogLevel};
 use alloy_network::Ethereum;
 use alloy_primitives::{Address, U256};
 use alloy_provider::Provider;

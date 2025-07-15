@@ -3,26 +3,26 @@ import path from 'path';
 import { spawn, ChildProcess } from 'child_process';
 
 export function rootPath(): string {
-    // find the repo root directory by looking for the presence of .git
-    let currentDir = process.cwd();
-    while (currentDir !== '/') {
-        if (fs.existsSync(`${currentDir}/.git`)) {
-        return path.resolve(currentDir);
-        }
-        currentDir = path.dirname(currentDir);
+  // find the repo root directory by looking for the presence of .git
+  let currentDir = process.cwd();
+  while (currentDir !== '/') {
+    if (fs.existsSync(`${currentDir}/.git`)) {
+      return path.resolve(currentDir);
     }
+    currentDir = path.dirname(currentDir);
+  }
 
-    throw new Error('Could not find the root directory of the repository');
+  throw new Error('Could not find the root directory of the repository');
 }
 
-export function projectPath(project:string):string {
-    const projectPath = path.resolve(path.join(rootPath(), 'projects', project));
-  
-    if (!fs.existsSync(projectPath)) {
-        throw new Error(`Path does not exist: ${projectPath}`);
-    }
+export function projectPath(project: string): string {
+  const projectPath = path.resolve(path.join(rootPath(), 'projects', project));
 
-    return projectPath;
+  if (!fs.existsSync(projectPath)) {
+    throw new Error(`Path does not exist: ${projectPath}`);
+  }
+
+  return projectPath;
 }
 
 export interface ExecAsyncOptions {

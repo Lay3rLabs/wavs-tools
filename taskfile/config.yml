@@ -12,11 +12,6 @@ vars:
         fi
         dir="$(dirname "$dir")"
       done
-  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:900f9fe"
-  MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0ffb0ab"
-  FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
-  JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
-  PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
   PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_FORK_CHAIN_ID: 31337

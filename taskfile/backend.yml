@@ -4,6 +4,9 @@ includes:
   config:
     taskfile: ./config.yml
     flatten: true
+  docker:
+    taskfile: ./docker.yml
+    flatten: true
 
 env:
   # avoid namespace conflicts with other env vars
@@ -57,14 +60,9 @@ tasks:
   stop-chains-inner:
     requires:
       vars: [CHAINS]
-    vars:
-      # Automatically generated range for ACTIVE_CHAIN_COUNT
-      CHAIN_RANGE:
-        sh: seq 1 {{.CHAINS}}
-    deps:
-      # All of these are stopped in parallel
-      - for: { var: CHAIN_RANGE }
-        task: docker-stop-chain-{{.ITEM}}
+    cmds:
+      - echo "Stopping all Anvil chains"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans --volumes
 
   start-chains-inner:
     internal: true
@@ -129,18 +127,6 @@ tasks:
     cmds:
       - |
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
-
-  docker-stop-chain-*:
-    internal: true
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-    env:
-      COMPOSE_CONTAINER_NAME: "chain-anvil-{{.CHAIN_NUMBER}}"
-    cmds:
-      - |
-        echo "Stopping Anvil chain #{{.CHAIN_NUMBER}}"
-      - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans || true
 
   # HELPERS
   get-anvil-port-*:
@@ -295,41 +281,19 @@ tasks:
 
   stop-wavs:
     cmds:
-      - |
-        # Stop all WAVS instances first
-        if [ {{.ACTIVE_WAVS_COUNT}} -gt 0 ]; then
-          task backend:stop-wavs-inner
-        else
-          echo "No WAVS instances to stop"
-        fi
+      - task: stop-wavs-instances
       - task: stop-wavs-aggregator
 
   stop-wavs-aggregator:
     cmds:
       - |
         echo "Stopping WAVS Aggregator"
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans || true
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans --volumes
 
-  stop-wavs-inner:
-    vars:
-      WAVS_RANGE:
-        sh: seq 1 {{.ACTIVE_WAVS_COUNT}}
-    deps:
-      # All of these are stopped in parallel
-      - for: { var: WAVS_RANGE }
-        task: docker-stop-wavs-{{.ITEM}}
-
-  docker-stop-wavs-*:
-    internal: true
-    vars:
-      WAVS_INSTANCE: "{{index .MATCH 0}}"
-    env:
-      COMPOSE_CONTAINER_NAME: "wavs-{{.WAVS_INSTANCE}}"
+  stop-wavs-instances:
     cmds:
-      - |
-        echo "Stopping WAVS #{{.WAVS_INSTANCE}}"
-      - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans || true
+      - echo "Stopping WAVS instances"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans --volumes
 
   # HELPERS
   get-wavs-port-*:
@@ -394,4 +358,4 @@ tasks:
     aliases: [stop-telemetry]
     cmds:
       - echo "Stopping Telemetry"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans || true
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans --volumes

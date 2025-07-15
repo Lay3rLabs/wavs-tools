@@ -4,6 +4,9 @@ includes:
   config:
     taskfile: ./config.yml
     flatten: true
+  docker:
+    taskfile: ./docker.yml
+    flatten: true
   backend: ./backend.yml
 
 tasks:
