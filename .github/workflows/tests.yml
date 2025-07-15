@@ -9,7 +9,7 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    runs-on: linux-8-core
     permissions:
       contents: read
       issues: write
