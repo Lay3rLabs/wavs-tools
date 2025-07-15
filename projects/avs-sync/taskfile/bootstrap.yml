@@ -64,7 +64,7 @@ tasks:
         mkdir -p {{.SERVICE_OUTPUT_DIR}}
 
         # Build service configuration using task cli:wavs
-        SERVICE_ID=$(task cli:wavs -- {{.SERVICE_JSON_CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id)
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} init --name {{.COMPONENT_NAME}} | jq -r .service.id
 
         WORKFLOW_ID=$(task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id)
 
