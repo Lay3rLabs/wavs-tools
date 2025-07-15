@@ -9,18 +9,15 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
-use bindings::{
-    export,
-    wavs::worker::layer_types::{TriggerData, WasmResponse},
-    Guest, TriggerAction,
-};
+use bindings::{export, Guest, TriggerAction};
 use serde::{Deserialize, Serialize};
 use wavs_wasi_utils::evm::new_evm_provider;
 use wstd::runtime::block_on;
 
 use crate::bindings::{
-    host::{self, get_evm_chain_config},
-    wavs::worker::layer_types::{BlockIntervalData, LogLevel},
+    host::{self, get_evm_chain_config, LogLevel},
+    wavs::worker::input::{TriggerData, TriggerDataBlockInterval},
+    WasmResponse,
 };
 
 sol!("../contracts/src/Types.sol");
@@ -44,7 +41,7 @@ impl Guest for Component {
             block_height,
             lookback_blocks,
         } = match action.data {
-            TriggerData::BlockInterval(BlockIntervalData {
+            TriggerData::BlockInterval(TriggerDataBlockInterval {
                 block_height,
                 chain_name,
             }) => {
@@ -140,7 +137,7 @@ async fn perform_avs_sync(
 
     host::log(
         LogLevel::Info,
-        &format!("Querying OperatorRegistered events from block {from_block} to {block_height}",),
+        &format!("Querying OperatorRegistered events from block {from_block} to {block_height}"),
     );
 
     let active_operators = avs_reader

@@ -10,6 +10,9 @@ includes:
   config:
     taskfile: ../../taskfile/config.yml
     flatten: true
+  docker:
+    taskfile: ../../taskfile/docker.yml
+    flatten: true
   test: taskfile/test.yml
   bootstrap: taskfile/bootstrap.yml
   utils:

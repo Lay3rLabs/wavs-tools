@@ -7,7 +7,8 @@ on:
 
 jobs:
   tests:
-    runs-on: ubuntu-latest
+    name: "Run Tests"
+    runs-on: linux-8-core
     permissions:
       contents: read
       issues: write
@@ -17,48 +18,108 @@ jobs:
       (github.event_name == 'issue_comment' && contains(github.event.comment.body, '!test-report'))
 
     steps:
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          android: true
-          dotnet: true
-          haskell: true
-          # can try enabling these if above not enough
-          tool-cache: false
-          large-packages: false
-          swap-storage: false
-          docker-images: false
-
+      # Checkout
       - name: Checkout (PR Comment)
         if: github.event_name == 'issue_comment'
         uses: actions/checkout@v4
         with:
-          submodules: "recursive"
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: refs/pull/${{ github.event.issue.number }}/head
 
       - name: Checkout (Push/PR)
         if: github.event_name != 'issue_comment'
         uses: actions/checkout@v4
-        with:
-          submodules: "recursive"
 
-      - name: Cache Submodules
+      # Caches
+      - name: Cache Git submodules
         id: cache-submodules
         uses: actions/cache@v4
         with:
-          path: ./submodules/eigenlayer-middleware
-          key: ${{ runner.os }}-submodules-${{ hashFiles('**/.gitmodules') }}-${{ hashFiles('submodules/**/.git') }}
+          path: submodules
+          key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
 
-      - name: Cache Forge Build Output
-        id: cache-forge-build
+      - name: Checkout submodules
+        if: steps.cache-submodules.outputs.cache-hit != 'true'
+        run: git submodule update --init --recursive
+
+      - name: Cache Forge build
+        id: cache-forge
+        uses: actions/cache@v4
+        with:
+          path: abi
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'package-lock.json') }}
+
+      - name: Cache Cargo
         uses: actions/cache@v4
         with:
           path: |
-            ./submodules/eigenlayer-middleware/out
-            ./abi/eigenlayer-middleware
-          key: ${{ runner.os }}-eigenlayer-middleware-build-${{ hashFiles('**/*.sol') }}
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
+      - name: Cache Test Node modules
+        uses: actions/cache@v4
+        with:
+          path: tests/node_modules
+          key: ${{ runner.os }}-tests-node-${{ hashFiles('tests/package-lock.json') }}
+
+      - name: Cache Docker images
+        id: cache-docker
+        uses: actions/cache@v4
+        with:
+          path: /tmp/docker-cache
+          key: ${{ runner.os }}-docker-${{ hashFiles('taskfile/docker.yml') }}
+
+      - name: Load cached Docker images
+        if: steps.cache-docker.outputs.cache-hit == 'true'
+        run: |
+          if [ -d "/tmp/docker-cache" ]; then
+            for image in /tmp/docker-cache/*.tar; do
+              if [ -f "$image" ]; then
+                echo "Loading cached image: $image"
+                docker load -i "$image"
+              fi
+            done
+          fi
+
+      - name: Pull and cache Docker images
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: |
+          # Extract image versions from docker config
+          WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          JAEGER_IMAGE=$(grep 'JAEGER_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          PROMETHEUS_IMAGE=$(grep 'PROMETHEUS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+
+          # Create cache directory
+          mkdir -p /tmp/docker-cache
+
+          # Pull and save images
+          echo "Pulling and caching Docker images..."
+          docker pull $WAVS_IMAGE
+          docker pull $FOUNDRY_IMAGE  
+          docker pull $MIDDLEWARE_IMAGE
+          docker pull $JAEGER_IMAGE
+          docker pull $PROMETHEUS_IMAGE
+
+          # Save images to cache
+          docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
+          docker save $FOUNDRY_IMAGE -o /tmp/docker-cache/foundry.tar
+          docker save $MIDDLEWARE_IMAGE -o /tmp/docker-cache/middleware.tar
+          docker save $JAEGER_IMAGE -o /tmp/docker-cache/jaeger.tar
+          docker save $PROMETHEUS_IMAGE -o /tmp/docker-cache/prometheus.tar
+
+      # Tool installations
       - name: Install Foundry
         uses: foundry-rs/foundry-toolchain@v1
         with:
@@ -68,6 +129,14 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 21
+
+      - name: Install Rust toolchain
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          target: wasm32-wasip1
+          override: true
 
       - name: Install cargo binstall
         uses: cargo-bins/cargo-binstall@main
@@ -87,18 +156,21 @@ jobs:
           version: 3.x
           repo-token: ${{ secrets.GITHUB_TOKEN }}
 
+      # Dependencies and environment
       - name: Setup dependencies
-        run: task setup-ci
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env
 
+      # Tests
       - name: Run tests and generate report
         id: tests
         run: npm run test:report
         working-directory: tests
         continue-on-error: true
 
+      # Results processing
       - name: Check if we should comment
         id: should-comment
         run: |

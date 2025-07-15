@@ -4,7 +4,15 @@ This repo contains various tools and services that make up the WAVS ecosystem.
 
 ## [avs-sync](projects/avs-sync) 
 
-A tool for syncing AVS operators (TODO: explain more).
+A service for synchronizing AVS operator registrations within a single blockchain network. This tool monitors ECDSAStakeRegistry contracts, tracks operator registration events, and maintains up-to-date operator sets for quorum management in AVS deployments.
+
+## [multi-chain-operator-sync](projects/multi-chain-operator-sync)
+
+A service for synchronizing operator registrations across multiple blockchain networks. This tool enables operators to maintain consistent state across different chains while participating in multi-chain AVS deployments.
+
+## [multi-chain-service-manager-sync](projects/multi-chain-service-manager-sync)
+
+A service manager synchronization tool that handles the coordination and mirroring of service manager contracts across multiple chains. It ensures service definitions and operator sets remain consistent across different blockchain environments.
 
 # SYSTEM REQUIREMENTS
 
@@ -79,9 +87,39 @@ task backend:stop
 There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
 ```bash
+# For any of the available projects:
 cd projects/avs-sync
 task bootstrap
+
+cd projects/multi-chain-operator-sync
+task bootstrap
+
+cd projects/multi-chain-service-manager-sync
+task bootstrap
 ```
+
+## Publishing Components
+
+Build and publish all components to the wkg registry:
+
+```bash
+# Build and publish all components with default version (0.1.0)
+task publish
+
+# Publish with custom version
+task publish VERSION="1.2.0"
+
+# Publish with additional flags
+task publish FLAGS="--dry-run"
+
+# Publish with both custom version and flags
+task publish VERSION="1.2.0" FLAGS="--registry https://custom.registry.com"
+```
+
+This will:
+1. Build all WASI components across all projects
+2. Publish them to the wkg registry with package names like `wavs-tools:avs-sync@1.2.0`
+3. Component names are automatically converted from underscore format (e.g., `avs_sync`) to hyphen format (e.g., `avs-sync`) for package names
 
 ## Middleware
 

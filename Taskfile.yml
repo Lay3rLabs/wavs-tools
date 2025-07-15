@@ -10,6 +10,9 @@ includes:
   cli: ./taskfile/cli.yml
   middleware: ./taskfile/middleware.yml
   component: ./taskfile/component.yml
+  publish:
+    taskfile: ./taskfile/publish.yml
+    flatten: true
 
 tasks:
   default:
@@ -36,10 +39,14 @@ tasks:
       - task: cli:build-abi
 
   setup-ci:
+    vars:
+      BUILD_ABI: "{{.BUILD_ABI | default true}}"
     cmds:
       - npm ci
       - cd tests && npm ci
-      - task: cli:build-abi
+      - task: cli:build-abi-ci
+        vars:
+          BUILD_ABI: "{{.BUILD_ABI}}"
 
   test:
     dir: tests

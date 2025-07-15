@@ -1,0 +1,8 @@
+version: "3"
+
+vars:
+  WAVS_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs:0.5.1"
+  MIDDLEWARE_DOCKER_IMAGE: "ghcr.io/lay3rlabs/wavs-middleware:0ffb0ab"
+  FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
+  JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
+  PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
