@@ -25,6 +25,8 @@ async function commentTestResults({ github, context }) {
     const total = stats.tests;
     const duration = stats.duration;
     
+    const prNumber = context.eventName === 'pull_request' ? context.payload.pull_request.number : context.issue.number;
+    
     let comment = `## 🧪 Test Results`;
     comment += ` [📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
     comment += `\n\n**Summary:** ${passing}/${total} tests passing`;
@@ -65,7 +67,7 @@ async function commentTestResults({ github, context }) {
 
     
     await github.rest.issues.createComment({
-      issue_number: context.issue.number,
+      issue_number: prNumber,
       owner: context.repo.owner,
       repo: context.repo.repo,
       body: comment
@@ -78,7 +80,7 @@ async function commentTestResults({ github, context }) {
     
     // Post a fallback comment
     await github.rest.issues.createComment({
-      issue_number: context.issue.number,
+      issue_number: prNumber,
       owner: context.repo.owner,
       repo: context.repo.repo,
       body: '## 🧪 Test Results\n\n❌ Failed to generate test report. Check the workflow logs for details.'
