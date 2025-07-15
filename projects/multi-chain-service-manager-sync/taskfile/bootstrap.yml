@@ -71,7 +71,7 @@ tasks:
       - test -f {{.MIRROR_PATH}}
     cmds:
       - |
-        jq -r '.addresses.MirrorServiceHandler' "{{.MIRROR_PATH}}"
+        jq -r '.addresses.MirrorServiceManagerHandler' "{{.MIRROR_PATH}}"
 
   build-empty-service:
     desc: "Build the empty service configuration"
