@@ -25,6 +25,8 @@ async function commentTestResults({ github, context }) {
     const total = stats.tests;
     const duration = stats.duration;
     
+    const prNumber = context.eventName === 'pull_request' ? context.payload.pull_request.number : context.issue.number;
+    
     let comment = `## 🧪 Test Results`;
     comment += ` [📊 View run](https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId})`;
     comment += `\n\n**Summary:** ${passing}/${total} tests passing`;
@@ -64,7 +66,6 @@ async function commentTestResults({ github, context }) {
     comment += `\n<details>\n\n${extractDetails(report)}\n</details>\n`;
 
     
-    const prNumber = context.eventName === 'pull_request' ? context.payload.pull_request.number : context.issue.number;
     await github.rest.issues.createComment({
       issue_number: prNumber,
       owner: context.repo.owner,
@@ -78,7 +79,6 @@ async function commentTestResults({ github, context }) {
     console.error('Error processing test report:', error);
     
     // Post a fallback comment
-    const prNumber = context.eventName === 'pull_request' ? context.payload.pull_request.number : context.issue.number;
     await github.rest.issues.createComment({
       issue_number: prNumber,
       owner: context.repo.owner,
