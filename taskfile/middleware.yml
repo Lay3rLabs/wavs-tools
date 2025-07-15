@@ -229,6 +229,37 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} list_operators
 
+  list-operators-mirror:
+    desc: "List registered operators on a mirror for a given service"
+    vars:
+      SOURCE_CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, MIRROR_CHAIN_NUMBER]
+    env:
+      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
+      SOURCE_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+      MIRROR_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.MIRROR_CHAIN_NUMBER}}
+      SOURCE_SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      MIRROR_SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}} CHAIN_NUMBER={{.MIRROR_CHAIN_NUMBER}}
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e SOURCE_RPC_URL
+        -e MIRROR_RPC_URL
+        -e SOURCE_SERVICE_MANAGER_ADDRESS
+        -e MIRROR_SERVICE_MANAGER_ADDRESS
+        -e ETHERSCAN_API_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mirror list_operators
+
   delegate-to-operator:
     desc: "Delegates an amount to an operator"
     requires:
