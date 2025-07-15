@@ -5,6 +5,11 @@ tasks:
     desc: "Test the weight update flow - trigger blocks, check no events, add weight, trigger again, verify events"
     vars:
       SUBMIT_DELAY: 5
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      DELEGATE_AMOUNT: "0.001ether"
     cmds:
       - |
         echo "=== STARTING WEIGHT UPDATE TEST ==="
@@ -28,7 +33,14 @@ tasks:
 
         # Step 2: Add weight to operator
         echo "Step 3: Adding weight to operator..."
-        task test:add-weight AMOUNT=1000000000000000000
+      - >
+        cd "{{.REPO_ROOT}}" && 
+        task middleware:delegate-to-operator
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
+        SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
+        DELEGATE_AMOUNT="{{.DELEGATE_AMOUNT}}"
+      - |
         echo ""
 
         # Step 3: Trigger blocks again to process the weight update
@@ -68,26 +80,6 @@ tasks:
         --to-block latest "OperatorWeightUpdated(address,uint256,uint256)"
         --address {{.STAKE_REGISTRY_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
-
-  add-weight:
-    dir: contracts
-    requires:
-      vars: [AMOUNT]
-    vars:
-      EVM_RPC_URL:
-        sh: task get-evm-rpc-url
-      OPERATOR_PRIVATE_KEY:
-        sh: task get-operator-private-key
-    env:
-      OPERATOR_ADDRESS:
-        sh: task get-operator-address
-      LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
-      LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
-      AMOUNT: "{{.AMOUNT}}"
-      STRATEGY_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-strategy-manager-address
-    cmds:
-      - forge script script/AddWeight.s.sol:AddWeight --rpc-url {{.EVM_RPC_URL}} --broadcast --private-key {{.OPERATOR_PRIVATE_KEY}}
 
   trigger:
     desc: "Trigger component by mining blocks"
