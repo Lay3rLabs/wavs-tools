@@ -187,13 +187,22 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_ID:
-        sh: task get-service-id
+      SERVICE_MANAGER_ADDRESS:
+        sh: task get-service-manager-address
+      CHAIN_NAME:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN}}
     cmds:
       - >
         curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" 
         -H "Content-Type: application/json" 
-        -d "{\"service_id\": \"{{.SERVICE_ID}}\"}"
+        -d "{
+          \"service_manager\": {
+            \"evm\": {
+              \"chain_name\": \"{{.CHAIN_NAME}}\",
+              \"address\": \"{{.SERVICE_MANAGER_ADDRESS}}\"
+            }
+          }
+        }"
 
   deploy-service:
     vars:
