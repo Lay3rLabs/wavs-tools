@@ -4,13 +4,16 @@ mod bindings;
 mod utils;
 
 use crate::{
-    bindings::wavs::worker::layer_types::{TriggerData, TriggerDataEvmContractEvent},
+    bindings::{
+        wavs::worker::input::{TriggerData, TriggerDataEvmContractEvent},
+        WasmResponse,
+    },
     IManagerUpdateTypes::UpdateWithId,
     WavsServiceManager::QuorumThresholdUpdated,
 };
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
-use bindings::{export, wavs::worker::layer_types::WasmResponse, Guest, TriggerAction};
+use bindings::{export, Guest, TriggerAction};
 use wavs_wasi_utils::decode_event_log_data;
 use wstd::runtime::block_on;
 

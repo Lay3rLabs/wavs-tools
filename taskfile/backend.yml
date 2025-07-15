@@ -62,7 +62,7 @@ tasks:
       vars: [CHAINS]
     cmds:
       - echo "Stopping all Anvil chains"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans --volumes
 
   start-chains-inner:
     internal: true
@@ -126,7 +126,7 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate --remove-orphans -d
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
 
   # HELPERS
   get-anvil-port-*:
@@ -259,7 +259,7 @@ tasks:
       - |
         echo "Starting WAVS Aggregator on port {{.WAVS_AGGREGATOR_PORT}}"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml up --force-recreate --remove-orphans -d
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml up --force-recreate -d
 
   docker-start-wavs-*:
     internal: true
@@ -277,7 +277,7 @@ tasks:
       - |
         echo "Starting WAVS #{{.WAVS_INSTANCE}} on port {{.WAVS_PORT}}"
       - |
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate --remove-orphans -d
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate -d
 
   stop-wavs:
     cmds:
@@ -288,12 +288,12 @@ tasks:
     cmds:
       - |
         echo "Stopping WAVS Aggregator"
-        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down
+        cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans --volumes
 
   stop-wavs-instances:
     cmds:
       - echo "Stopping WAVS instances"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans --volumes
 
   # HELPERS
   get-wavs-port-*:
@@ -352,10 +352,10 @@ tasks:
     internal: true
     cmds:
       - echo "Starting Telemetry"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate --remove-orphans -d
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
 
   docker-stop-telemetry:
     aliases: [stop-telemetry]
     cmds:
       - echo "Stopping Telemetry"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans --volumes
