@@ -41,7 +41,7 @@ where
         // Use allocation manager to get operators in the operator set
         let operator_set = OperatorSet {
             avs: self.service_manager_address,
-            id: 1,
+            id: 0,
         };
 
         let operators = self
