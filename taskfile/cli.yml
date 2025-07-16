@@ -53,13 +53,13 @@ tasks:
       - '[ "{{.BUILD_ABI}}" != "true" ]'
       - test -d {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
       - test -d {{.ABI_WAVS_MIDDLEWARE_DIR}}
-    cmds:
+    deps:
       - task: build-eigenlayer-abi
       - task: build-wavs-abi
 
   build-abi:
     internal: true
-    cmds:
+    deps:
       - task: build-eigenlayer-abi
       - task: build-wavs-abi
 
