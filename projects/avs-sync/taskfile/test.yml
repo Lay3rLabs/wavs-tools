@@ -66,7 +66,7 @@ tasks:
   get-submit-events:
     vars:
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url
+        sh: task get-evm-rpc-url-1
       BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
@@ -86,6 +86,6 @@ tasks:
     vars:
       BLOCKS: '{{.CLI_ARGS | default "100"}}'
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url
+        sh: task get-evm-rpc-url-1
     cmds:
       - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
