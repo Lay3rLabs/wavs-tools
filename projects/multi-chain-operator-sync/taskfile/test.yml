@@ -67,7 +67,12 @@ tasks:
       CURRENT_BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
-        sh: echo $(( {{.CURRENT_BLOCK}} - 5 ))
+        sh: |
+          if [ {{.CURRENT_BLOCK}} -ge 10 ]; then
+            echo $(( {{.CURRENT_BLOCK}} - 10 ))
+          else
+            echo 0
+          fi
       TOPIC_0:
         sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
       TOPIC_1:
