@@ -51,9 +51,7 @@ tasks:
       vars: [BUILD_ABI]
     status:
       - '[ "{{.BUILD_ABI}}" != "true" ]'
-      - test -d {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
-      - test -d {{.ABI_WAVS_MIDDLEWARE_DIR}}
-    deps:
+    cmds:
       - task: build-eigenlayer-abi
       - task: build-wavs-abi
 
