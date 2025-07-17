@@ -14,20 +14,28 @@ use serde::{Deserialize, Serialize};
 use wavs_wasi_utils::evm::new_evm_provider;
 use wstd::runtime::block_on;
 
-use crate::bindings::{
-    host::{self, get_evm_chain_config, LogLevel},
-    wavs::worker::input::{TriggerData, TriggerDataBlockInterval},
-    WasmResponse,
+use crate::{
+    bindings::{
+        host::{self, get_evm_chain_config, LogLevel},
+        wavs::worker::input::{TriggerData, TriggerDataBlockInterval},
+        WasmResponse,
+    },
+    IWavsServiceManager::IWavsServiceManagerInstance,
 };
 
 sol!("../contracts/src/Types.sol");
 
+sol!(
+    #[sol(rpc)]
+    IWavsServiceManager,
+    "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
+);
+
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ComponentInput {
-    pub ecdsa_stake_registry_address: String,
+    pub service_manager_address: Address,
     pub chain_name: String,
     pub block_height: u64,
-    pub lookback_blocks: u64, // How many blocks to look back for events
 }
 
 struct Component;
@@ -36,28 +44,23 @@ impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         // Decode the trigger event
         let ComponentInput {
-            ecdsa_stake_registry_address,
+            service_manager_address,
             chain_name,
-            block_height,
-            lookback_blocks,
+            block_height: _,
         } = match action.data {
             TriggerData::BlockInterval(TriggerDataBlockInterval {
                 block_height,
                 chain_name,
             }) => {
-                let ecdsa_stake_registry_address = host::config_var("ecdsa_stake_registry_address")
-                    .ok_or("ecdsa_stake_registry_address not configured")?;
-
-                // Get lookback period
-                let lookback_blocks = host::config_var("lookback_blocks")
-                    .and_then(|s| s.parse().ok())
-                    .ok_or("lookback_blocks not configured")?;
+                let service_manager_address = host::config_var("service_manager_address")
+                    .ok_or("service_manager_address not configured")?
+                    .parse()
+                    .map_err(|x: alloy_primitives::hex::FromHexError| x.to_string())?;
 
                 Ok(ComponentInput {
-                    ecdsa_stake_registry_address,
+                    service_manager_address,
                     chain_name,
                     block_height,
-                    lookback_blocks,
                 })
             }
             TriggerData::Raw(data) => serde_json::from_slice(&data).map_err(|e| e.to_string()),
@@ -65,30 +68,13 @@ impl Guest for Component {
         }?;
         host::log(
             LogLevel::Info,
-            &format!("Params: lookback_blocks={lookback_blocks}, block_height={block_height}"),
-        );
-        host::log(
-            LogLevel::Info,
-            &format!("Starting AVS sync for chain: {chain_name}"),
-        );
-        host::log(
-            LogLevel::Info,
-            &format!("ECDSA Stake Registry: {ecdsa_stake_registry_address}"),
+            &format!("Starting AVS sync for chain {chain_name} for service manager {service_manager_address}"),
         );
 
         block_on(async move {
-            let ecdsa_stake_registry_address = ecdsa_stake_registry_address
-                .parse()
-                .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
-
-            let avs_writer_payload = perform_avs_sync(
-                chain_name,
-                block_height,
-                ecdsa_stake_registry_address,
-                lookback_blocks,
-            )
-            .await
-            .map_err(|e| e.to_string())?;
+            let avs_writer_payload = perform_avs_sync(chain_name, service_manager_address)
+                .await
+                .map_err(|e| e.to_string())?;
 
             if avs_writer_payload
                 .operatorsPerQuorum
@@ -109,9 +95,7 @@ impl Guest for Component {
 
 async fn perform_avs_sync(
     chain_name: String,
-    block_height: u64,
-    ecdsa_stake_registry_address: Address,
-    lookback_blocks: u64,
+    service_manager_address: Address,
 ) -> Result<AvsWriterPayload> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
@@ -122,35 +106,29 @@ async fn perform_avs_sync(
             .ok_or(anyhow!("No HTTP endpoint configured"))?,
     );
 
-    // Create the AVS reader for ECDSAStakeRegistry
-    let avs_reader = AvsReader::new(ecdsa_stake_registry_address, provider);
+    let service_manager =
+        IWavsServiceManagerInstance::new(service_manager_address, provider.clone());
 
-    // ECDSAStakeRegistry has only one quorum (quorum 0)
-    let quorum_count = avs_reader.get_quorum_count().await?;
-    host::log(
-        LogLevel::Info,
-        &format!("ECDSAStakeRegistry has {quorum_count} quorum"),
+    // Get the allocation manager
+    let allocation_manager_address = service_manager.getAllocationManager().call().await?;
+
+    // Create the AVS reader
+    let avs_reader = AvsReader::new(
+        allocation_manager_address,
+        service_manager_address,
+        provider,
     );
 
-    // Get operators by querying OperatorRegistered events
-    let from_block = block_height.saturating_sub(lookback_blocks);
+    // Get operators from allocation manager
+    let operators = avs_reader.get_active_operators().await?;
 
     host::log(
         LogLevel::Info,
-        &format!("Querying OperatorRegistered events from block {from_block} to {block_height}"),
-    );
-
-    let active_operators = avs_reader
-        .get_active_operators(from_block, block_height)
-        .await?;
-
-    host::log(
-        LogLevel::Info,
-        &format!("Found {} active operators", active_operators.len()),
+        &format!("Found {} operators", operators.len()),
     );
 
     // Sort operators in ascending order (required by the contract)
-    let mut sorted_operators = active_operators;
+    let mut sorted_operators = operators;
     sorted_operators.sort();
 
     host::log(

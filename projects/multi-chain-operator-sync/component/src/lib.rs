@@ -18,7 +18,7 @@ use crate::{
         host::{self, get_evm_chain_config, LogLevel},
         wavs::worker::input::{TriggerData, TriggerDataBlockInterval, TriggerDataEvmContractEvent},
     },
-    wavs_service_manager::WavsServiceManager::WavsServiceManagerInstance,
+    wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
     AllocationManager::{AllocationManagerInstance, OperatorSet},
     ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
     IMirrorUpdateTypes::UpdateWithId,
@@ -42,8 +42,8 @@ mod wavs_service_manager {
 
     sol!(
         #[sol(rpc)]
-        WavsServiceManager,
-        "../../../abi/wavs-middleware/WavsServiceManager.sol/WavsServiceManager.json"
+        IWavsServiceManager,
+        "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
     );
 }
 
@@ -238,14 +238,14 @@ async fn handle_update_event(
     );
 
     let service_manager =
-        WavsServiceManagerInstance::new(service_manager_address, provider.clone());
+        IWavsServiceManagerInstance::new(service_manager_address, provider.clone());
 
-    let stake_registry_address = service_manager.stakeRegistry().call().await?;
+    let stake_registry_address = service_manager.getStakeRegistry().call().await?;
     host::log(
         LogLevel::Info,
         &format!("Stake registry address: {stake_registry_address}"),
     );
-    let allocation_manager_address = service_manager.allocationManager().call().await?;
+    let allocation_manager_address = service_manager.getAllocationManager().call().await?;
     host::log(
         LogLevel::Info,
         &format!("Allocation manager address: {allocation_manager_address}"),

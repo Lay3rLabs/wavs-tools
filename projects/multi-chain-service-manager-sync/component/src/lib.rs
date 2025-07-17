@@ -9,7 +9,7 @@ use crate::{
         WasmResponse,
     },
     IManagerUpdateTypes::UpdateWithId,
-    WavsServiceManager::QuorumThresholdUpdated,
+    IWavsServiceManager::QuorumThresholdUpdated,
 };
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
@@ -30,8 +30,8 @@ sol!(interface IManagerUpdateTypes {
 
 sol!(
     #[sol(rpc)]
-    WavsServiceManager,
-    "../../../abi/wavs-middleware/WavsServiceManager.sol/WavsServiceManager.json"
+    IWavsServiceManager,
+    "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
 );
 
 struct Component;
