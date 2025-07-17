@@ -5,7 +5,7 @@ import {Script} from "forge-std/Script.sol";
 import "forge-std/console.sol";
 import {AvsWriter} from "../src/AvsWriter.sol";
 import {ECDSAStakeRegistry} from "@eigenlayer-middleware/src/unaudited/ECDSAStakeRegistry.sol";
-import {IWavsServiceManager} from "@wavs/interfaces/IWavsServiceManager.sol";
+import {IWavsServiceManager} from "@wavs/eigenlayer/ecdsa/interfaces/IWavsServiceManager.sol";
 
 contract DeployAvsWriter is Script {
     function run() external {

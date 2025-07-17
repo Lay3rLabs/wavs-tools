@@ -20,15 +20,15 @@ use crate::{
         wavs::worker::input::{TriggerData, TriggerDataBlockInterval},
         WasmResponse,
     },
-    WavsServiceManager::WavsServiceManagerInstance,
+    IWavsServiceManager::IWavsServiceManagerInstance,
 };
 
 sol!("../contracts/src/Types.sol");
 
 sol!(
     #[sol(rpc)]
-    WavsServiceManager,
-    "../../../abi/wavs-middleware/WavsServiceManager.sol/WavsServiceManager.json"
+    IWavsServiceManager,
+    "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
 );
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -107,10 +107,10 @@ async fn perform_avs_sync(
     );
 
     let service_manager =
-        WavsServiceManagerInstance::new(service_manager_address, provider.clone());
+        IWavsServiceManagerInstance::new(service_manager_address, provider.clone());
 
     // Get the allocation manager
-    let allocation_manager_address = service_manager.allocationManager().call().await?;
+    let allocation_manager_address = service_manager.getAllocationManager().call().await?;
 
     // Create the AVS reader
     let avs_reader = AvsReader::new(
