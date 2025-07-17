@@ -105,7 +105,7 @@ tasks:
         sh: task get-service-manager-address
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
-    deps:
+    cmds:
       - task: build-register-workflow
         vars:
           SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
