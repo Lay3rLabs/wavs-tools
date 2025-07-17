@@ -64,8 +64,10 @@ tasks:
     vars:
       EVM_RPC_URL:
         sh: task get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      CURRENT_BLOCK:
+        sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
-        sh: echo $(( {{.CURRENT_BLOCK}} - 8 ))
+        sh: echo $(( {{.CURRENT_BLOCK}} - 5 ))
       TOPIC_0:
         sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
       TOPIC_1:
