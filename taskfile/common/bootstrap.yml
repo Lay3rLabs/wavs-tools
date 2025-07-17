@@ -39,7 +39,7 @@ tasks:
     vars:
       SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
     cmds:

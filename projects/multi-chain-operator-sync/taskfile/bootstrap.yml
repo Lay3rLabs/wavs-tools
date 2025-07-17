@@ -14,7 +14,7 @@ tasks:
     vars:
       SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
@@ -63,8 +63,10 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |
@@ -95,8 +97,10 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |
@@ -126,8 +130,10 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-block-interval --chain-name {{.SOURCE_CHAIN}} --n-blocks {{.UPDATE_INTERVAL_BLOCKS}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |

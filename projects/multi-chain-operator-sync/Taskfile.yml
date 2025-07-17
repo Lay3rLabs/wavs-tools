@@ -38,7 +38,7 @@ vars:
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   TEMP_SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
   SOURCE_CHAIN_NUMBER: 1 # changing this is not supported yet
-  UPDATE_INTERVAL_BLOCKS: 200
+  UPDATE_INTERVAL_BLOCKS: 100
 
 tasks:
   bootstrap:
@@ -77,6 +77,6 @@ tasks:
   run-tests:
     desc: "Run all test cases"
     cmds:
-      - task test:trigger-register
       - task test:trigger-update-1
+      - task test:trigger-register
       - task test:trigger-deregister

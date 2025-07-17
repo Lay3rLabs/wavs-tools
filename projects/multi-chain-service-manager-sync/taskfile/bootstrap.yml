@@ -14,7 +14,7 @@ tasks:
     vars:
       SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
@@ -29,8 +29,10 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} --event-hash {{.QUORUM_THRESHOLD_UPDATED_EVENT_HASH}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |

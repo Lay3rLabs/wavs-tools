@@ -4,7 +4,7 @@ tasks:
   simple:
     desc: "Test the weight update flow - trigger blocks, check no events, add weight, trigger again, verify events"
     vars:
-      SUBMIT_DELAY: 5
+      SUBMIT_DELAY: 3
       OPERATOR_ADDRESS:
         sh: task get-operator-address
       SERVICE_MANAGER_ADDRESS:
@@ -70,7 +70,7 @@ tasks:
       BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
-        sh: echo $(( {{.BLOCK}} - 100 ))
+        sh: echo $(( {{.BLOCK}} - {{.BLOCK_INTERVAL}} ))
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
     cmds:
@@ -84,8 +84,7 @@ tasks:
   trigger:
     desc: "Trigger component by mining blocks"
     vars:
-      BLOCKS: '{{.CLI_ARGS | default "100"}}'
       EVM_RPC_URL:
         sh: task get-evm-rpc-url-1
     cmds:
-      - cast rpc anvil_mine {{.BLOCKS}} --rpc-url {{.EVM_RPC_URL}}
+      - cast rpc anvil_mine {{.BLOCK_INTERVAL}} --rpc-url {{.EVM_RPC_URL}}
