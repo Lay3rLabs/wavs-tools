@@ -73,4 +73,4 @@ tasks:
   run-tests:
     desc: "Run all test cases"
     cmds:
-      - echo "Placeholder"
+      - task: test:simple
