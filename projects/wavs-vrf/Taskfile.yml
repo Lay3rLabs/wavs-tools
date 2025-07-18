@@ -38,6 +38,7 @@ vars:
   SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   TEMP_SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
+  SOURCE_CHAIN_NUMBER: 1
 
 tasks:
   bootstrap:
@@ -55,6 +56,7 @@ tasks:
         task bootstrap:register-service
         task bootstrap:deploy-service
         task bootstrap:register-operator
+        task bootstrap:wavs-all
 
   clean:
     desc: "Cleans up the tool"
