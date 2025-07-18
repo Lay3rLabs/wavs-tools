@@ -2,7 +2,7 @@ import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
 import { TIMEOUTS } from "./helpers/constants";
 
-const PROJECT_NAME = "wavs-vrf";
+const PROJECT_NAME = "wavs-drand";
 
 describe(PROJECT_NAME.toUpperCase(), function () {
   let backendManager: BackendManager;

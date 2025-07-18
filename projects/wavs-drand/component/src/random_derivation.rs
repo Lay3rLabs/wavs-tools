@@ -4,19 +4,19 @@ use serde::{Deserialize, Serialize};
 
 /// Core VRF functionality - combines multiple entropy sources
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Vrf {
+pub struct RandomDerivation {
     pub seed: B256,
     pub round: u64,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct VrfResult {
+pub struct RandomDerivationResult {
     pub round: u64,
     pub randomness: B256,
     pub seed: B256,
 }
 
-impl Vrf {
+impl RandomDerivation {
     /// Create VRF from a single seed
     pub fn new(seed: B256, round: u64) -> Self {
         Self { seed, round }
@@ -33,12 +33,12 @@ impl Vrf {
     }
 
     /// Generate the final VRF output
-    pub fn generate(&self) -> VrfResult {
+    pub fn generate(&self) -> RandomDerivationResult {
         let mut data = self.seed.as_slice().to_vec();
         data.extend_from_slice(&self.round.to_be_bytes());
         let randomness = keccak256(&data);
 
-        VrfResult {
+        RandomDerivationResult {
             round: self.round,
             randomness,
             seed: self.seed,
@@ -47,7 +47,7 @@ impl Vrf {
 }
 
 #[allow(unused)]
-impl VrfResult {
+impl RandomDerivationResult {
     /// Convert to U256 for mathematical operations
     pub fn as_u256(&self) -> U256 {
         U256::from_be_bytes(self.randomness.0)
@@ -107,7 +107,7 @@ mod tests {
     #[test]
     fn test_vrf_basic() {
         let seed = B256::from([42u8; 32]);
-        let vrf = Vrf::new(seed, 1);
+        let vrf = RandomDerivation::new(seed, 1);
         let result = vrf.generate();
 
         assert_eq!(result.round, 1);
@@ -122,7 +122,7 @@ mod tests {
             b"timestamp".as_slice(),
             b"drand".as_slice(),
         ];
-        let vrf = Vrf::from_sources(&sources, 1);
+        let vrf = RandomDerivation::from_sources(&sources, 1);
         let result = vrf.generate();
 
         assert_eq!(result.round, 1);
@@ -132,7 +132,7 @@ mod tests {
     #[test]
     fn test_random_operations() {
         let seed = B256::from([42u8; 32]);
-        let vrf = Vrf::new(seed, 1);
+        let vrf = RandomDerivation::new(seed, 1);
         let result = vrf.generate();
 
         // Test range
@@ -156,10 +156,10 @@ mod tests {
     fn test_deterministic() {
         let seed = B256::from([42u8; 32]);
 
-        let vrf1 = Vrf::new(seed, 1);
+        let vrf1 = RandomDerivation::new(seed, 1);
         let result1 = vrf1.generate();
 
-        let vrf2 = Vrf::new(seed, 1);
+        let vrf2 = RandomDerivation::new(seed, 1);
         let result2 = vrf2.generate();
 
         assert_eq!(result1.randomness, result2.randomness);

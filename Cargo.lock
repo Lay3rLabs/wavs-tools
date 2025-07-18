@@ -3715,7 +3715,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "wavs-vrf"
+name = "wavs-drand"
 version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-primitives",

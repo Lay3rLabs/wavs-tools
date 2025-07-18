@@ -3,7 +3,7 @@ members = [
     "projects/avs-sync/component",
     "projects/multi-chain-operator-sync/component",
     "projects/multi-chain-service-manager-sync/component",
-    "projects/wavs-vrf/component",
+    "projects/wavs-drand/component",
 ]
 resolver = "2"
 

@@ -9,9 +9,9 @@
 mod bindings;
 mod config;
 mod drand;
+mod random_derivation;
 mod trigger;
 mod utils;
-mod vrf;
 
 use alloy_sol_types::SolValue;
 use anyhow::Result;
@@ -20,8 +20,8 @@ use wstd::runtime::block_on;
 use crate::bindings::{export, Guest, TriggerAction, WasmResponse};
 use crate::config::Config;
 use crate::drand::DrandClient;
+use crate::random_derivation::RandomDerivation;
 use crate::trigger::TriggerInfo;
-use crate::vrf::Vrf;
 
 struct Component;
 
@@ -59,7 +59,7 @@ async fn process_trigger(trigger_action: TriggerAction) -> Result<WasmResponse> 
         trigger_info.unique_id.as_slice(),
     ];
 
-    let vrf = Vrf::from_sources(&vrf_sources, trigger_info.drand_round);
+    let vrf = RandomDerivation::from_sources(&vrf_sources, trigger_info.drand_round);
     let result = vrf.generate();
 
     let payload = result.randomness.abi_encode();
