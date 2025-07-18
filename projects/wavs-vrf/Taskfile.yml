@@ -1,0 +1,76 @@
+version: "3"
+
+dotenv: ["../../.env"]
+
+includes:
+  cli: ../../taskfile/cli.yml
+  middleware: ../../taskfile/middleware.yml
+  backend: ../../taskfile/backend.yml
+  component: ../../taskfile/component.yml
+  config:
+    taskfile: ../../taskfile/config.yml
+    flatten: true
+  docker:
+    taskfile: ../../taskfile/docker.yml
+    flatten: true
+  bootstrap: taskfile/bootstrap.yml
+  utils:
+    taskfile: taskfile/utils.yml
+    flatten: true
+  utils-common:
+    taskfile: ../../taskfile/common/utils.yml
+    flatten: true
+  test: taskfile/test.yml
+
+silent: true
+
+vars:
+  # These are all locally defined here, do not depend on config.yml being loaded first
+  # For this reason, we sometimes need to redefined vars like .project-output here
+  # see: https://github.com/go-task/task/issues/2303
+  COMPONENT_NAME: "wavs_vrf"
+  PROJECT:
+    # project name is same as dir name of current directory
+    sh: basename "$(pwd)"
+  SUBMISSION_DEPLOY_SCRIPT: "Deploy.s.sol"
+  WAVS_CLI_SERVICE_JSON_PATH: "/wavs-tools/projects/{{.PROJECT}}/.project-output/services/{{.COMPONENT_NAME}}.json"
+  PROJECT_OUTPUT_DIR: '{{joinPath .ROOT_DIR ".project-output"}}'
+  SERVICE_OUTPUT_DIR: '{{joinPath .PROJECT_OUTPUT_DIR "services"}}'
+  SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
+  TEMP_SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
+
+tasks:
+  bootstrap:
+    desc: "A full deployment"
+    deps: [clean]
+    cmds:
+      - |
+        task bootstrap:middleware-deploy
+        task bootstrap:components-build
+        task bootstrap:components-upload
+        task bootstrap:contracts-deploy
+        task bootstrap:build-service
+        task bootstrap:upload-service
+        task bootstrap:set-service-uri
+        task bootstrap:register-service
+        task bootstrap:deploy-service
+        task bootstrap:register-operator
+
+  clean:
+    desc: "Cleans up the tool"
+    deps: [clean-output]
+    cmds:
+      - rm -rf "contracts/broadcast"
+      - rm -rf "contracts/cache"
+      - rm -rf "contracts/out"
+      - cd "{{.REPO_ROOT}}" && cargo clean -p {{.PROJECT}}
+
+  clean-output:
+    desc: "Cleans up the output directory but not contracts or components"
+    cmds:
+      - rm -rf "{{.PROJECT_OUTPUT_DIRNAME}}"
+
+  run-tests:
+    desc: "Run all test cases"
+    cmds:
+      - echo "Placeholder"
