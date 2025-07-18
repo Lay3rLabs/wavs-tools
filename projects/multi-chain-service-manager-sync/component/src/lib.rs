@@ -39,28 +39,25 @@ struct Component;
 impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
-            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent {
-                contract_address: _,
-                chain_name: _,
-                log,
-                block_height,
-            }) => block_on(async move {
-                let QuorumThresholdUpdated {
-                    numerator,
-                    denominator,
-                } = decode_event_log_data!(log).map_err(|x| x.to_string())?;
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name: _, log }) => {
+                block_on(async move {
+                    let QuorumThresholdUpdated {
+                        numerator,
+                        denominator,
+                    } = decode_event_log_data!(log.data).map_err(|x| x.to_string())?;
 
-                let result = UpdateWithId {
-                    triggerId: block_height,
-                    numerator,
-                    denominator,
-                };
+                    let result = UpdateWithId {
+                        triggerId: log.block_number,
+                        numerator,
+                        denominator,
+                    };
 
-                Ok(Some(WasmResponse {
-                    payload: result.abi_encode(),
-                    ordering: None,
-                }))
-            }),
+                    Ok(Some(WasmResponse {
+                        payload: result.abi_encode(),
+                        ordering: None,
+                    }))
+                })
+            }
             _ => Err(format!(
                 "Component did not expect trigger action {action:?}"
             )),

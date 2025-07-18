@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [package.metadata.component]
 package = "component:multi-chain-service-manager-sync"
-target = "wavs:worker@0.5.0"
+target = "wavs:worker@0.6.0-alpha.2"
 
 [dependencies]
 wavs-wasi-utils = { workspace = true }

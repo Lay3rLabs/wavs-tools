@@ -65,12 +65,7 @@ impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
             // Register + Deregister
-            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent {
-                contract_address,
-                chain_name,
-                log,
-                block_height,
-            }) => {
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name, log }) => {
                 let chain_config = get_evm_chain_config(&chain_name)
                     .ok_or(format!("Could not get chain config for {chain_name}"))?;
                 let endpoint = chain_config
@@ -79,21 +74,22 @@ impl Guest for Component {
 
                 let provider = new_evm_provider::<Ethereum>(endpoint);
                 let stake_registry =
-                    ECDSAStakeRegistryInstance::new(contract_address.into(), provider);
+                    ECDSAStakeRegistryInstance::new(log.address.clone().into(), provider);
 
                 block_on(async move {
                     let maybe_register_event: anyhow::Result<
                         ECDSAStakeRegistry::OperatorRegistered,
-                    > = decode_event_log_data!(log.clone());
+                    > = decode_event_log_data!(log.data.clone());
                     let maybe_deregister_event: anyhow::Result<
                         ECDSAStakeRegistry::OperatorDeregistered,
-                    > = decode_event_log_data!(log.clone());
+                    > = decode_event_log_data!(log.data.clone());
                     if let Ok(ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ }) =
                         maybe_register_event
                     {
-                        let result = handle_register_event(stake_registry, operator, block_height)
-                            .await
-                            .map_err(|e: anyhow::Error| e.to_string())?;
+                        let result =
+                            handle_register_event(stake_registry, operator, log.block_number)
+                                .await
+                                .map_err(|e: anyhow::Error| e.to_string())?;
 
                         Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
@@ -105,7 +101,7 @@ impl Guest for Component {
                     }) = maybe_deregister_event
                     {
                         let result =
-                            handle_deregister_event(stake_registry, operator, block_height)
+                            handle_deregister_event(stake_registry, operator, log.block_number)
                                 .await
                                 .map_err(|e| e.to_string())?;
 

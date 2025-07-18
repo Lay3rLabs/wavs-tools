@@ -780,7 +780,7 @@ checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
 name = "avs-sync"
-version = "0.3.0"
+version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-contract",
  "alloy-network",
@@ -2081,7 +2081,7 @@ dependencies = [
 
 [[package]]
 name = "multi-chain-operator-sync"
-version = "0.3.0"
+version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-contract",
  "alloy-network",
@@ -2102,7 +2102,7 @@ dependencies = [
 
 [[package]]
 name = "multi-chain-service-manager-sync"
-version = "0.3.0"
+version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-contract",
  "alloy-network",
@@ -3716,7 +3716,7 @@ dependencies = [
 
 [[package]]
 name = "wavs-vrf"
-version = "0.3.0"
+version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-primitives",
  "alloy-provider",
@@ -3734,9 +3734,9 @@ dependencies = [
 
 [[package]]
 name = "wavs-wasi-utils"
-version = "0.5.0"
+version = "0.6.0-alpha.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95ef1bd68d5bd40002ce807140d8861b0f1b51a3fac08c27713d3578dae7e8dc"
+checksum = "8341c0db3f08525caf425edaf9c853e2d5cc3fef52829abec6386b3126a219dd"
 dependencies = [
  "alloy-json-rpc",
  "alloy-primitives",

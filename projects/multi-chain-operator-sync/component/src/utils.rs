@@ -1,4 +1,4 @@
-use crate::bindings::wavs::worker::input::EvmAddress;
+use crate::bindings::wavs::types::chain::EvmAddress;
 
 impl From<EvmAddress> for alloy_primitives::Address {
     fn from(addr: EvmAddress) -> Self {
