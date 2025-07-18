@@ -8,7 +8,7 @@ tasks:
     cmds:
       - task: trigger-randomness
       - sleep {{.SUBMIT_DELAY}}
-      - task: get-randomness-received-event
+      - task: validate-randomness-received-event
 
   trigger-randomness:
     desc: "Request randomness by calling the RandomnessTrigger contract"
@@ -25,7 +25,7 @@ tasks:
         --private-key "$DEPLOYER_PRIVATE_KEY"
 
   get-randomness-received-event:
-    desc: "Validates that the randomness received event was emitted"
+    desc: "Gets a randomness received event that was emitted"
     vars:
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
@@ -44,3 +44,18 @@ tasks:
         --to-block latest {{.TOPIC_0}}
         --address {{.SUBMISSION_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
+
+  validate-randomness-received-event:
+    desc: "Validates that the randomness received event was found"
+    vars:
+      LOGS:
+        sh: task test:get-randomness-received-event
+    cmds:
+      - >
+        if [ -z "{{.LOGS}}" ]; then 
+          echo "❌ No RandomnessReceived event found"; 
+          exit 1; 
+        else 
+          echo "✅ RandomnessReceived event found:"; 
+          echo "{{.LOGS}}"; 
+        fi
