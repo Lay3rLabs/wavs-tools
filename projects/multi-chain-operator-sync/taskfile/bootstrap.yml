@@ -1,109 +1,20 @@
 version: "3"
 
+includes:
+  bootstrap-common:
+    taskfile: ../../../taskfile/common/bootstrap.yml
+    flatten: true
+  mirror-common:
+    taskfile: ../../../taskfile/common/mirror.yml
+    flatten: true
+
 tasks:
-  components-build:
-    desc: "Builds the WASI components"
-    deps: [components-clean]
-    vars:
-      COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
-    cmds:
-      - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
-
-  components-clean:
-    desc: "Deletes the WASI components"
-    cmds:
-      - cd "{{.REPO_ROOT}}" && task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
-
-  components-upload:
-    desc: "Uploads the WASI components"
-    vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-    cmds:
-      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
-
-  middleware-deploy:
-    desc: "Deploys the middleware"
-    cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
-
-  mirror-deploy:
-    desc: "Deploys the mirror contracts for all chains"
-    cmds:
-      - |
-        if [ {{.ACTIVE_CHAIN_COUNT}} -lt 2 ]; then
-          echo "Error: ACTIVE_CHAIN_COUNT must be 2 or greater"
-          exit 1
-        fi
-
-        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            task bootstrap:mirror-deploy-$i
-          fi
-        done
-
-  mirror-deploy-*:
-    desc: "Deploys the mirror contracts for a chain"
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-      SOURCE_RPC_URL:
-        sh: task get-source-rpc-url
-      MIRROR_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-    cmds:
-      - >
-        cd "{{.REPO_ROOT}}" && task middleware:deploy-mirror
-        CHAIN_NUMBER="{{.CHAIN_NUMBER}}"
-        PROJECT="{{.PROJECT}}" 
-        SERVICE_NAME="{{.PROJECT}}" 
-        SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" 
-        MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}" 
-        WAVS_SERVICE_MANAGER_ADDRESS="{{.WAVS_SERVICE_MANAGER_ADDRESS}}"
-
-  get-submission-address-*:
-    desc: "Gets the submission address for a chain"
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      OUT_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
-    cmds:
-      - |
-        FILE=$(find {{.OUT_DIR}} -name "mirror-*.json" | head -n 1)
-        if [ -z "$FILE" ]; then
-          echo "Error: No mirror-*.json file found in {{.OUT_DIR}}"
-          exit 1
-        fi
-        jq -r '.addresses.MirrorServiceHandler' "$FILE"
-
-  build-empty-service:
-    desc: "Build the empty service configuration"
-    deps: [clean-service]
-    vars:
-      SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
-      SOURCE_CHAIN:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
-      SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-        mkdir -p {{.SERVICE_OUTPUT_DIR}}
-
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} init --name {{.COMPONENT_NAME}}
-
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
-
-        echo "Service configuration built successfully"
-
   build-service:
     desc: "Build service configuration"
     vars:
       SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
       SOURCE_CHAIN:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
@@ -131,26 +42,6 @@ tasks:
           COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
           SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
 
-  build-submit-*:
-    desc: "Submit workflow for a specific chain"
-    requires:
-      vars: [SERVICE_JSON_CMD, WORKFLOW_ID]
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_NAME:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.CHAIN_NUMBER}}
-      SUBMISSION_ADDRESS:
-        sh: task bootstrap:get-submission-address-{{.CHAIN_NUMBER}}
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-
-        if [ "{{.CHAIN_NUMBER}}" -eq 2 ]; then
-          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
-        else
-          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
-        fi
-
   build-register-workflow:
     desc: "Configure and register a workflow"
     requires:
@@ -165,15 +56,17 @@ tasks:
       OPERATOR_REGISTERED_EVENT_HASH:
         sh: cast keccak "OperatorRegistered(address,address)"
       WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
+        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id register | jq -r .workflow_id
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |
@@ -197,15 +90,17 @@ tasks:
       OPERATOR_DEREGISTERED_EVENT_HASH:
         sh: cast keccak "OperatorDeregistered(address,address)"
       WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
+        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id deregister | jq -r .workflow_id
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |
@@ -228,15 +123,17 @@ tasks:
         ]
     vars:
       WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id
+        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id update | jq -r .workflow_id
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-block-interval --chain-name {{.SOURCE_CHAIN}} --n-blocks {{.UPDATE_INTERVAL_BLOCKS}}
 
       - |
-        for i in $(seq 2 {{.ACTIVE_CHAIN_COUNT}}); do
-          task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
+          fi
         done
 
       - |
@@ -248,62 +145,25 @@ tasks:
 
         echo "Workflow registered"
 
-  clean-service:
-    desc: "Cleans up the service configuration"
-    cmds:
-      - rm -rf "{{.SERVICE_OUTPUT_DIR}}"
-
-  upload-service:
+  build-submit-*:
+    desc: "Submit workflow for a specific chain"
+    requires:
+      vars: [SERVICE_JSON_CMD, WORKFLOW_ID]
     vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-    cmds:
-      - >
-        curl --fail-with-body -X POST "{{.WAVS_ENDPOINT}}/save-service" 
-        -H "Content-Type: application/json" 
-        --data-binary "@{{.SERVICE_JSON_PATH}}"
-        -o "{{.TEMP_SERVICE_HASH_JSON_PATH}}"
-
-  set-service-uri:
-    vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-      EVM_RPC_URL:
-        sh: task get-source-rpc-url
-      TEMP_SERVICE_HASH:
-        sh: task get-temp-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_NAME:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.CHAIN_NUMBER}}
+      SUBMISSION_ADDRESS:
+        sh: task get-submission-address-{{.CHAIN_NUMBER}}
     cmds:
       - |
-        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+        cd "{{.REPO_ROOT}}"
 
-  register-service:
-    vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_ID:
-        sh: task get-service-id
-    cmds:
-      - >
-        curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" 
-        -H "Content-Type: application/json" 
-        -d "{\"service_id\": \"{{.SERVICE_ID}}\"}"
-
-  deploy-service:
-    vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      TEMP_SERVICE_HASH:
-        sh: task get-temp-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
-    cmds:
-      - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+        if [ "{{.CHAIN_NUMBER}}" -eq 2 ]; then
+          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
+        else
+          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
+        fi
 
   deploy-service-*:
     vars:
@@ -317,15 +177,6 @@ tasks:
       SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
-
-  register-operator:
-    vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_SIGNING_KEY:
-        sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
 
   wavs-*:
     vars:

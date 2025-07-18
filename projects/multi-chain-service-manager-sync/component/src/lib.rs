@@ -4,13 +4,16 @@ mod bindings;
 mod utils;
 
 use crate::{
-    bindings::wavs::worker::layer_types::{TriggerData, TriggerDataEvmContractEvent},
+    bindings::{
+        wavs::worker::input::{TriggerData, TriggerDataEvmContractEvent},
+        WasmResponse,
+    },
     IManagerUpdateTypes::UpdateWithId,
-    WavsServiceManager::QuorumThresholdUpdated,
+    IWavsServiceManager::QuorumThresholdUpdated,
 };
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
-use bindings::{export, wavs::worker::layer_types::WasmResponse, Guest, TriggerAction};
+use bindings::{export, Guest, TriggerAction};
 use wavs_wasi_utils::decode_event_log_data;
 use wstd::runtime::block_on;
 
@@ -27,8 +30,8 @@ sol!(interface IManagerUpdateTypes {
 
 sol!(
     #[sol(rpc)]
-    WavsServiceManager,
-    "../../../abi/wavs-middleware/WavsServiceManager.sol/WavsServiceManager.json"
+    IWavsServiceManager,
+    "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
 );
 
 struct Component;

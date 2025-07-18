@@ -18,6 +18,9 @@ includes:
   utils:
     taskfile: taskfile/utils.yml
     flatten: true
+  utils-common:
+    taskfile: ../../taskfile/common/utils.yml
+    flatten: true
 
 silent: true
 

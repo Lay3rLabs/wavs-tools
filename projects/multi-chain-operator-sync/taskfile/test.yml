@@ -63,11 +63,16 @@ tasks:
       vars: [CHAIN_NUMBER, OPERATOR_ADDRESS]
     vars:
       EVM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: task get-evm-rpc-url-{{.CHAIN_NUMBER}}
       CURRENT_BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
-        sh: echo $(( {{.CURRENT_BLOCK}} - 3 ))
+        sh: |
+          if [ {{.CURRENT_BLOCK}} -ge 10 ]; then
+            echo $(( {{.CURRENT_BLOCK}} - 10 ))
+          else
+            echo 0
+          fi
       TOPIC_0:
         sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
       TOPIC_1:
@@ -112,7 +117,7 @@ tasks:
         sh: task get-service-manager-address
       DELEGATE_AMOUNT: "0.001ether"
       SOURCE_RPC_URL:
-        sh: task get-source-rpc-url
+        sh: task get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
     cmds:
       - >
         cd "{{.REPO_ROOT}}" && 

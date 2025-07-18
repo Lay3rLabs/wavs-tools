@@ -9,18 +9,16 @@ use alloy_provider::RootProvider;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use anyhow::anyhow;
-use bindings::{export, wavs::worker::layer_types::WasmResponse, Guest, TriggerAction};
+use bindings::{export, wavs::worker::output::WasmResponse, Guest, TriggerAction};
 use wavs_wasi_utils::{decode_event_log_data, evm::new_evm_provider};
 use wstd::runtime::block_on;
 
 use crate::{
     bindings::{
-        host::{self, get_evm_chain_config},
-        wavs::worker::layer_types::{
-            BlockIntervalData, LogLevel, TriggerData, TriggerDataEvmContractEvent,
-        },
+        host::{self, get_evm_chain_config, LogLevel},
+        wavs::worker::input::{TriggerData, TriggerDataBlockInterval, TriggerDataEvmContractEvent},
     },
-    wavs_service_manager::WavsServiceManager::WavsServiceManagerInstance,
+    wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
     AllocationManager::{AllocationManagerInstance, OperatorSet},
     ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
     IMirrorUpdateTypes::UpdateWithId,
@@ -44,8 +42,8 @@ mod wavs_service_manager {
 
     sol!(
         #[sol(rpc)]
-        WavsServiceManager,
-        "../../../abi/wavs-middleware/WavsServiceManager.sol/WavsServiceManager.json"
+        IWavsServiceManager,
+        "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
     );
 }
 
@@ -121,7 +119,7 @@ impl Guest for Component {
                 })
             }
             // Update
-            TriggerData::BlockInterval(BlockIntervalData {
+            TriggerData::BlockInterval(TriggerDataBlockInterval {
                 chain_name,
                 block_height,
             }) => {
@@ -240,14 +238,14 @@ async fn handle_update_event(
     );
 
     let service_manager =
-        WavsServiceManagerInstance::new(service_manager_address, provider.clone());
+        IWavsServiceManagerInstance::new(service_manager_address, provider.clone());
 
-    let stake_registry_address = service_manager.stakeRegistry().call().await?;
+    let stake_registry_address = service_manager.getStakeRegistry().call().await?;
     host::log(
         LogLevel::Info,
         &format!("Stake registry address: {stake_registry_address}"),
     );
-    let allocation_manager_address = service_manager.allocationManager().call().await?;
+    let allocation_manager_address = service_manager.getAllocationManager().call().await?;
     host::log(
         LogLevel::Info,
         &format!("Allocation manager address: {allocation_manager_address}"),
