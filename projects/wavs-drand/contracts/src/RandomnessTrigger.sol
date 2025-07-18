@@ -1,12 +1,16 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
+import {RandomnessRequested} from "./Types.sol";
+
 contract RandomnessTrigger {
-    /// @notice Emitted whenever randomness is requested
-    event RandomnessRequested(address indexed requester);
+    uint256 public triggerCounter;
+    mapping(uint256 => address) public triggerToRequester;
 
     /// @notice Call this to request randomness
     function requestRandomness() external {
-        emit RandomnessRequested(msg.sender);
+        uint256 triggerId = ++triggerCounter;
+        triggerToRequester[triggerId] = msg.sender;
+        emit RandomnessRequested(triggerId);
     }
 }

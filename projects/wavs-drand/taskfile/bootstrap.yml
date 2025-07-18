@@ -10,7 +10,7 @@ includes:
 
 tasks:
   contracts-deploy:
-    desc: "Deploys the AVS Sync contracts"
+    desc: "Deploys the solidity contracts"
     dir: contracts
     vars:
       SCRIPT_NAME: "DeployRandomnessContracts"
@@ -38,7 +38,7 @@ tasks:
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
       RANDOMNESS_REQUESTED_EVENT_HASH:
-        sh: cast keccak "RandomnessRequested(address)"
+        sh: cast keccak "RandomnessRequested(uint256)"
     cmds:
       - |
         cd "{{.REPO_ROOT}}"

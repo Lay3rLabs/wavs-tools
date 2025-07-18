@@ -1,15 +1,18 @@
-use alloy_primitives::{keccak256, B256};
+use alloy_primitives::{keccak256, B256, U256};
 use anyhow::{anyhow, Result};
+use wavs_wasi_utils::decode_event_log_data;
 
 use crate::bindings::host::{get_cosmos_chain_config, get_evm_chain_config};
 use crate::bindings::wavs::worker::input::{TriggerData, TriggerDataEvmContractEvent};
 use crate::bindings::TriggerAction;
 use crate::config::Config;
 use crate::utils::{get_evm_block, vec_into_fixed_bytes};
+use crate::RandomnessRequested;
 
 /// Extracted trigger information
 #[derive(Debug, Clone)]
 pub struct TriggerInfo {
+    pub trigger_id: U256,
     pub unique_id: B256,
     pub drand_round: u64,
 }
@@ -20,16 +23,17 @@ impl TriggerInfo {
         trigger_action: TriggerAction,
         config: &Config,
     ) -> Result<Self> {
-        let (unique_id, timestamp) = Self::extract_id_and_timestamp(trigger_action).await?;
+        let (trigger_id, unique_id, timestamp) = Self::extract_trigger_info(trigger_action).await?;
         let drand_round = Self::calculate_drand_round(timestamp, config)?;
 
         Ok(Self {
+            trigger_id,
             unique_id,
             drand_round,
         })
     }
 
-    async fn extract_id_and_timestamp(trigger_action: TriggerAction) -> Result<(B256, u64)> {
+    async fn extract_trigger_info(trigger_action: TriggerAction) -> Result<(U256, B256, u64)> {
         match trigger_action.data {
             TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name, log }) => {
                 let timestamp = if let Some(timestamp) = log.block_timestamp {
@@ -42,21 +46,28 @@ impl TriggerInfo {
                     block.header.timestamp
                 };
 
-                Ok((vec_into_fixed_bytes(log.tx_hash)?, timestamp))
+                // Extract trigger ID from event data (uint256 = 32 bytes)
+                let RandomnessRequested { triggerId } = decode_event_log_data!(log.data.clone())?;
+
+                Ok((triggerId, vec_into_fixed_bytes(log.tx_hash)?, timestamp))
             }
             TriggerData::Cron(cron) => {
                 let timestamp = cron.trigger_time.nanos / 1_000_000_000;
                 let id_data = "cron";
                 let unique_id = keccak256(id_data.as_bytes());
 
-                Ok((unique_id, timestamp))
+                Ok((U256::ZERO, unique_id, timestamp))
             }
             TriggerData::BlockInterval(block) => {
                 if let Some(chain_config) = get_evm_chain_config(&block.chain_name) {
                     let block =
                         get_evm_block(chain_config, block.chain_name, block.block_height).await?;
 
-                    Ok((block.header.transactions_root, block.header.timestamp))
+                    Ok((
+                        U256::ZERO,
+                        block.header.transactions_root,
+                        block.header.timestamp,
+                    ))
                 } else if let Some(_chain_config) = get_cosmos_chain_config(&block.chain_name) {
                     unimplemented!()
                 } else {

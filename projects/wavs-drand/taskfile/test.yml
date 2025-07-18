@@ -36,12 +36,16 @@ tasks:
       BLOCK_START:
         sh: echo $(( {{.CURRENT_BLOCK}} - 1 ))
       TOPIC_0:
-        sh: cast keccak "RandomnessReceived(bytes32)"
+        sh: cast keccak "RandomnessReceived(address,bytes32)"
+      DEPLOYER_ADDRESS:
+        sh: cast wallet address {{.DEPLOYER_PRIVATE_KEY}}
+      TOPIC_1:
+        sh: cast abi-encode "p(address)" {{.DEPLOYER_ADDRESS}}
     cmds:
       - >
         cast logs 
         --from-block {{.BLOCK_START}}
-        --to-block latest {{.TOPIC_0}}
+        --to-block latest {{.TOPIC_0}} {{.TOPIC_1}}
         --address {{.SUBMISSION_ADDRESS}} 
         --rpc-url {{.EVM_RPC_URL}}
 

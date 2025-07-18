@@ -13,7 +13,7 @@ mod random_derivation;
 mod trigger;
 mod utils;
 
-use alloy_sol_types::SolValue;
+use alloy_sol_types::{sol, SolValue};
 use anyhow::Result;
 use wstd::runtime::block_on;
 
@@ -22,6 +22,8 @@ use crate::config::Config;
 use crate::drand::DrandClient;
 use crate::random_derivation::RandomDerivation;
 use crate::trigger::TriggerInfo;
+
+sol!("../contracts/src/Types.sol");
 
 struct Component;
 
@@ -53,16 +55,20 @@ async fn process_trigger(trigger_action: TriggerAction) -> Result<WasmResponse> 
         .await
         .map_err(|e| anyhow::anyhow!("Failed to get drand randomness: {}", e))?;
 
-    // Create VRF from drand randomness + unique ID
+    // Create VRF seeded with unique ID and drand randomness
     let vrf_sources = [
-        drand_randomness.as_slice(),
         trigger_info.unique_id.as_slice(),
+        drand_randomness.as_slice(),
     ];
 
-    let vrf = RandomDerivation::from_sources(&vrf_sources, trigger_info.drand_round);
-    let result = vrf.generate();
+    let randomness = RandomDerivation::from_sources(&vrf_sources);
 
-    let payload = result.randomness.abi_encode();
+    // Create the payload
+    let payload = WavsDrandPayload {
+        triggerId: trigger_info.trigger_id,
+        randomness,
+    }
+    .abi_encode();
 
     Ok(WasmResponse {
         payload,

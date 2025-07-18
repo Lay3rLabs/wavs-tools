@@ -3,14 +3,18 @@ pragma solidity ^0.8.27;
 
 import {IWavsServiceManager} from "@wavs/eigenlayer/ecdsa/interfaces/IWavsServiceManager.sol";
 import {IWavsServiceHandler} from "@wavs/eigenlayer/ecdsa/interfaces/IWavsServiceHandler.sol";
+import {WavsDrandPayload} from "./Types.sol";
+import {RandomnessTrigger} from "./RandomnessTrigger.sol";
 
 contract RandomnessConsumer is IWavsServiceHandler {
     IWavsServiceManager private _serviceManager;
+    RandomnessTrigger private _trigger;
 
-    event RandomnessReceived(bytes32 randomness);
+    event RandomnessReceived(address indexed requester, bytes32 randomness);
 
-    constructor(IWavsServiceManager serviceManager) {
+    constructor(IWavsServiceManager serviceManager, RandomnessTrigger trigger) {
         _serviceManager = serviceManager;
+        _trigger = trigger;
     }
 
     function getServiceManager() external view returns (address) {
@@ -23,8 +27,11 @@ contract RandomnessConsumer is IWavsServiceHandler {
     ) external {
         _serviceManager.validate(envelope, signatureData);
 
-        bytes32 payload = abi.decode(envelope.payload, (bytes32));
+        WavsDrandPayload memory payload = abi.decode(envelope.payload, (WavsDrandPayload));
 
-        emit RandomnessReceived(payload);
+        // Query the requester from the trigger contract
+        address requester = _trigger.triggerToRequester(payload.triggerId);
+
+        emit RandomnessReceived(requester, payload.randomness);
     }
 }
