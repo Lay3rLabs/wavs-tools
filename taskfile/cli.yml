@@ -75,6 +75,6 @@ tasks:
     dir: "./node_modules/@wavs/solidity/contracts"
     cmds:
       - mkdir -p {{.ABI_WAVS_MIDDLEWARE_DIR}}
-      - forge build -C eigenlayer
+      - forge build -C eigenlayer/ecdsa
       - for: ["IWavsServiceManager.sol"]
         cmd: cp -r "out/{{.ITEM}}" "{{.ABI_WAVS_MIDDLEWARE_DIR}}/"

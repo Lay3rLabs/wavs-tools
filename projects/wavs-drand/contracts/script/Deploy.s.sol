@@ -17,7 +17,7 @@ contract DeployRandomnessContracts is Script {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        // Deploy AvsWriter contract
+        // Deploy randomness trigger and consumer contracts
         RandomnessTrigger trigger = new RandomnessTrigger();
         new RandomnessConsumer(IWavsServiceManager(serviceManagerAddress), trigger);
 

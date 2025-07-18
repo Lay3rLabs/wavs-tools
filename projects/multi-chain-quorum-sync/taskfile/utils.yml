@@ -12,4 +12,4 @@ tasks:
       - test -f {{.MIRROR_PATH}}
     cmds:
       - |
-        jq -r '.addresses.MirrorServiceManagerHandler' "{{.MIRROR_PATH}}"
+        jq -r '.addresses.quorumSyncHandler' "{{.MIRROR_PATH}}"
