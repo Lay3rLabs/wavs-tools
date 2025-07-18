@@ -4,3 +4,16 @@ vars:
   SUBMIT_DELAY: 3
 
 tasks:
+  trigger-randomness:
+    desc: "Request randomness by calling the RandomnessTrigger contract"
+    vars:
+      TRIGGER_ADDRESS:
+        sh: task get-trigger-address
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url-1
+    cmds:
+      # Call requestRandomness() function on the RandomnessTrigger contract
+      - >
+        cast send "{{.TRIGGER_ADDRESS}}" "requestRandomness()"
+        --rpc-url "{{.EVM_RPC_URL}}" 
+        --private-key "$DEPLOYER_PRIVATE_KEY"

@@ -24,7 +24,7 @@ impl DrandClient {
 
     /// Get drand randomness for a specific round
     pub async fn get_round(&self, round: u64) -> Result<B256> {
-        let url = format!("{}/chains/{}/public/{}", self.url, self.chain_hash, round);
+        let url = format!("{}/{}/public/{}", self.url, self.chain_hash, round);
 
         let request =
             http_request_get(&url).map_err(|e| anyhow!("Failed to create HTTP request: {}", e))?;
