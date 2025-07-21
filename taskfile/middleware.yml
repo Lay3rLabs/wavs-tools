@@ -27,7 +27,7 @@ tasks:
     env:
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
@@ -69,13 +69,13 @@ tasks:
     env:
       MOCK_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       MOCK_DEPLOYER_KEY:
         sh: "echo $MIDDLEWARE_FUNDED_KEY"
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - |
-        echo '{"operators": [], "signingKeyAddresses": [], "weights": [], "threshold": 100, "quorumNumerator": 1, "quorumDenominator": 10}' > "{{.MOCK_CONFIG_PATH}}"
+        echo '{"operators": [], "signingKeyAddresses": [], "weights": [], "threshold": 100, "quorumNumerator": 2, "quorumDenominator": 3}' > "{{.MOCK_CONFIG_PATH}}"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e MOCK_DEPLOYER_KEY 
@@ -100,7 +100,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     env:
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       SOURCE_RPC_URL: "{{.SOURCE_RPC_URL}}"
       MIRROR_RPC_URL: "{{.MIRROR_RPC_URL}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
@@ -147,7 +147,7 @@ tasks:
       vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY, AMOUNT]
     env:
       WAVS_SIGNING_KEY: "{{.WAVS_SIGNING_KEY}}"
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
@@ -186,7 +186,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       ETHERSCAN_API_KEY:
@@ -215,7 +215,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, QUORUM_DENOMINATOR, QUORUM_NUMERATOR]
     env:
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       ETHERSCAN_API_KEY:
@@ -245,7 +245,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       LOCAL_ETHEREUM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
@@ -270,7 +270,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, MIRROR_CHAIN_NUMBER]
     env:
-      DEPLOY_ENV: "{{.MIDDLEWARE_DEPLOY_ENV}}"
+      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
       ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       SOURCE_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}

@@ -24,14 +24,34 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
-    desc: "Deploys the middleware"
+    desc: "Deploys the middleware based on DEPLOY_MODE"
     cmds:
       - |
-        if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
-          cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
-        else
-          cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-        fi
+        case "{{.DEPLOY_MODE}}" in
+          "LOCAL")
+            echo "Deploying middleware in LOCAL mode"
+            if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
+              cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
+            else
+              cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+            fi
+            ;;
+          "MOCK")
+            echo "Deploying middleware in MOCK mode"
+            if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
+              cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
+            else
+              cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+            fi
+            ;;
+          "TESTNET")
+            echo "Skipping middleware deployment in TESTNET mode (assuming contracts already deployed)"
+            ;;
+          *)
+            echo "Unknown DEPLOY_MODE: {{.DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
+            exit 1
+            ;;
+        esac
 
   build-empty-service:
     desc: "Build the empty service configuration"

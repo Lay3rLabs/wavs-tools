@@ -172,4 +172,22 @@ Other global configuration variables are set in [taskfile/config.yml](taskfile/c
 
 These make their way automatically to wherever they are needed. For example, changing a port or endpoint is only necessary in one place, not also in dockerfile or other places.
 
+## Deployment Modes
+
+The system supports three deployment modes controlled by the `DEPLOY_MODE` variable:
+
+- **`LOCAL`** (default): Full local deployment with real middleware contracts
+- **`MOCK`**: Mock middleware deployment for testing without full EigenLayer setup  
+- **`TESTNET`**: Skip middleware deployment (assumes contracts already deployed on testnet)
+
+Change `DEPLOY_MODE` in your `.env` file to use different modes, or override in specific commands:
+
+```bash
+# Use mock mode for faster development
+DEPLOY_MODE=MOCK task bootstrap
+
+# Use testnet mode
+DEPLOY_MODE=TESTNET task bootstrap
+```
+
 Of course, per-project Taskfiles and/or .env files may also contain their own configuration.

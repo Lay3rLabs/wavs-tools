@@ -21,7 +21,6 @@ vars:
   WAVS_AGGREGATOR_PORT: 8200
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
-  MIDDLEWARE_DEPLOY_ENV: "LOCAL"
   MIDDLEWARE_CHAIN_ID: 17000
   MIDDLEWARE_METADATA_URI: "https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json"
   MIDDLEWARE_LST_CONTRACT_ADDRESS: "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034"
