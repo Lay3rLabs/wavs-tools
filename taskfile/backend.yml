@@ -81,7 +81,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       ANVIL_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}}
+        sh: task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     deps:
       - task: docker-start-chain-{{index .MATCH 0}}
     cmds:
@@ -123,7 +123,7 @@ tasks:
           esac
       COMPOSE_CONTAINER_NAME: "chain-anvil-{{.CHAIN_NUMBER}}"
       COMPOSE_ANVIL_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-anvil-port-{{.CHAIN_NUMBER}}
+        sh: task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - |
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
@@ -143,7 +143,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       ANVIL_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
+        sh: task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - echo "http://localhost:{{.ANVIL_PORT}}"
 
@@ -228,10 +228,10 @@ tasks:
       TIMEOUT: 10
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-port-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-port-{{.WAVS_INSTANCE}}
     env:
       WAVS_SUBMISSION_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
     deps:
       - task: docker-start-wavs-{{index .MATCH 0}}
     cmds:
@@ -266,9 +266,9 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_PORT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-port-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-port-{{.WAVS_INSTANCE}}
       WAVS_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
     env:
       COMPOSE_CONTAINER_NAME: "wavs-{{.WAVS_INSTANCE}}"
       COMPOSE_WAVS_PORT: "{{.WAVS_PORT}}"
