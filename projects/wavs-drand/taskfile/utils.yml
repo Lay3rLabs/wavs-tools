@@ -1,0 +1,18 @@
+version: "3"
+
+tasks:
+  get-submission-address:
+    vars:
+      CONTRACT_NAME: "RandomnessConsumer"
+    cmds:
+      - >
+        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
+
+  get-trigger-address:
+    vars:
+      CONTRACT_NAME: "RandomnessTrigger"
+    cmds:
+      - >
+        jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"

@@ -1,0 +1,65 @@
+version: "3"
+
+vars:
+  SUBMIT_DELAY: 3
+
+tasks:
+  simple:
+    cmds:
+      - task: trigger-randomness
+      - sleep {{.SUBMIT_DELAY}}
+      - task: validate-randomness-received-event
+
+  trigger-randomness:
+    desc: "Request randomness by calling the RandomnessTrigger contract"
+    vars:
+      TRIGGER_ADDRESS:
+        sh: task get-trigger-address
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url-1
+    cmds:
+      # Call requestRandomness() function on the RandomnessTrigger contract
+      - >
+        cast send "{{.TRIGGER_ADDRESS}}" "requestRandomness()"
+        --rpc-url "{{.EVM_RPC_URL}}" 
+        --private-key "$DEPLOYER_PRIVATE_KEY"
+
+  get-randomness-received-event:
+    desc: "Gets a randomness received event that was emitted"
+    vars:
+      SUBMISSION_ADDRESS:
+        sh: task get-submission-address
+      EVM_RPC_URL:
+        sh: task get-evm-rpc-url-1
+      CURRENT_BLOCK:
+        sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
+      BLOCK_START:
+        sh: echo $(( {{.CURRENT_BLOCK}} - 1 ))
+      TOPIC_0:
+        sh: cast keccak "RandomnessReceived(address,bytes32)"
+      DEPLOYER_ADDRESS:
+        sh: cast wallet address {{.DEPLOYER_PRIVATE_KEY}}
+      TOPIC_1:
+        sh: cast abi-encode "p(address)" {{.DEPLOYER_ADDRESS}}
+    cmds:
+      - >
+        cast logs 
+        --from-block {{.BLOCK_START}}
+        --to-block latest {{.TOPIC_0}} {{.TOPIC_1}}
+        --address {{.SUBMISSION_ADDRESS}} 
+        --rpc-url {{.EVM_RPC_URL}}
+
+  validate-randomness-received-event:
+    desc: "Validates that the randomness received event was found"
+    vars:
+      LOGS:
+        sh: task test:get-randomness-received-event
+    cmds:
+      - >
+        if [ -z "{{.LOGS}}" ]; then 
+          echo "❌ No RandomnessReceived event found"; 
+          exit 1; 
+        else 
+          echo "✅ RandomnessReceived event found:"; 
+          echo "{{.LOGS}}"; 
+        fi

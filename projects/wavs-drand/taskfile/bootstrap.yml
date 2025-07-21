@@ -4,20 +4,21 @@ includes:
   bootstrap-common:
     taskfile: ../../../taskfile/common/bootstrap.yml
     flatten: true
+  mirror-common:
+    taskfile: ../../../taskfile/common/mirror.yml
+    flatten: true
 
 tasks:
   contracts-deploy:
-    desc: "Deploys the AVS Sync contracts"
+    desc: "Deploys the solidity contracts"
     dir: contracts
     vars:
-      SCRIPT_NAME: "DeployAvsWriter"
+      SCRIPT_NAME: "DeployRandomnessContracts"
       EVM_RPC_URL:
         sh: task get-evm-rpc-url-1
     env:
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
-      STAKE_REGISTRY_ADDRESS:
-        sh: task get-stake-registry-address
     cmds:
       - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
 
@@ -32,8 +33,12 @@ tasks:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
+      TRIGGER_ADDRESS:
+        sh: task get-trigger-address
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
+      RANDOMNESS_REQUESTED_EVENT_HASH:
+        sh: cast keccak "RandomnessRequested(uint256)"
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
@@ -45,15 +50,13 @@ tasks:
         WORKFLOW_ID=$(task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.TRIGGER_CHAIN}} --address {{.TRIGGER_ADDRESS}} --event-hash {{.RANDOMNESS_REQUESTED_EVENT_HASH}}
           
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address {{.SUBMISSION_ADDRESS}} --chain-name {{.SUBMIT_CHAIN}}
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
           
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
-          
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id ${WORKFLOW_ID} config --values "service_manager_address={{.SERVICE_MANAGER_ADDRESS}}"
           
         task cli:wavs -- {{.SERVICE_JSON_CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
 
