@@ -15,7 +15,7 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     deps:
       - task: clean
         vars:
@@ -26,8 +26,9 @@ tasks:
       vars: [PROJECT, SERVICE_NAME]
     env:
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
@@ -56,7 +57,7 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       MOCK_CONFIG_PATH: "{{.NODES_DIR}}/mock_config.json"
     deps:
       - task: clean
@@ -68,8 +69,9 @@ tasks:
       vars: [PROJECT, SERVICE_NAME]
     env:
       MOCK_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       MOCK_DEPLOYER_KEY:
         sh: "echo $MIDDLEWARE_FUNDED_KEY"
     cmds:
@@ -96,15 +98,16 @@ tasks:
           CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     vars:
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     env:
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       SOURCE_RPC_URL: "{{.SOURCE_RPC_URL}}"
       MIRROR_RPC_URL: "{{.MIRROR_RPC_URL}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}"
+        sh: task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}"
       FUNDED_KEY: "{{.MIDDLEWARE_FUNDED_KEY}}"
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
@@ -126,7 +129,7 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -140,23 +143,24 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       WAVS_INSTANCE: '{{.WAVS_INSTANCE | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
     requires:
       vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY, AMOUNT]
     env:
       WAVS_SIGNING_KEY: "{{.WAVS_SIGNING_KEY}}"
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
@@ -180,19 +184,20 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       WAVS_INSTANCE: '{{.WAVS_INSTANCE | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
@@ -211,17 +216,18 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME, QUORUM_DENOMINATOR, QUORUM_NUMERATOR]
     env:
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       QUORUM_DENOMINATOR: "{{.QUORUM_DENOMINATOR}}"
       QUORUM_NUMERATOR: "{{.QUORUM_NUMERATOR}}"
     cmds:
@@ -241,16 +247,17 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -266,20 +273,21 @@ tasks:
     vars:
       SOURCE_CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME, MIRROR_CHAIN_NUMBER]
     env:
-      DEPLOY_ENV: "{{.DEPLOY_MODE}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       SOURCE_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
       MIRROR_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.MIRROR_CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.MIRROR_CHAIN_NUMBER}}
       SOURCE_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       MIRROR_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}} CHAIN_NUMBER={{.MIRROR_CHAIN_NUMBER}}
+        sh: task middleware:get-mirror-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}} CHAIN_NUMBER={{.MIRROR_CHAIN_NUMBER}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -306,11 +314,11 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     env:
       STAKER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
       LOCAL_ETHEREUM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
       WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
       WAVS_DELEGATE_AMOUNT: "{{.DELEGATE_AMOUNT}}"
@@ -346,7 +354,7 @@ tasks:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
       OUTPUT_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -357,7 +365,7 @@ tasks:
     vars:
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
       OUTPUT_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
@@ -368,7 +376,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       JSON_FILEPATH:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -379,7 +387,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       JSON_FILEPATH:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
@@ -389,7 +397,7 @@ tasks:
     desc: "Get the Mirror Stake Registry address from the middleware JSON file"
     vars:
       JSON_FILEPATH:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-mirror-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
@@ -399,7 +407,7 @@ tasks:
     desc: "Get the Mirror Service Manager address from the middleware JSON file"
     vars:
       JSON_FILEPATH:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-mirror-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
@@ -411,3 +419,12 @@ tasks:
       CHAIN_ID: "{{.CHAIN_ID | default .MIDDLEWARE_CHAIN_ID}}"
     cmds:
       - sh -c 'jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json" 2>/dev/null || true'
+
+  get-middleware-deploy-env:
+    desc: "Get the DEPLOY_ENV value to pass to middleware (maps MOCK to LOCAL)"
+    cmds:
+      - |
+        case "{{.DEPLOY_MODE}}" in
+          "MOCK") echo "LOCAL" ;;
+          *) echo "{{.DEPLOY_MODE}}" ;;
+        esac
