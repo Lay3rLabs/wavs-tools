@@ -14,6 +14,10 @@ A service for synchronizing operator registrations across multiple blockchain ne
 
 A service manager synchronization tool that handles the coordination and mirroring of service manager contracts across multiple chains. It ensures service definitions and operator sets remain consistent across different blockchain environments.
 
+## [wavs-drand](projects/wavs-drand)
+
+A WASI component that provides deterministic event-based randomness by combining drand network randomness with trigger data to generate verifiable random values. This tool enables secure randomness for blockchain applications like NFT trait assignment and gaming rewards, using the distributed drand beacon to prevent manipulation while maintaining verifiability.
+
 # SYSTEM REQUIREMENTS
 
 <details>
@@ -96,6 +100,25 @@ task bootstrap
 
 cd projects/multi-chain-service-manager-sync
 task bootstrap
+
+cd projects/wavs-drand
+task bootstrap
+```
+
+## Testing
+
+Run the full test suite across all projects:
+
+```bash
+task test
+```
+
+## Linting
+
+Run linting and formatting checks on all Rust code:
+
+```bash
+task lint
 ```
 
 ## Publishing Components
