@@ -83,9 +83,10 @@ impl TriggerInfo {
         }
     }
 
+    // https://docs.drand.love/docs/specification/#randomness-generation-period
     fn calculate_drand_round(timestamp: u64, config: &Config) -> Result<u64> {
         if timestamp < config.drand_genesis_time {
-            return Ok(1);
+            return Ok(0);
         }
 
         let round = ((timestamp - config.drand_genesis_time) / config.drand_period) + 1;
