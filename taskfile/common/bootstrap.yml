@@ -38,7 +38,7 @@ tasks:
     cmds:
       - |
         case "{{.ACTUAL_DEPLOY_MODE}}" in
-          "LOCAL")
+          "LOCAL"|"TESTNET")
             if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
               cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
             else
@@ -51,9 +51,6 @@ tasks:
             else
               cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
             fi
-            ;;
-          "TESTNET")
-            echo "Skipping middleware deployment in TESTNET mode (assuming contracts already deployed)"
             ;;
           *)
             echo "Unknown DEPLOY_MODE: {{.ACTUAL_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
@@ -159,14 +156,11 @@ tasks:
     cmds:
       - |
         case "{{.ACTUAL_DEPLOY_MODE}}" in
-          "LOCAL")
+          "LOCAL"|"TESTNET")
             cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
             ;;
           "MOCK")
             cd "{{.REPO_ROOT}}" && task middleware:set-operator-details WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-            ;;
-          "TESTNET")
-            echo "Skipping operator registration in TESTNET mode (assuming operator already registered)"
             ;;
           *)
             echo "Unknown DEPLOY_MODE: {{.ACTUAL_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
