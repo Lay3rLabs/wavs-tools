@@ -57,7 +57,7 @@ tasks:
         task bootstrap:register-operator
 
   clean:
-    desc: "Cleans up the AVS Sync tool"
+    desc: "Cleans up the tool"
     deps: [clean-output]
     cmds:
       - rm -rf "contracts/broadcast"
@@ -66,7 +66,7 @@ tasks:
       - cd "{{.REPO_ROOT}}" && cargo clean -p {{.PROJECT}}
 
   clean-output:
-    desc: "Cleans up the AVS Sync output directory but not contracts or components"
+    desc: "Cleans up the output directory but not contracts or components"
     cmds:
       - rm -rf "{{.PROJECT_OUTPUT_DIRNAME}}"
 
