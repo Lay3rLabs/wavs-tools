@@ -39,7 +39,6 @@ tasks:
       - |
         case "{{.ACTUAL_DEPLOY_MODE}}" in
           "LOCAL")
-            echo "Deploying middleware in LOCAL mode"
             if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
               cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
             else
@@ -47,7 +46,6 @@ tasks:
             fi
             ;;
           "MOCK")
-            echo "Deploying middleware in MOCK mode"
             if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
               cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
             else
