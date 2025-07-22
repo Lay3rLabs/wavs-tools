@@ -2,7 +2,7 @@ import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
 import { TIMEOUTS } from "./helpers/constants";
 
-const PROJECT_NAME = "multi-chain-service-manager-sync";
+const PROJECT_NAME = "multi-chain-quorum-sync";
 
 describe(PROJECT_NAME.toUpperCase(), function () {
   let backendManager: BackendManager;

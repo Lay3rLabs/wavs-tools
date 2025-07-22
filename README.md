@@ -2,17 +2,17 @@ This repo contains various tools and services that make up the WAVS ecosystem.
 
 # PROJECTS
 
-## [avs-sync](projects/avs-sync) 
+## [operator-updater](projects/operator-updater) 
 
-A service for synchronizing AVS operator registrations within a single blockchain network. This tool monitors ECDSAStakeRegistry contracts, tracks operator registration events, and maintains up-to-date operator sets for quorum management in AVS deployments.
+A service for updating AVS operator registrations within a single blockchain. This tool monitors ECDSAStakeRegistry contracts, tracks operator registration events, and maintains up-to-date operator sets for quorum management in AVS deployments.
 
 ## [multi-chain-operator-sync](projects/multi-chain-operator-sync)
 
-A service for synchronizing operator registrations across multiple blockchain networks. This tool enables operators to maintain consistent state across different chains while participating in multi-chain AVS deployments.
+A service for synchronizing operator registrations across multiple blockchains. This tool ensures the operator set is consistent across different chains when participating in multi-chain AVS deployments.
 
-## [multi-chain-service-manager-sync](projects/multi-chain-service-manager-sync)
+## [multi-chain-quorum-sync](projects/multi-chain-quorum-sync)
 
-A service manager synchronization tool that handles the coordination and mirroring of service manager contracts across multiple chains. It ensures service definitions and operator sets remain consistent across different blockchain environments.
+A service for synchronizing quorum thresholds across multiple blockchains. This tool ensures the quorum threshold is consistent across different chains when participating in multi-chain AVS deployments.
 
 ## [wavs-drand](projects/wavs-drand)
 
@@ -92,13 +92,13 @@ There are many sub-steps to deploying and developing a tool. For convenience, ju
 
 ```bash
 # For any of the available projects:
-cd projects/avs-sync
+cd projects/operator-updater
 task bootstrap
 
 cd projects/multi-chain-operator-sync
 task bootstrap
 
-cd projects/multi-chain-service-manager-sync
+cd projects/multi-chain-quorum-sync
 task bootstrap
 
 cd projects/wavs-drand
@@ -141,8 +141,8 @@ task publish VERSION="1.2.0" FLAGS="--registry https://custom.registry.com"
 
 This will:
 1. Build all WASI components across all projects
-2. Publish them to the wkg registry with package names like `wavs-tools:avs-sync@1.2.0`
-3. Component names are automatically converted from underscore format (e.g., `avs_sync`) to hyphen format (e.g., `avs-sync`) for package names
+2. Publish them to the wkg registry with package names like `wavs-tools:operator-updater@1.2.0`
+3. Component names are automatically converted from underscore format (e.g., `operator_updater`) to hyphen format (e.g., `operator-updater`) for package names
 
 ## Middleware
 
