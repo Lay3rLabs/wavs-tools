@@ -16,6 +16,10 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      RPC_ENV_VAR:
+        sh: task middleware:get-rpc-env-var
     deps:
       - task: clean
         vars:
@@ -25,8 +29,6 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       DEPLOY_ENV:
         sh: task middleware:get-middleware-deploy-env
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
@@ -40,11 +42,12 @@ tasks:
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - >
+        export {{.RPC_ENV_VAR}}={{.RPC_URL}} && 
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e FUNDED_KEY 
         -e ETHERSCAN_API_KEY 
         -e DEPLOY_ENV
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e {{.RPC_ENV_VAR}}
         -e METADATA_URI 
         -e LST_CONTRACT_ADDRESS 
         -e LST_STRATEGY_ADDRESS
@@ -142,18 +145,21 @@ tasks:
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       WAVS_INSTANCE: '{{.WAVS_INSTANCE | default "1"}}'
+      DEPLOY_MODE: '{{.DEPLOY_MODE | default "LOCAL"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
         sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      RPC_ENV_VAR:
+        sh: task middleware:get-rpc-env-var
     requires:
       vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY, AMOUNT]
     env:
       WAVS_SIGNING_KEY: "{{.WAVS_SIGNING_KEY}}"
       DEPLOY_ENV:
         sh: task middleware:get-middleware-deploy-env
-      LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
@@ -165,17 +171,18 @@ tasks:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
       - >
-        {{.DOCKER_SUDO}} docker run --rm --network host
-        -e DEPLOY_ENV
+        export {{.RPC_ENV_VAR}}={{.RPC_URL}} && 
+        {{.DOCKER_SUDO}} docker run --rm --network host 
+        -e DEPLOY_ENV 
         -e ETHERSCAN_API_KEY 
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e {{.RPC_ENV_VAR}}
         -e LST_CONTRACT_ADDRESS 
-        -e LST_STRATEGY_ADDRESS
+        -e LST_STRATEGY_ADDRESS 
         -e CHAIN_ID 
-        -e WAVS_SERVICE_MANAGER_ADDRESS
-        -e OPERATOR_KEY
-        -e WAVS_SIGNING_KEY
-        -v {{.NODES_DIR}}:/root/.nodes
+        -e WAVS_SERVICE_MANAGER_ADDRESS 
+        -e OPERATOR_KEY 
+        -e WAVS_SIGNING_KEY 
+        -v {{.NODES_DIR}}:/root/.nodes 
         {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
   set-operator-details:
@@ -208,13 +215,15 @@ tasks:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
         sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      RPC_ENV_VAR:
+        sh: task middleware:get-rpc-env-var
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       DEPLOY_ENV:
         sh: task middleware:get-middleware-deploy-env
-      LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
@@ -223,10 +232,11 @@ tasks:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
       - >
+        export {{.RPC_ENV_VAR}}={{.RPC_URL}} &&
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e ETHERSCAN_API_KEY 
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e {{.RPC_ENV_VAR}}
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e OPERATOR_KEY
         -v {{.NODES_DIR}}:/root/.nodes
@@ -238,13 +248,15 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      RPC_ENV_VAR:
+        sh: task middleware:get-rpc-env-var
     requires:
       vars: [PROJECT, SERVICE_NAME, QUORUM_DENOMINATOR, QUORUM_NUMERATOR]
     env:
       DEPLOY_ENV:
         sh: task middleware:get-middleware-deploy-env
-      LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       ETHERSCAN_API_KEY:
         sh: "echo $MIDDLEWARE_ETHERSCAN_API_KEY"
       WAVS_SERVICE_MANAGER_ADDRESS:
@@ -253,10 +265,11 @@ tasks:
       QUORUM_NUMERATOR: "{{.QUORUM_NUMERATOR}}"
     cmds:
       - >
+        export {{.RPC_ENV_VAR}}={{.RPC_URL}} &&
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e ETHERSCAN_API_KEY 
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e {{.RPC_ENV_VAR}}
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e QUORUM_DENOMINATOR
         -e QUORUM_NUMERATOR
@@ -269,21 +282,24 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      RPC_ENV_VAR:
+        sh: task middleware:get-rpc-env-var
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
       DEPLOY_ENV:
         sh: task middleware:get-middleware-deploy-env
       ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
-      LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     cmds:
       - >
+        export {{.RPC_ENV_VAR}}={{.RPC_URL}} &&
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e {{.RPC_ENV_VAR}}
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e ETHERSCAN_API_KEY
         -v {{.NODES_DIR}}:/root/.nodes
@@ -336,10 +352,12 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      RPC_ENV_VAR:
+        sh: task middleware:get-rpc-env-var
     env:
       STAKER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
-      LOCAL_ETHEREUM_RPC_URL:
-        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
       WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
       WAVS_DELEGATE_AMOUNT: "{{.DELEGATE_AMOUNT}}"
@@ -347,13 +365,14 @@ tasks:
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
     cmds:
       - >
+        export {{.RPC_ENV_VAR}}={{.RPC_URL}} &&
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e OPERATOR_ADDRESS
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e WAVS_DELEGATE_AMOUNT
         -e LST_CONTRACT_ADDRESS
         -e LST_STRATEGY_ADDRESS
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e {{.RPC_ENV_VAR}}
         -e STAKER_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} delegate_to_operator
@@ -448,4 +467,21 @@ tasks:
         case "{{.DEPLOY_MODE}}" in
           "MOCK") echo "LOCAL" ;;
           *) echo "{{.DEPLOY_MODE}}" ;;
+        esac
+
+  get-rpc-env-var:
+    desc: "Gets the correct env var for deploy mode to use in docker scripts"
+    cmds:
+      - |
+        case "{{.DEPLOY_MODE}}" in
+          "LOCAL"|"MOCK")
+            echo "LOCAL_ETHEREUM_RPC_URL"
+            ;;
+          "TESTNET")
+            echo "TESTNET_RPC_URL"
+            ;;
+          *)
+            echo "Unknown DEPLOY_MODE: {{.DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
+            exit 1
+            ;;
         esac
