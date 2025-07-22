@@ -174,20 +174,19 @@ These make their way automatically to wherever they are needed. For example, cha
 
 ## Deployment Modes
 
-The system supports three deployment modes controlled by the `DEPLOY_MODE` variable:
+The system supports two global deployment modes controlled by the `DEPLOY_MODE` variable:
 
-- **`LOCAL`** (default): Full local deployment with real middleware contracts
-- **`MOCK`**: Mock middleware deployment for testing without full EigenLayer setup  
+- **`LOCAL`** (default): Full local deployment with middleware contracts
 - **`TESTNET`**: Skip middleware deployment (assumes contracts already deployed on testnet)
+
+Some projects like `wavs-drand` automatically use mock middleware when `DEPLOY_MODE=LOCAL` for faster development.
 
 Change `DEPLOY_MODE` in your `.env` file to use different modes, or override in specific commands:
 
 ```bash
-# Use mock mode for faster development
-DEPLOY_MODE=MOCK task bootstrap
+# Use local mode (some projects may use mock middleware internally)
+DEPLOY_MODE=LOCAL task bootstrap
 
 # Use testnet mode
 DEPLOY_MODE=TESTNET task bootstrap
 ```
-
-Of course, per-project Taskfiles and/or .env files may also contain their own configuration.
