@@ -23,7 +23,10 @@ use crate::{
     IWavsServiceManager::IWavsServiceManagerInstance,
 };
 
-sol!("../contracts/src/Types.sol");
+sol!(
+    "../../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IWavsOperatorUpdateHandler.sol"
+);
+use IWavsOperatorUpdateHandler::OperatorUpdatePayload;
 
 sol!(
     #[sol(rpc)]
@@ -68,11 +71,11 @@ impl Guest for Component {
         }?;
         host::log(
             LogLevel::Info,
-            &format!("Starting AVS sync for chain {chain_name} for service manager {service_manager_address}"),
+            &format!("Starting operator update for chain {chain_name} for service manager {service_manager_address}"),
         );
 
         block_on(async move {
-            let avs_writer_payload = perform_avs_sync(chain_name, service_manager_address)
+            let avs_writer_payload = perform_operator_update(chain_name, service_manager_address)
                 .await
                 .map_err(|e| e.to_string())?;
 
@@ -93,10 +96,10 @@ impl Guest for Component {
     }
 }
 
-async fn perform_avs_sync(
+async fn perform_operator_update(
     chain_name: String,
     service_manager_address: Address,
-) -> Result<AvsWriterPayload> {
+) -> Result<OperatorUpdatePayload> {
     let chain_config = get_evm_chain_config(&chain_name)
         .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
 
@@ -140,7 +143,7 @@ async fn perform_avs_sync(
     );
 
     // ECDSAStakeRegistry only has quorum 0
-    Ok(AvsWriterPayload {
+    Ok(OperatorUpdatePayload {
         operatorsPerQuorum: vec![sorted_operators],
         quorumNumbers: vec![0u8].into(),
     })

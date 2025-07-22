@@ -1,0 +1,13 @@
+version: "3"
+
+tasks:
+  get-submission-address:
+    desc: "Get the operator update handler from the middleware deploy JSON file"
+    vars:
+      SOURCE_CHAIN_NUMBER: 1 # changing this is not supported yet
+      JSON_FILEPATH:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-json-filepath CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+    requires:
+      vars: [PROJECT]
+    cmds:
+      - sh -c 'jq -r ".addresses.operatorUpdateHandler // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'

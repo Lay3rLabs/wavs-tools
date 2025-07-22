@@ -6,23 +6,8 @@ includes:
     flatten: true
 
 tasks:
-  contracts-deploy:
-    desc: "Deploys the AVS Sync contracts"
-    dir: contracts
-    vars:
-      SCRIPT_NAME: "DeployAvsWriter"
-      EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
-    env:
-      SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-      STAKE_REGISTRY_ADDRESS:
-        sh: task get-stake-registry-address
-    cmds:
-      - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
-
   build-service:
-    desc: "Build avs_sync service configuration"
+    desc: "Build operator_updater service configuration"
     deps: [clean-service]
     vars:
       SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'

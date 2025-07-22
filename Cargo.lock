@@ -779,27 +779,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ace50bade8e6234aa140d9a2f552bbee1db4d353f69b8217bc503490fc1a9f26"
 
 [[package]]
-name = "avs-sync"
-version = "0.6.0-alpha.1"
-dependencies = [
- "alloy-contract",
- "alloy-network",
- "alloy-primitives",
- "alloy-provider",
- "alloy-rpc-types",
- "alloy-sol-macro",
- "alloy-sol-types",
- "alloy-transport-http",
- "anyhow",
- "serde",
- "serde_json",
- "wavs-wasi-utils",
- "wit-bindgen",
- "wit-bindgen-rt 0.43.0",
- "wstd",
-]
-
-[[package]]
 name = "backtrace"
 version = "0.3.75"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2101,7 +2080,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "multi-chain-service-manager-sync"
+name = "multi-chain-quorum-sync"
 version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-contract",
@@ -2274,6 +2253,27 @@ dependencies = [
  "libc",
  "pkg-config",
  "vcpkg",
+]
+
+[[package]]
+name = "operator-updater"
+version = "0.6.0-alpha.1"
+dependencies = [
+ "alloy-contract",
+ "alloy-network",
+ "alloy-primitives",
+ "alloy-provider",
+ "alloy-rpc-types",
+ "alloy-sol-macro",
+ "alloy-sol-types",
+ "alloy-transport-http",
+ "anyhow",
+ "serde",
+ "serde_json",
+ "wavs-wasi-utils",
+ "wit-bindgen",
+ "wit-bindgen-rt 0.43.0",
+ "wstd",
 ]
 
 [[package]]
