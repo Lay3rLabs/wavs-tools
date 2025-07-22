@@ -1,5 +1,5 @@
 [package]
-name = "avs-sync"
+name = "multi-chain-quorum-sync"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
@@ -11,7 +11,7 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [package.metadata.component]
-package = "component:avs-sync"
+package = "component:multi-chain-quorum-sync"
 target = "wavs:worker@0.6.0-alpha.2"
 
 [dependencies]
