@@ -34,7 +34,7 @@ tasks:
     desc: "Deploys the middleware based on DEPLOY_MODE (projects may override internally)"
     vars:
       ACTUAL_DEPLOY_MODE:
-        sh: task get-deploy-mode
+        sh: task bootstrap:get-deploy-mode
     cmds:
       - |
         case "{{.ACTUAL_DEPLOY_MODE}}" in
@@ -156,9 +156,25 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      ACTUAL_DEPLOY_MODE:
+        sh: task bootstrap:get-deploy-mode
     cmds:
       - |
-        cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        case "{{.ACTUAL_DEPLOY_MODE}}" in
+          "LOCAL")
+            cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+            ;;
+          "MOCK")
+            cd "{{.REPO_ROOT}}" && task middleware:set-operator-details WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+            ;;
+          "TESTNET")
+            echo "Skipping operator registration in TESTNET mode (assuming operator already registered)"
+            ;;
+          *)
+            echo "Unknown DEPLOY_MODE: {{.ACTUAL_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
+            exit 1
+            ;;
+        esac
 
   deploy-service-*:
     vars:
