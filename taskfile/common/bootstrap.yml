@@ -83,22 +83,32 @@ tasks:
           OPERATOR_MNEMONIC=$(cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-$WAVS_INSTANCE)
           OPERATOR_ADDRESS=$(cast wallet address --mnemonic "$OPERATOR_MNEMONIC" --mnemonic-index 0)
           SIGNING_KEY=$(task get-service-signing-address WAVS_INSTANCE=$WAVS_INSTANCE)
-          
+
           OPERATORS_JSON=$(echo "$OPERATORS_JSON" | jq ". + [\"$OPERATOR_ADDRESS\"]")
           SIGNING_KEYS_JSON=$(echo "$SIGNING_KEYS_JSON" | jq ". + [\"$SIGNING_KEY\"]")
           WEIGHTS_JSON=$(echo "$WEIGHTS_JSON" | jq ". + [{{.WEIGHT}}]")
-          
+
           echo "Added operator $WAVS_INSTANCE: operator=$OPERATOR_ADDRESS, signingKey=$SIGNING_KEY, weight={{.WEIGHT}}"
         done
 
-        # Update the mock config file with the built arrays
-        jq --argjson operators "$OPERATORS_JSON" \
-           --argjson signingKeys "$SIGNING_KEYS_JSON" \
-           --argjson weights "$WEIGHTS_JSON" \
-           '.operators = $operators | .signingKeyAddresses = $signingKeys | .weights = $weights' \
-           "{{.MOCK_CONFIG_PATH}}" > "{{.MOCK_CONFIG_PATH}}.tmp" && mv "{{.MOCK_CONFIG_PATH}}.tmp" "{{.MOCK_CONFIG_PATH}}"
+        # Create the mock config file JSON from scratch
+        jq -n \
+          --argjson operators "$OPERATORS_JSON" \
+          --argjson signingKeys "$SIGNING_KEYS_JSON" \
+          --argjson weights "$WEIGHTS_JSON" \
+          --arg threshold "100" \
+          --arg quorumNumerator "2" \
+          --arg quorumDenominator "3" \
+          '{
+            operators: $operators,
+            signingKeyAddresses: $signingKeys,
+            weights: $weights,
+            threshold: ($threshold | tonumber),
+            quorumNumerator: ($quorumNumerator | tonumber),
+            quorumDenominator: ($quorumDenominator | tonumber)
+          }' > "{{.MOCK_CONFIG_PATH}}"
 
-        echo "Mock config updated with $(echo "$OPERATORS_JSON" | jq length) operators"
+        echo "Mock config written to {{.MOCK_CONFIG_PATH}} with $(echo "$OPERATORS_JSON" | jq length) operators"
 
   build-empty-service:
     desc: "Build the empty service configuration"

@@ -58,8 +58,6 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
-      MOCK_CONFIG_PATH:
-        sh: task middleware:get-mock-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     deps:
       - task: clean
         vars:
@@ -77,15 +75,12 @@ tasks:
         sh: "echo $MIDDLEWARE_FUNDED_KEY"
     cmds:
       - mkdir -p {{.NODES_DIR}}
-      - |
-        echo '{"operators": [], "signingKeyAddresses": [], "weights": [], "threshold": 100, "quorumNumerator": 2, "quorumDenominator": 3}' > "{{.MOCK_CONFIG_PATH}}"
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e MOCK_DEPLOYER_KEY 
         -e DEPLOY_ENV
         -e MOCK_RPC_URL
         -v {{.NODES_DIR}}:/root/.nodes
-        -v {{.MOCK_CONFIG_PATH}}:/wavs/contracts/deployments/wavs-mock-config.json
         {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock deploy
       - mv {{.NODES_DIR}}/mock.json {{.NODES_DIR}}/avs_deploy.json
 
