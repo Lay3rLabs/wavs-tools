@@ -152,17 +152,12 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-      SOURCE_CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
-      EVM_RPC_URL:
-        sh: task get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+      CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
-      - |
-        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+      - cd "{{.REPO_ROOT}}" && task middleware:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_URI="{{.SERVICE_URI}}"
 
   register-service:
     vars:
