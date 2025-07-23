@@ -213,8 +213,7 @@ tasks:
             ;;
           "MOCK")
             task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
-            SERVICE_MANAGER_ADDRESS=$(task get-service-manager-address)
-            cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_MANAGER_ADDRESS="$SERVICE_MANAGER_ADDRESS"
+            cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
             ;;
           "TESTNET")
             echo "Skipping operator registration in TESTNET mode (assuming operator already registered)"

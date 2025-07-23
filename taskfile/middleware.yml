@@ -188,8 +188,10 @@ tasks:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       STAKE_REGISTRY_ADDRESS:
         sh: task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [PROJECT, SERVICE_NAME, SERVICE_MANAGER_ADDRESS]
+      vars: [PROJECT, SERVICE_NAME]
     env:
       MOCK_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
       MOCK_RPC_URL: "{{.EVM_RPC_URL}}"
