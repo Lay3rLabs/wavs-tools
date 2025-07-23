@@ -172,4 +172,18 @@ Other global configuration variables are set in [taskfile/config.yml](taskfile/c
 
 These make their way automatically to wherever they are needed. For example, changing a port or endpoint is only necessary in one place, not also in dockerfile or other places.
 
-Of course, per-project Taskfiles and/or .env files may also contain their own configuration.
+## Deployment Modes
+
+The system supports two global deployment modes controlled by the `DEPLOY_MODE` in .env:
+
+- **`LOCAL`** (default): Full local deployment with middleware contracts
+- **`TESTNET`**: Skip middleware deployment (assumes contracts already deployed on testnet)
+
+Projects are encouraged to use **MOCK** middleware deployments to speed up development.  
+This configuration should be set in the project's **Taskfile** variables:
+
+```yaml
+PROJECT_DEPLOY_MODE: '{{if eq .DEPLOY_MODE "LOCAL"}}MOCK{{else}}{{.DEPLOY_MODE}}{{end}}'
+```
+
+> Note: Sync services must use real deployments on the source chain, as they rely on EigenLayer core contracts for testing and cannot operate with mocks.

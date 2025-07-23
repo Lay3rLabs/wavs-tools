@@ -14,7 +14,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_SUBMISSION_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host

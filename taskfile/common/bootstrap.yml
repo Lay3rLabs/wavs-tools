@@ -23,15 +23,92 @@ tasks:
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
+  get-deploy-mode:
+    desc: "Gets the actual deploy mode for the project"
+    vars:
+      ACTUAL_DEPLOY_MODE: '{{.PROJECT_DEPLOY_MODE | default .DEPLOY_MODE | default "LOCAL"}}'
+    cmds:
+      - echo "{{.ACTUAL_DEPLOY_MODE}}"
+
   middleware-deploy:
-    desc: "Deploys the middleware"
+    desc: "Deploys the middleware based on DEPLOY_MODE (projects may override internally)"
+    vars:
+      ACTUAL_DEPLOY_MODE:
+        sh: task bootstrap:get-deploy-mode
     cmds:
       - |
-        if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
-          cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
-        else
-          cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-        fi
+        case "{{.ACTUAL_DEPLOY_MODE}}" in
+          "LOCAL")
+            if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
+              cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
+            else
+              cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+            fi
+            ;;
+          "MOCK")
+            if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
+              cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
+            else
+              cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+            fi
+            ;;
+          "TESTNET")
+            echo "Skipping middleware deployment in TESTNET mode (assuming contracts already deployed)"
+            ;;
+          *)
+            echo "Unknown DEPLOY_MODE: {{.ACTUAL_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
+            exit 1
+            ;;
+        esac
+
+  build-mock-config:
+    desc: "Build mock configuration JSON with all active operators"
+    vars:
+      WEIGHT: "{{.WEIGHT | default 10000000}}"
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+      MOCK_CONFIG_PATH:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mock-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+    requires:
+      vars: [PROJECT]
+    cmds:
+      - |
+        # Build arrays for all active operators
+        OPERATORS_JSON="[]"
+        SIGNING_KEYS_JSON="[]"
+        WEIGHTS_JSON="[]"
+
+        for WAVS_INSTANCE in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          OPERATOR_MNEMONIC=$(cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-$WAVS_INSTANCE)
+          OPERATOR_ADDRESS=$(cast wallet address --mnemonic "$OPERATOR_MNEMONIC" --mnemonic-index 0)
+          SIGNING_KEY=$(task get-service-signing-address WAVS_INSTANCE=$WAVS_INSTANCE)
+
+          OPERATORS_JSON=$(echo "$OPERATORS_JSON" | jq ". + [\"$OPERATOR_ADDRESS\"]")
+          SIGNING_KEYS_JSON=$(echo "$SIGNING_KEYS_JSON" | jq ". + [\"$SIGNING_KEY\"]")
+          WEIGHTS_JSON=$(echo "$WEIGHTS_JSON" | jq ". + [{{.WEIGHT}}]")
+
+          echo "Added operator $WAVS_INSTANCE: operator=$OPERATOR_ADDRESS, signingKey=$SIGNING_KEY, weight={{.WEIGHT}}"
+        done
+
+        # Create the mock config file JSON from scratch
+        jq -n \
+          --argjson operators "$OPERATORS_JSON" \
+          --argjson signingKeys "$SIGNING_KEYS_JSON" \
+          --argjson weights "$WEIGHTS_JSON" \
+          --arg threshold "100" \
+          --arg quorumNumerator "2" \
+          --arg quorumDenominator "3" \
+          '{
+            operators: $operators,
+            signingKeyAddresses: $signingKeys,
+            weights: $weights,
+            threshold: ($threshold | tonumber),
+            quorumNumerator: ($quorumNumerator | tonumber),
+            quorumDenominator: ($quorumDenominator | tonumber)
+          }' > "{{.MOCK_CONFIG_PATH}}"
+
+        echo "Mock config written to {{.MOCK_CONFIG_PATH}} with $(echo "$OPERATORS_JSON" | jq length) operators"
 
   build-empty-service:
     desc: "Build the empty service configuration"
@@ -75,17 +152,12 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-      SOURCE_CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
-      EVM_RPC_URL:
-        sh: task get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+      CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
-      - |
-        cast send {{.SERVICE_MANAGER_ADDRESS}} 'setServiceURI(string)' "{{.SERVICE_URI}}" -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+      - cd "{{.REPO_ROOT}}" && task middleware:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_URI="{{.SERVICE_URI}}"
 
   register-service:
     vars:
@@ -126,9 +198,26 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      ACTUAL_DEPLOY_MODE:
+        sh: task bootstrap:get-deploy-mode
     cmds:
       - |
-        cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        case "{{.ACTUAL_DEPLOY_MODE}}" in
+          "LOCAL")
+            cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+            ;;
+          "MOCK")
+            task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
+            cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+            ;;
+          "TESTNET")
+            echo "Skipping operator registration in TESTNET mode (assuming operator already registered)"
+            ;;
+          *)
+            echo "Unknown DEPLOY_MODE: {{.ACTUAL_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
+            exit 1
+            ;;
+        esac
 
   deploy-service-*:
     vars:
@@ -146,10 +235,15 @@ tasks:
   wavs-*:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
+      ACTUAL_DEPLOY_MODE:
+        sh: task bootstrap:get-deploy-mode
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
-      - task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      - |
+        if [ "{{.ACTUAL_DEPLOY_MODE}}" != "MOCK" ]; then
+          task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        fi
 
   wavs-all:
     vars:

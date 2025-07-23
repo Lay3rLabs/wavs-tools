@@ -28,6 +28,8 @@ vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
   # For this reason, we sometimes need to redefined vars like .project-output here
   # see: https://github.com/go-task/task/issues/2303
+  # wavs-drand uses MOCK mode when DEPLOY_MODE=LOCAL
+  PROJECT_DEPLOY_MODE: '{{if eq .DEPLOY_MODE "LOCAL"}}MOCK{{else}}{{.DEPLOY_MODE}}{{end}}'
   COMPONENT_NAME: "wavs_drand"
   PROJECT:
     # project name is same as dir name of current directory
@@ -55,8 +57,8 @@ tasks:
         task bootstrap:set-service-uri
         task bootstrap:register-service
         task bootstrap:deploy-service
-        task bootstrap:register-operator
         task bootstrap:wavs-all
+        task bootstrap:register-operator
 
   clean:
     desc: "Cleans up the tool"
