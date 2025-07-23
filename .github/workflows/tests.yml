@@ -65,7 +65,6 @@ jobs:
         with:
           path: |
             projects/operator-updater/component/target/
-            projects/operator-updater/.project-output/components/
           key: ${{ runner.os }}-operator-updater-${{ hashFiles('projects/operator-updater/component/**/*.rs', 'projects/operator-updater/component/Cargo.toml', 'Cargo.lock') }}
 
       - name: Cache multi-chain-operator-sync component
@@ -73,7 +72,6 @@ jobs:
         with:
           path: |
             projects/multi-chain-operator-sync/component/target/
-            projects/multi-chain-operator-sync/.project-output/components/
           key: ${{ runner.os }}-multi-chain-operator-sync-${{ hashFiles('projects/multi-chain-operator-sync/component/**/*.rs', 'projects/multi-chain-operator-sync/component/Cargo.toml', 'Cargo.lock') }}
 
       - name: Cache multi-chain-quorum-sync component
@@ -81,7 +79,6 @@ jobs:
         with:
           path: |
             projects/multi-chain-quorum-sync/component/target/
-            projects/multi-chain-quorum-sync/.project-output/components/
           key: ${{ runner.os }}-multi-chain-quorum-sync-${{ hashFiles('projects/multi-chain-quorum-sync/component/**/*.rs', 'projects/multi-chain-quorum-sync/component/Cargo.toml', 'Cargo.lock') }}
 
       - name: Cache wavs-drand component
@@ -89,7 +86,6 @@ jobs:
         with:
           path: |
             projects/wavs-drand/component/target/
-            projects/wavs-drand/.project-output/components/
           key: ${{ runner.os }}-wavs-drand-${{ hashFiles('projects/wavs-drand/component/**/*.rs', 'projects/wavs-drand/component/Cargo.toml', 'Cargo.lock') }}
 
       - name: Cache Node modules
