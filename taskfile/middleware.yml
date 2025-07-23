@@ -444,8 +444,4 @@ tasks:
   get-middleware-deploy-env:
     desc: "Get the DEPLOY_ENV value to pass to middleware (maps MOCK to LOCAL)"
     cmds:
-      - |
-        case "{{.DEPLOY_MODE}}" in
-          "MOCK") echo "LOCAL" ;;
-          *) echo "{{.DEPLOY_MODE}}" ;;
-        esac
+      - echo '{{ if eq .DEPLOY_MODE "MOCK" }}LOCAL{{ else }}{{ .DEPLOY_MODE }}{{ end }}'

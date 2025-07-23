@@ -24,7 +24,7 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   get-deploy-mode:
-    desc: "Gets the actual dpeloy mode for the project"
+    desc: "Gets the actual deploy mode for the project"
     vars:
       ACTUAL_DEPLOY_MODE: '{{.PROJECT_DEPLOY_MODE | default .DEPLOY_MODE | default "LOCAL"}}'
     cmds:
