@@ -57,8 +57,8 @@ tasks:
         task bootstrap:set-service-uri
         task bootstrap:register-service
         task bootstrap:deploy-service
-        task bootstrap:register-operator
         task bootstrap:wavs-all
+        task bootstrap:register-operator
 
   clean:
     desc: "Cleans up the tool"

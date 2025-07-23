@@ -61,6 +61,45 @@ tasks:
             ;;
         esac
 
+  build-mock-config:
+    desc: "Build mock configuration JSON with all active operators"
+    vars:
+      WEIGHT: "{{.WEIGHT | default 10000000}}"
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+      MOCK_CONFIG_PATH:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mock-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+    requires:
+      vars: [PROJECT]
+    cmds:
+      - |
+        # Build arrays for all active operators
+        OPERATORS_JSON="[]"
+        SIGNING_KEYS_JSON="[]"
+        WEIGHTS_JSON="[]"
+
+        for WAVS_INSTANCE in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          OPERATOR_MNEMONIC=$(cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-$WAVS_INSTANCE)
+          OPERATOR_ADDRESS=$(cast wallet address --mnemonic "$OPERATOR_MNEMONIC" --mnemonic-index 0)
+          SIGNING_KEY=$(task get-service-signing-address WAVS_INSTANCE=$WAVS_INSTANCE)
+          
+          OPERATORS_JSON=$(echo "$OPERATORS_JSON" | jq ". + [\"$OPERATOR_ADDRESS\"]")
+          SIGNING_KEYS_JSON=$(echo "$SIGNING_KEYS_JSON" | jq ". + [\"$SIGNING_KEY\"]")
+          WEIGHTS_JSON=$(echo "$WEIGHTS_JSON" | jq ". + [{{.WEIGHT}}]")
+          
+          echo "Added operator $WAVS_INSTANCE: operator=$OPERATOR_ADDRESS, signingKey=$SIGNING_KEY, weight={{.WEIGHT}}"
+        done
+
+        # Update the mock config file with the built arrays
+        jq --argjson operators "$OPERATORS_JSON" \
+           --argjson signingKeys "$SIGNING_KEYS_JSON" \
+           --argjson weights "$WEIGHTS_JSON" \
+           '.operators = $operators | .signingKeyAddresses = $signingKeys | .weights = $weights' \
+           "{{.MOCK_CONFIG_PATH}}" > "{{.MOCK_CONFIG_PATH}}.tmp" && mv "{{.MOCK_CONFIG_PATH}}.tmp" "{{.MOCK_CONFIG_PATH}}"
+
+        echo "Mock config updated with $(echo "$OPERATORS_JSON" | jq length) operators"
+
   build-empty-service:
     desc: "Build the empty service configuration"
     deps: [clean-service]
@@ -163,7 +202,9 @@ tasks:
             cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
             ;;
           "MOCK")
-            cd "{{.REPO_ROOT}}" && task middleware:set-operator-details WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+            task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
+            SERVICE_MANAGER_ADDRESS=$(task get-service-manager-address)
+            cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_MANAGER_ADDRESS="$SERVICE_MANAGER_ADDRESS"
             ;;
           "TESTNET")
             echo "Skipping operator registration in TESTNET mode (assuming operator already registered)"
@@ -190,10 +231,15 @@ tasks:
   wavs-*:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
+      ACTUAL_DEPLOY_MODE:
+        sh: task bootstrap:get-deploy-mode
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
-      - task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+      - |
+        if [ "{{.ACTUAL_DEPLOY_MODE}}" != "MOCK" ]; then
+          task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        fi
 
   wavs-all:
     vars:

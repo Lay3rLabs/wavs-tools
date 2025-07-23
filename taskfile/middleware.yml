@@ -58,7 +58,8 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
-      MOCK_CONFIG_PATH: "{{.NODES_DIR}}/mock_config.json"
+      MOCK_CONFIG_PATH:
+        sh: task middleware:get-mock-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     deps:
       - task: clean
         vars:
@@ -178,26 +179,37 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
-  set-operator-details:
-    desc: "Set operator details using the stake registry setOperatorDetails function"
+  configure-mock:
+    desc: "Configure mock middleware with operator details by calling setOperatorDetails for each operator in the pre-built JSON"
     vars:
-      WEIGHT: "{{.WEIGHT | default 10000000}}"
+      DEPLOY_ENV:
+        sh: task middleware:get-middleware-deploy-env
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
-      WAVS_INSTANCE: '{{.WAVS_INSTANCE | default "1"}}'
-      OPERATOR_MNEMONIC:
-        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
-      OPERATOR_ADDRESS:
-        sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      MOCK_CONFIG_PATH:
+        sh: task middleware:get-mock-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       EVM_RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       STAKE_REGISTRY_ADDRESS:
         sh: task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY]
+      vars: [PROJECT, SERVICE_NAME, SERVICE_MANAGER_ADDRESS]
+    env:
+      MOCK_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      MOCK_RPC_URL: "{{.EVM_RPC_URL}}"
+      MOCK_DEPLOYER_KEY:
+        sh: "echo $MIDDLEWARE_FUNDED_KEY"
     cmds:
-      - |
-        echo "Setting operator details: operator={{.OPERATOR_ADDRESS}}, signingKey={{.WAVS_SIGNING_KEY}}, weight={{.WEIGHT}}"
-        cast send {{.STAKE_REGISTRY_ADDRESS}} 'setOperatorDetails(address,address,uint256)' {{.OPERATOR_ADDRESS}} {{.WAVS_SIGNING_KEY}} {{.WEIGHT}} -r {{.EVM_RPC_URL}} --private-key ${DEPLOYER_PRIVATE_KEY}
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e MOCK_RPC_URL
+        -e MOCK_SERVICE_MANAGER_ADDRESS
+        -e MOCK_DEPLOYER_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        -v {{.MOCK_CONFIG_PATH}}:/wavs/contracts/deployments/wavs-mock-config.json
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock configure
 
   deregister-operator:
     desc: "Deregister an operator on a given service"
@@ -380,6 +392,18 @@ tasks:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
       - echo "{{.OUTPUT_DIR}}/avs_deploy.json"
+
+  get-mock-json-filepath:
+    desc: "Get the path to the mock middleware config JSON file"
+    vars:
+      CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
+      OUTPUT_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    cmds:
+      - echo "{{.OUTPUT_DIR}}/mock_config.json"
 
   get-mirror-json-filepath:
     desc: "Get the path to the middleware mirror JSON file"
