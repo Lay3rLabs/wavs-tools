@@ -1,8 +1,8 @@
 [workspace]
 members = [
-    "projects/avs-sync/component",
+    "projects/operator-updater/component",
     "projects/multi-chain-operator-sync/component",
-    "projects/multi-chain-service-manager-sync/component",
+    "projects/multi-chain-quorum-sync/component",
     "projects/wavs-drand/component",
 ]
 resolver = "2"

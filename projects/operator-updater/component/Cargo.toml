@@ -1,5 +1,5 @@
 [package]
-name = "multi-chain-service-manager-sync"
+name = "operator-updater"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
@@ -11,7 +11,7 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [package.metadata.component]
-package = "component:multi-chain-service-manager-sync"
+package = "component:operator-updater"
 target = "wavs:worker@0.6.0-alpha.2"
 
 [dependencies]
