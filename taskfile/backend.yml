@@ -151,7 +151,7 @@ tasks:
       - |
         case "{{.DEPLOY_MODE}}" in
           "TESTNET")
-            if [ -z "$TESTNET_RPC_URL" ]; then
+            if [ -z "{{.TESTNET_RPC_URL}}" ]; then
               echo "Error: {{.TESTNET_RPC_VAR}} is required when DEPLOY_MODE=TESTNET" >&2
               exit 1
             fi
