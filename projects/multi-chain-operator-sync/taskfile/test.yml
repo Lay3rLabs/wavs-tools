@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  SUBMIT_DELAY: 3
+  SUBMIT_DELAY: 1
 
 tasks:
   trigger-register:
