@@ -104,8 +104,7 @@ tasks:
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}"
       FUNDED_KEY: "{{.MIDDLEWARE_FUNDED_KEY}}"
-      ETHERSCAN_API_KEY:
-        sh: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
+      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - >
