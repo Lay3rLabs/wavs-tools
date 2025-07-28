@@ -146,28 +146,27 @@ tasks:
       - |
         case "{{.DEPLOY_MODE}}" in
           "TESTNET")
-            task -s backend:get-testnet-rpc-url-{{.CHAIN_NUMBER}}
+            task -s backend:get-testnet-evm-rpc-url-{{.CHAIN_NUMBER}}
             ;;
           *)
-            task -s backend:get-local-rpc-url-{{.CHAIN_NUMBER}}
+            task -s backend:get-local-evm-rpc-url-{{.CHAIN_NUMBER}}
             ;;
         esac
 
-  get-testnet-rpc-url-*:
+  get-testnet-evm-rpc-url-*:
     desc: "Get the testnet RPC URL for a chain number with bounds checking"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_INDEX: "{{atoi .CHAIN_NUMBER}}"
+      RPC_URL: "{{index .TESTNET_EVM_RPC_URLS (atoi .CHAIN_NUMBER)}}"
     cmds:
       - |
-        RPC_URL="{{index .TESTNET_EVM_RPC_URLS .CHAIN_INDEX}}"
-        if [ -z "$RPC_URL" ] || [ "$RPC_URL" = "<no value>" ]; then
+        if [ -z "{{.RPC_URL}}" ]; then
           echo "Error: TESTNET_EVM_RPC_URLS[{{.CHAIN_NUMBER}}] is empty or not configured" >&2
           exit 1
         fi
-        echo "$RPC_URL"
+        echo "{{.RPC_URL}}"
 
-  get-local-rpc-url-*:
+  get-local-evm-rpc-url-*:
     desc: "Get the local Anvil RPC URL for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
@@ -195,15 +194,14 @@ tasks:
     desc: "Get the testnet chain name for a chain number with bounds checking"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_INDEX: "{{atoi .CHAIN_NUMBER}}"
+      CHAIN_NAME: "{{index .TESTNET_EVM_CHAIN_NAMES (atoi .CHAIN_NUMBER)}}"
     cmds:
       - |
-        CHAIN_NAME="{{index .TESTNET_EVM_CHAIN_NAMES .CHAIN_INDEX}}"
-        if [ -z "$CHAIN_NAME" ] || [ "$CHAIN_NAME" = "<no value>" ]; then
+        if [ -z "{{.CHAIN_NAME}}" ]; then
           echo "Error: TESTNET_EVM_CHAIN_NAMES[{{.CHAIN_NUMBER}}] is empty or not configured" >&2
           exit 1
         fi
-        echo "$CHAIN_NAME"
+        echo "{{.CHAIN_NAME}}"
 
   get-local-chain-name-*:
     desc: "Get the local chain name for a chain number"
