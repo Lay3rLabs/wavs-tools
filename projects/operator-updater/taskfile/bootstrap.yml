@@ -11,8 +11,10 @@ tasks:
     deps: [clean-service]
     vars:
       SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
-      TRIGGER_CHAIN: "local"
-      SUBMIT_CHAIN: "local"
+      TRIGGER_CHAIN:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+      SUBMIT_CHAIN:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:

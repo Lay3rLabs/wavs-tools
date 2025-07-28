@@ -142,39 +142,80 @@ tasks:
     desc: "Get the RPC URL for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      ANVIL_PORT:
-        sh: task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
-      TESTNET_RPC_VAR: "TESTNET_RPC_URL_{{.CHAIN_NUMBER}}"
-      TESTNET_RPC_URL:
-        sh: echo ${{.TESTNET_RPC_VAR}}
     cmds:
       - |
         case "{{.DEPLOY_MODE}}" in
           "TESTNET")
-            if [ -z "{{.TESTNET_RPC_URL}}" ]; then
-              echo "Error: {{.TESTNET_RPC_VAR}} is required when DEPLOY_MODE=TESTNET" >&2
-              exit 1
-            fi
-            echo "{{.TESTNET_RPC_URL}}"
+            task -s backend:get-testnet-rpc-url-{{.CHAIN_NUMBER}}
             ;;
           *)
-            echo "http://localhost:{{.ANVIL_PORT}}"
+            task -s backend:get-local-rpc-url-{{.CHAIN_NUMBER}}
             ;;
         esac
+
+  get-testnet-rpc-url-*:
+    desc: "Get the testnet RPC URL for a chain number with bounds checking"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_INDEX: "{{atoi .CHAIN_NUMBER}}"
+    cmds:
+      - |
+        RPC_URL="{{index .TESTNET_EVM_RPC_URLS .CHAIN_INDEX}}"
+        if [ -z "$RPC_URL" ] || [ "$RPC_URL" = "<no value>" ]; then
+          echo "Error: TESTNET_EVM_RPC_URLS[{{.CHAIN_NUMBER}}] is empty or not configured" >&2
+          exit 1
+        fi
+        echo "$RPC_URL"
+
+  get-local-rpc-url-*:
+    desc: "Get the local Anvil RPC URL for a chain number"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      ANVIL_PORT:
+        sh: task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
+    cmds:
+      - echo "http://localhost:{{.ANVIL_PORT}}"
 
   get-chain-name-*:
     desc: "Get the chain name for a chain number"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_NAME:
-        sh: |
-          if [ "{{.CHAIN_NUMBER}}" = "1" ]; then
-            echo "local"
-          else
-            echo "local{{.CHAIN_NUMBER}}"
-          fi
     cmds:
-      - echo {{.CHAIN_NAME}}
+      - |
+        case "{{.DEPLOY_MODE}}" in
+          "TESTNET")
+            task -s backend:get-testnet-chain-name-{{.CHAIN_NUMBER}}
+            ;;
+          *)
+            task -s backend:get-local-chain-name-{{.CHAIN_NUMBER}}
+            ;;
+        esac
+
+  get-testnet-chain-name-*:
+    desc: "Get the testnet chain name for a chain number with bounds checking"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_INDEX: "{{atoi .CHAIN_NUMBER}}"
+    cmds:
+      - |
+        CHAIN_NAME="{{index .TESTNET_EVM_CHAIN_NAMES .CHAIN_INDEX}}"
+        if [ -z "$CHAIN_NAME" ] || [ "$CHAIN_NAME" = "<no value>" ]; then
+          echo "Error: TESTNET_EVM_CHAIN_NAMES[{{.CHAIN_NUMBER}}] is empty or not configured" >&2
+          exit 1
+        fi
+        echo "$CHAIN_NAME"
+
+  get-local-chain-name-*:
+    desc: "Get the local chain name for a chain number"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+    cmds:
+      - |
+        if [ "{{.CHAIN_NUMBER}}" = "1" ]; then
+          echo "local"
+        else
+          echo "local{{.CHAIN_NUMBER}}"
+        fi
 
   get-wavs-endpoint-*:
     desc: "Get the wavs endpoint for an instance"

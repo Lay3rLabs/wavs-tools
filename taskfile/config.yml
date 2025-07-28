@@ -39,3 +39,10 @@ vars:
       else 
         echo "sudo"
       fi
+  # TESTNET
+  TESTNET_EVM_RPC_URLS: [
+      "https://ethereum-holesky-rpc.publicnode.com",
+      "https://ethereum-sepolia-rpc.publicnode.com",
+      "${TESTNET_EVM_RPC_URL_3}", # Example using a paid endpoint
+    ]
+  TESTNET_EVM_CHAIN_NAMES: ["holesky", "sepolia", "holesky"]
