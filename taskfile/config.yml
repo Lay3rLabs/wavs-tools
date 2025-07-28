@@ -29,9 +29,23 @@ vars:
   ABI_EIGENLAYER_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/eigenlayer-middleware"}}'
   ABI_WAVS_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/wavs-middleware"}}'
   ACTIVE_CHAIN_COUNT:
-    sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+    sh: |
+      if [ "${DEPLOY_MODE:-LOCAL}" = "TESTNET" ]; then
+        # For testnet, count configured chains (3 by default)
+        echo "3"
+      else
+        # Count running docker containers for local mode
+        docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+      fi
   ACTIVE_WAVS_COUNT:
-    sh: docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
+    sh: |
+      if [ "${DEPLOY_MODE:-LOCAL}" = "TESTNET" ]; then
+        # For testnet, use a fixed number of WAVS instances (can be configurable)
+        echo "${TESTNET_WAVS_COUNT:-3}"
+      else
+        # Count running docker containers for local mode
+        docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
+      fi
   DOCKER_SUDO:
     sh: |
       if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 
@@ -46,3 +60,4 @@ vars:
       "${TESTNET_EVM_RPC_URL_3}", # Example using a paid endpoint
     ]
   TESTNET_EVM_CHAIN_NAMES: ["holesky", "sepolia", "holesky"]
+  TESTNET_WAVS_COUNT: 3  # Number of WAVS instances to simulate in testnet mode
