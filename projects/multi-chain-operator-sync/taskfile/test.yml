@@ -78,7 +78,7 @@ tasks:
       TOPIC_1:
         sh: cast abi-encode "p(address)" {{.OPERATOR_ADDRESS}}
       STAKE_REGISTRY_ADDRESS:
-        sh: task get-mirror-stake-registry-address-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-stake-registry-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
     cmds:
       - >
         cast logs 

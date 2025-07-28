@@ -12,7 +12,7 @@ tasks:
   build-service:
     desc: "Build service configuration"
     vars:
-      SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
+      SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
       SOURCE_CHAIN:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       COMPONENT_DIGEST:

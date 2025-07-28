@@ -58,7 +58,7 @@ tasks:
       TOPIC_0:
         sh: cast keccak "QuorumThresholdUpdated(uint256,uint256)"
       SERVICE_MANAGER_ADDRESS:
-        sh: task get-mirror-service-manager-address-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
     cmds:
       - >
         cast logs 
