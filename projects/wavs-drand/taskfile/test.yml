@@ -13,10 +13,11 @@ tasks:
   trigger-randomness:
     desc: "Request randomness by calling the RandomnessTrigger contract"
     vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       TRIGGER_ADDRESS:
         sh: task get-trigger-address
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
     cmds:
       # Call requestRandomness() function on the RandomnessTrigger contract
       - >
@@ -27,10 +28,11 @@ tasks:
   get-randomness-received-event:
     desc: "Gets a randomness received event that was emitted"
     vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       CURRENT_BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:

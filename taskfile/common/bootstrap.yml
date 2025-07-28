@@ -24,17 +24,15 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   get-deploy-mode:
-    desc: "Gets the actual deploy mode for the project"
-    vars:
-      ACTUAL_DEPLOY_MODE: '{{.PROJECT_DEPLOY_MODE | default .DEPLOY_MODE | default "LOCAL"}}'
+    desc: "Gets the actual deploy mode for the project (deprecated - use get-actual-deploy-mode)"
     cmds:
-      - echo "{{.ACTUAL_DEPLOY_MODE}}"
+      - task get-actual-deploy-mode
 
   middleware-deploy:
     desc: "Deploys the middleware based on DEPLOY_MODE (projects may override internally)"
     vars:
       ACTUAL_DEPLOY_MODE:
-        sh: task bootstrap:get-deploy-mode
+        sh: task get-actual-deploy-mode
     cmds:
       - |
         case "{{.ACTUAL_DEPLOY_MODE}}" in
@@ -196,7 +194,7 @@ tasks:
       WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       ACTUAL_DEPLOY_MODE:
-        sh: task bootstrap:get-deploy-mode
+        sh: task get-actual-deploy-mode
     cmds:
       - |
         case "{{.ACTUAL_DEPLOY_MODE}}" in
@@ -230,7 +228,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       ACTUAL_DEPLOY_MODE:
-        sh: task bootstrap:get-deploy-mode
+        sh: task get-actual-deploy-mode
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}

@@ -50,7 +50,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       CURRENT_BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:

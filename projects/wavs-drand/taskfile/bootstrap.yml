@@ -13,14 +13,25 @@ tasks:
     desc: "Deploys the solidity contracts"
     dir: contracts
     vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       SCRIPT_NAME: "DeployRandomnessContracts"
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      DEPLOY_ENV:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-middleware-deploy-env
     env:
       SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
+        sh: task get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}}
     cmds:
-      - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
+      - |
+        case "{{.DEPLOY_ENV}}" in
+          "TESTNET")
+            forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}" --verify
+            ;;
+          *)
+            forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
+            ;;
+        esac
 
   build-service:
     desc: "Build avs_sync service configuration"

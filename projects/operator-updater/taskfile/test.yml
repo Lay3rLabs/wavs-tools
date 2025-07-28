@@ -65,8 +65,9 @@ tasks:
 
   get-submit-events:
     vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
@@ -84,7 +85,8 @@ tasks:
   trigger:
     desc: "Trigger component by mining blocks"
     vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
     cmds:
       - cast rpc anvil_mine {{.BLOCK_INTERVAL}} --rpc-url {{.EVM_RPC_URL}}
