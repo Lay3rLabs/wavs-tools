@@ -159,7 +159,7 @@ tasks:
     desc: "Get the testnet RPC URL for a chain number with bounds checking"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      RPC_URL: "{{index .TESTNET_EVM_RPC_URLS (atoi .CHAIN_NUMBER)}}"
+      RPC_URL: "{{index .TESTNET_EVM_RPC_URLS (sub (atoi .CHAIN_NUMBER) 1)}}"
     cmds:
       - |
         if [ -z "{{.RPC_URL}}" ]; then
@@ -196,7 +196,7 @@ tasks:
     desc: "Get the testnet chain name for a chain number with bounds checking"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_NAME: "{{index .TESTNET_EVM_CHAIN_NAMES (atoi .CHAIN_NUMBER)}}"
+      CHAIN_NAME: "{{index .TESTNET_EVM_CHAIN_NAMES (sub (atoi .CHAIN_NUMBER) 1)}}"
     cmds:
       - |
         if [ -z "{{.CHAIN_NAME}}" ]; then

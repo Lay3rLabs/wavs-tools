@@ -4,7 +4,6 @@ tasks:
   simple:
     desc: "Test the weight update flow - trigger blocks, check no events, add weight, trigger again, verify events"
     vars:
-      SUBMIT_DELAY: 1
       OPERATOR_ADDRESS:
         sh: task get-operator-address
       SERVICE_MANAGER_ADDRESS:

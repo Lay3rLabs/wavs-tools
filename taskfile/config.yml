@@ -42,23 +42,13 @@ vars:
       "${TESTNET_EVM_RPC_URL_3}", # Example using a paid endpoint
     ]
   TESTNET_EVM_CHAIN_NAMES: ["holesky", "sepolia", "holesky"]
-  TESTNET_WAVS_COUNT: 3 # Number of WAVS instances to simulate in testnet mode
   TESTNET_CHAIN_COUNT: 3 # Count of testnet chains in TESTNET_EVM_RPC_URLS
   ACTIVE_CHAIN_COUNT:
     sh: |
-      if [ "${DEPLOY_MODE:-LOCAL}" = "TESTNET" ]; then
-        # For testnet, use configured chain count
-        echo "{{.TESTNET_CHAIN_COUNT}}"
-      else
-        # Count running docker containers for local mode
-        docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
-      fi
+      # Count running docker containers
+      docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
   ACTIVE_WAVS_COUNT:
     sh: |
-      if [ "${DEPLOY_MODE:-LOCAL}" = "TESTNET" ]; then
-        # For testnet, use a fixed number of WAVS instances (can be configurable)
-        echo "{{.TESTNET_WAVS_COUNT}}"
-      else
-        # Count running docker containers for local mode
-        docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
-      fi
+      # Count running docker containers
+      docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
+  SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_MODE "LOCAL")}}'

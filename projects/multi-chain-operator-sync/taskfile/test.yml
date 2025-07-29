@@ -1,8 +1,5 @@
 version: "3"
 
-vars:
-  SUBMIT_DELAY: 1
-
 tasks:
   trigger-register:
     desc: "Registers all available operators and verifies they were synced"
