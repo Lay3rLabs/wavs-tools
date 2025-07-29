@@ -42,11 +42,13 @@ tasks:
   start-chains:
     # Pull the latest images before starting
     deps: [docker-pull-chains]
+    vars:
+      DEFAULT_CHAINS: '{{if eq .DEPLOY_MODE "LOCAL"}}{{"1"}}{{else}}{{"0"}}{{end}}'
     cmds:
       - task: start-chains-inner
-        # Optional - pass this in, or 1 by default
+        # Optional - pass this in
         vars:
-          CHAINS: '{{.CHAINS | default "1"}}'
+          CHAINS: "{{.CHAINS | default .DEFAULT_CHAINS}}"
 
   stop-chains:
     cmds:
