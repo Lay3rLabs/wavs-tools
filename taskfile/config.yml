@@ -37,11 +37,11 @@ vars:
       fi
   # TESTNET
   TESTNET_EVM_RPC_URLS: [
+      "https://ethereum-sepolia-rpc.publicnode.com", # NOTE: Do not use holesky for the source chain, because we use an anvil fork for local testing.
       "https://ethereum-holesky-rpc.publicnode.com",
-      "https://ethereum-sepolia-rpc.publicnode.com",
       "${TESTNET_EVM_RPC_URL_3}", # Example using a paid endpoint
     ]
-  TESTNET_EVM_CHAIN_NAMES: ["holesky", "sepolia", "holesky"]
+  TESTNET_EVM_CHAIN_NAMES: ["sepolia", "holesky", "holesky"]
   TESTNET_CHAIN_COUNT: 3 # Count of testnet chains in TESTNET_EVM_RPC_URLS
   ACTIVE_CHAIN_COUNT:
     sh: |
