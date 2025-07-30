@@ -84,10 +84,6 @@ tasks:
     cmds:
       - echo "{{.OPERATOR_PRIVATE_KEY}}"
 
-  get-project-deploy-mode:
-    desc: "Get project deploy mode with fallback chain"
-    cmds:
-      - echo '{{.PROJECT_DEPLOY_MODE | default .DEPLOY_MODE | default "LOCAL"}}'
 
 
 

@@ -41,7 +41,7 @@ tasks:
   ###################################################################
   start-chains:
     status:
-      - '[ "{{.DEPLOY_MODE}}" != "LOCAL" ]'
+      - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
     # Pull the latest images before starting
     deps: [docker-pull-chains]
     cmds:
@@ -106,7 +106,7 @@ tasks:
 
   docker-pull-chains:
     status:
-      - '[ "{{.DEPLOY_MODE}}" != "LOCAL" ]'
+      - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
     internal: true
     cmds:
       - |
@@ -148,7 +148,7 @@ tasks:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     cmds:
       - |
-        case "{{.DEPLOY_MODE}}" in
+        case "{{.DEPLOY_ENV}}" in
           "TESTNET")
             task -s backend:get-testnet-evm-rpc-url-{{.CHAIN_NUMBER}}
             ;;
@@ -185,7 +185,7 @@ tasks:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     cmds:
       - |
-        case "{{.DEPLOY_MODE}}" in
+        case "{{.DEPLOY_ENV}}" in
           "TESTNET")
             task -s backend:get-testnet-chain-name-{{.CHAIN_NUMBER}}
             ;;

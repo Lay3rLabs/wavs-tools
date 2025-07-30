@@ -51,4 +51,4 @@ vars:
     sh: |
       # Count running docker containers
       docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
-  SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_MODE "LOCAL")}}'
+  SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_ENV "LOCAL")}}'

@@ -28,32 +28,17 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
-    desc: "Deploys the middleware based on DEPLOY_MODE (projects may override internally)"
+    desc: "Deploys the middleware (mock or real based on USES_MOCK setting)"
     vars:
-      PROJECT_DEPLOY_MODE:
-        sh: task get-project-deploy-mode
+      USES_MOCK: '{{.USES_MOCK | default "false"}}'
+      CHAIN_ARG: '{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}'
     cmds:
       - |
-        case "{{.PROJECT_DEPLOY_MODE}}" in
-          "LOCAL"|"TESTNET")
-            if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
-              cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
-            else
-              cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-            fi
-            ;;
-          "MOCK")
-            if [ -n "{{.SOURCE_CHAIN_NUMBER}}" ]; then
-              cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" CHAIN_NUMBER="{{.SOURCE_CHAIN_NUMBER}}"
-            else
-              cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-            fi
-            ;;
-          *)
-            echo "Unknown DEPLOY_MODE: {{.PROJECT_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
-            exit 1
-            ;;
-        esac
+        if [ "{{.USES_MOCK}}" = "true" ]; then
+          cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+        else
+          cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+        fi
 
   build-mock-config:
     desc: "Build mock configuration JSON with all active operators"
@@ -192,23 +177,15 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-      PROJECT_DEPLOY_MODE:
-        sh: task get-project-deploy-mode
+      USES_MOCK: '{{.USES_MOCK | default "false"}}'
     cmds:
       - |
-        case "{{.PROJECT_DEPLOY_MODE}}" in
-          "LOCAL"|"TESTNET")
-            cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-            ;;
-          "MOCK")
-            task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
-            cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-            ;;
-          *)
-            echo "Unknown DEPLOY_MODE: {{.PROJECT_DEPLOY_MODE}}. Valid options: LOCAL, MOCK, TESTNET"
-            exit 1
-            ;;
-        esac
+        if [ "{{.USES_MOCK}}" = "true" ]; then
+          task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
+          cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        else
+          cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+        fi
 
   deploy-service-*:
     vars:
@@ -226,13 +203,12 @@ tasks:
   wavs-*:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
-      PROJECT_DEPLOY_MODE:
-        sh: task get-project-deploy-mode
+      USES_MOCK: '{{.USES_MOCK | default "false"}}'
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
       - |
-        if [ "{{.PROJECT_DEPLOY_MODE}}" != "MOCK" ]; then
+        if [ "{{.USES_MOCK}}" != "true" ]; then
           task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
         fi
 

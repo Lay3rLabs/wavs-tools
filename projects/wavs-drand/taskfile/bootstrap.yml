@@ -17,14 +17,12 @@ tasks:
       SCRIPT_NAME: "DeployRandomnessContracts"
       EVM_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_MODE:
-        sh: task get-project-deploy-mode
     env:
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}}
     cmds:
       - |
-        case "{{.DEPLOY_MODE}}" in
+        case "{{.DEPLOY_ENV}}" in
           "TESTNET")
             forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}" --verify
             ;;
