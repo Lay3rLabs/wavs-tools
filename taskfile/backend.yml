@@ -40,15 +40,15 @@ tasks:
   ######################## Chains ###################################
   ###################################################################
   start-chains:
+    status:
+      - '[ "{{.DEPLOY_MODE}}" != "LOCAL" ]'
     # Pull the latest images before starting
     deps: [docker-pull-chains]
-    vars:
-      DEFAULT_CHAINS: '{{if eq .DEPLOY_MODE "LOCAL"}}{{"1"}}{{else}}{{"0"}}{{end}}'
     cmds:
       - task: start-chains-inner
         # Optional - pass this in
         vars:
-          CHAINS: "{{.CHAINS | default .DEFAULT_CHAINS}}"
+          CHAINS: "{{.CHAINS | default 1}}"
 
   stop-chains:
     cmds:
@@ -105,6 +105,8 @@ tasks:
         echo "Anvil chain #{{.CHAIN_NUMBER}} is up!"
 
   docker-pull-chains:
+    status:
+      - '[ "{{.DEPLOY_MODE}}" != "LOCAL" ]'
     internal: true
     cmds:
       - |
