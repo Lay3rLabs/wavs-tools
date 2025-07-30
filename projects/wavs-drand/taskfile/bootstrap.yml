@@ -13,22 +13,33 @@ tasks:
     desc: "Deploys the solidity contracts"
     dir: contracts
     vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       SCRIPT_NAME: "DeployRandomnessContracts"
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-1
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
     env:
       SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
+        sh: task get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}}
     cmds:
-      - forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
+      - |
+        case "{{.DEPLOY_ENV}}" in
+          "TESTNET")
+            forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}" --verify
+            ;;
+          *)
+            forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}"
+            ;;
+        esac
 
   build-service:
-    desc: "Build avs_sync service configuration"
+    desc: "Build service configuration"
     deps: [clean-service]
     vars:
-      SERVICE_JSON_CMD: 'service --json true --home /wavs-home --file "{{.WAVS_CLI_SERVICE_JSON_PATH}}"'
-      TRIGGER_CHAIN: "local"
-      SUBMIT_CHAIN: "local"
+      SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
+      TRIGGER_CHAIN:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+      SUBMIT_CHAIN:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       COMPONENT_DIGEST:
         sh: task get-component-digest
       SERVICE_MANAGER_ADDRESS:

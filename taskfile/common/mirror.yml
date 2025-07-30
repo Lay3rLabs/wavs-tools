@@ -21,7 +21,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       SOURCE_RPC_URL:
-        sh: task get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
       MIRROR_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
     cmds:

@@ -4,15 +4,17 @@ tasks:
   get-submission-address:
     vars:
       CONTRACT_NAME: "RandomnessConsumer"
+      CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
     cmds:
       - >
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
-        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.CHAIN_ID}}/run-latest.json"
 
   get-trigger-address:
     vars:
       CONTRACT_NAME: "RandomnessTrigger"
+      CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
     cmds:
       - >
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
-        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.MIDDLEWARE_CHAIN_ID}}/run-latest.json"
+        "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.CHAIN_ID}}/run-latest.json"

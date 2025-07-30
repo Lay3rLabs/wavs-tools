@@ -174,16 +174,16 @@ These make their way automatically to wherever they are needed. For example, cha
 
 ## Deployment Modes
 
-The system supports two global deployment modes controlled by the `DEPLOY_MODE` in .env:
+The system supports two global deployment modes controlled by the `DEPLOY_ENV` in .env:
 
 - **`LOCAL`** (default): Full local deployment with middleware contracts
 - **`TESTNET`**: Skip middleware deployment (assumes contracts already deployed on testnet)
 
-Projects are encouraged to use **MOCK** middleware deployments to speed up development.  
+Projects can optionally use **MOCK** middleware deployments to speed up development.  
 This configuration should be set in the project's **Taskfile** variables:
 
 ```yaml
-PROJECT_DEPLOY_MODE: '{{if eq .DEPLOY_MODE "LOCAL"}}MOCK{{else}}{{.DEPLOY_MODE}}{{end}}'
+USES_MOCK: true
 ```
 
-> Note: Sync services must use real deployments on the source chain, as they rely on EigenLayer core contracts for testing and cannot operate with mocks.
+> Note: Only wavs-drand currently uses mock deployments. Sync services must use real deployments on the source chain, as they rely on EigenLayer core contracts for testing and cannot operate with mocks.

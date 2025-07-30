@@ -2,47 +2,30 @@ version: "3"
 
 tasks:
   get-component-digest:
-    desc: "Get the component digest"
+    desc: "Get component digest from build artifacts"
     vars:
-      COMPONENT_DIGEST_FILE:
-        sh: cd "{{.REPO_ROOT}}" && task component:get-digest-filepath PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
-      COMPONENT_DIGEST:
-        sh: cat "{{.COMPONENT_DIGEST_FILE}}" 2>/dev/null || echo "Component digest file not found, please run components-upload first"
+      COMPONENT_WASM_PATH: '{{joinPath .COMPONENTS_CARGO_RELEASE_DIR (printf "%s.wasm" .COMPONENT_NAME)}}'
     cmds:
-      - echo "{{.COMPONENT_DIGEST}}"
+      - sha256sum "{{.COMPONENT_WASM_PATH}}" | cut -d' ' -f1
 
   get-temp-service-hash:
-    desc: "Get the service hash"
-    vars:
-      TEMP_SERVICE_HASH:
-        sh: jq -r '.hash // empty' "{{.TEMP_SERVICE_HASH_JSON_PATH}}" 2>/dev/null || true
+    desc: "Get temp service hash from upload response"
     cmds:
-      - echo "{{.TEMP_SERVICE_HASH}}"
+      - jq -r '.hash' "{{.TEMP_SERVICE_HASH_JSON_PATH}}"
 
   get-service-manager-address:
-    desc: "Get the service manager address"
+    desc: "Get service manager address with testnet support"
     vars:
-      SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
     cmds:
-      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
 
   get-stake-registry-address:
-    desc: "Get the stake registry address"
+    desc: "Get stake registry address with testnet support"
     vars:
-      STAKE_REGISTRY_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
     cmds:
-      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
-
-  get-evm-rpc-url-*:
-    desc: "Get the EVM RPC URL for a specific chain"
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      EVM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-    cmds:
-      - echo "{{.EVM_RPC_URL}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
 
   get-service-hd-index:
     vars:
@@ -67,10 +50,11 @@ tasks:
         }" | jq -rc '.secp256k1.hd_index'
 
   get-service-signing-address:
+    desc: "Get service signing address for WAVS instance"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       HD_INDEX:
-        sh: task get-service-hd-index
+        sh: task get-service-hd-index WAVS_INSTANCE={{.WAVS_INSTANCE}}
       OPERATOR_MNEMONIC:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       AVS_SIGNING_ADDRESS:
@@ -100,20 +84,7 @@ tasks:
     cmds:
       - echo "{{.OPERATOR_PRIVATE_KEY}}"
 
-  get-mirror-stake-registry-address-*:
-    desc: "Get the mirror stake registry address"
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      STAKE_REGISTRY_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-stake-registry-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-    cmds:
-      - echo "{{.STAKE_REGISTRY_ADDRESS}}"
 
-  get-mirror-service-manager-address-*:
-    desc: "Get the mirror service manager address"
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-    cmds:
-      - echo "{{.SERVICE_MANAGER_ADDRESS}}"
+
+
+

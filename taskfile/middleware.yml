@@ -25,25 +25,20 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      LOCAL_ETHEREUM_RPC_URL:
+      RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
       METADATA_URI: "{{.MIDDLEWARE_METADATA_URI}}"
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
-      FUNDED_KEY:
-        sh: "echo $MIDDLEWARE_FUNDED_KEY"
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e FUNDED_KEY 
-        -e ETHERSCAN_API_KEY 
         -e DEPLOY_ENV
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e RPC_URL
         -e METADATA_URI 
         -e LST_CONTRACT_ADDRESS 
         -e LST_STRATEGY_ADDRESS
@@ -68,10 +63,7 @@ tasks:
     env:
       MOCK_RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
-      MOCK_DEPLOYER_KEY:
-        sh: "echo $MIDDLEWARE_FUNDED_KEY"
+      MOCK_DEPLOYER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - >
@@ -97,20 +89,16 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     env:
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
       SOURCE_RPC_URL: "{{.SOURCE_RPC_URL}}"
       MIRROR_RPC_URL: "{{.MIRROR_RPC_URL}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}"
-      FUNDED_KEY: "{{.MIDDLEWARE_FUNDED_KEY}}"
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
-        -e ETHERSCAN_API_KEY 
         -e SOURCE_RPC_URL
         -e MIRROR_RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
@@ -144,38 +132,32 @@ tasks:
       vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY, AMOUNT]
     env:
       WAVS_SIGNING_KEY: "{{.WAVS_SIGNING_KEY}}"
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
-      LOCAL_ETHEREUM_RPC_URL:
+      RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       LST_CONTRACT_ADDRESS: "{{.MIDDLEWARE_LST_CONTRACT_ADDRESS}}"
       LST_STRATEGY_ADDRESS: "{{.MIDDLEWARE_LST_STRATEGY_ADDRESS}}"
       CHAIN_ID: "{{.MIDDLEWARE_CHAIN_ID}}"
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     cmds:
       - >
-        {{.DOCKER_SUDO}} docker run --rm --network host
-        -e DEPLOY_ENV
-        -e ETHERSCAN_API_KEY 
-        -e LOCAL_ETHEREUM_RPC_URL
+        {{.DOCKER_SUDO}} docker run --rm --network host 
+        -e DEPLOY_ENV 
+        -e RPC_URL
         -e LST_CONTRACT_ADDRESS 
-        -e LST_STRATEGY_ADDRESS
+        -e LST_STRATEGY_ADDRESS 
         -e CHAIN_ID 
-        -e WAVS_SERVICE_MANAGER_ADDRESS
-        -e OPERATOR_KEY
-        -e WAVS_SIGNING_KEY
-        -v {{.NODES_DIR}}:/root/.nodes
+        -e WAVS_SERVICE_MANAGER_ADDRESS 
+        -e OPERATOR_KEY 
+        -e WAVS_SIGNING_KEY 
+        -v {{.NODES_DIR}}:/root/.nodes 
         {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
   configure-mock:
     desc: "Configure mock middleware with operator details by calling setOperatorDetails for each operator in the pre-built JSON"
     vars:
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
@@ -192,8 +174,7 @@ tasks:
     env:
       MOCK_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
       MOCK_RPC_URL: "{{.EVM_RPC_URL}}"
-      MOCK_DEPLOYER_KEY:
-        sh: "echo $MIDDLEWARE_FUNDED_KEY"
+      MOCK_DEPLOYER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -215,21 +196,19 @@ tasks:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
     requires:
       vars: [PROJECT, SERVICE_NAME, SERVICE_URI]
     env:
-      LOCAL_ETHEREUM_RPC_URL: "{{.EVM_RPC_URL}}"
       WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
       SERVICE_URI: "{{.SERVICE_URI}}"
-      DEPLOY_ENV: "{{.DEPLOY_ENV}}"
-      FUNDED_KEY: "{{.MIDDLEWARE_FUNDED_KEY}}"
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e SERVICE_URI
         -e FUNDED_KEY
@@ -248,11 +227,8 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
-      LOCAL_ETHEREUM_RPC_URL:
+      RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_KEY:
@@ -261,8 +237,7 @@ tasks:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
-        -e ETHERSCAN_API_KEY 
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e OPERATOR_KEY
         -v {{.NODES_DIR}}:/root/.nodes
@@ -277,11 +252,8 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, QUORUM_DENOMINATOR, QUORUM_NUMERATOR]
     env:
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
-      LOCAL_ETHEREUM_RPC_URL:
+      RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       QUORUM_DENOMINATOR: "{{.QUORUM_DENOMINATOR}}"
@@ -290,8 +262,7 @@ tasks:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
-        -e ETHERSCAN_API_KEY 
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e QUORUM_DENOMINATOR
         -e QUORUM_NUMERATOR
@@ -307,10 +278,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
-      LOCAL_ETHEREUM_RPC_URL:
+      RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: task middleware:get-service-manager-address PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
@@ -318,9 +286,8 @@ tasks:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
-        -e ETHERSCAN_API_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} list_operators
 
@@ -333,9 +300,6 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, MIRROR_CHAIN_NUMBER]
     env:
-      DEPLOY_ENV:
-        sh: task middleware:get-middleware-deploy-env
-      ETHERSCAN_API_KEY: "{{.MIDDLEWARE_ETHERSCAN_API_KEY}}"
       SOURCE_RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
       MIRROR_RPC_URL:
@@ -352,7 +316,6 @@ tasks:
         -e MIRROR_RPC_URL
         -e SOURCE_SERVICE_MANAGER_ADDRESS
         -e MIRROR_SERVICE_MANAGER_ADDRESS
-        -e ETHERSCAN_API_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} -m mirror list_operators
 
@@ -373,7 +336,7 @@ tasks:
         sh: task middleware:get-output-dir PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     env:
       STAKER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
-      LOCAL_ETHEREUM_RPC_URL:
+      RPC_URL:
         sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
       WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
@@ -388,7 +351,7 @@ tasks:
         -e WAVS_DELEGATE_AMOUNT
         -e LST_CONTRACT_ADDRESS
         -e LST_STRATEGY_ADDRESS
-        -e LOCAL_ETHEREUM_RPC_URL
+        -e RPC_URL
         -e STAKER_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} delegate_to_operator
@@ -487,8 +450,3 @@ tasks:
       CHAIN_ID: "{{.CHAIN_ID | default .MIDDLEWARE_CHAIN_ID}}"
     cmds:
       - sh -c 'jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json" 2>/dev/null || true'
-
-  get-middleware-deploy-env:
-    desc: "Get the DEPLOY_ENV value to pass to middleware (maps MOCK to LOCAL)"
-    cmds:
-      - echo '{{ if eq .DEPLOY_MODE "MOCK" }}LOCAL{{ else }}{{ .DEPLOY_MODE }}{{ end }}'

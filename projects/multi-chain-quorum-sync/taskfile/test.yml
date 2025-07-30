@@ -1,8 +1,5 @@
 version: "3"
 
-vars:
-  SUBMIT_DELAY: 1
-
 tasks:
   simple:
     cmds:
@@ -50,7 +47,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
       EVM_RPC_URL:
-        sh: task get-evm-rpc-url-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
       CURRENT_BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
@@ -58,7 +55,7 @@ tasks:
       TOPIC_0:
         sh: cast keccak "QuorumThresholdUpdated(uint256,uint256)"
       SERVICE_MANAGER_ADDRESS:
-        sh: task get-mirror-service-manager-address-{{.CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mirror-service-manager-address CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
     cmds:
       - >
         cast logs 

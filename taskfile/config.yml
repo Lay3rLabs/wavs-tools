@@ -28,10 +28,6 @@ vars:
   COMPONENTS_CARGO_RELEASE_DIR: '{{joinPath .REPO_ROOT "target/wasm32-wasip1/release"}}'
   ABI_EIGENLAYER_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/eigenlayer-middleware"}}'
   ABI_WAVS_MIDDLEWARE_DIR: '{{joinPath .REPO_ROOT "abi/wavs-middleware"}}'
-  ACTIVE_CHAIN_COUNT:
-    sh: docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
-  ACTIVE_WAVS_COUNT:
-    sh: docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
   DOCKER_SUDO:
     sh: |
       if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then 
@@ -39,3 +35,20 @@ vars:
       else 
         echo "sudo"
       fi
+  # TESTNET
+  TESTNET_EVM_RPC_URLS: [
+      "https://ethereum-sepolia-rpc.publicnode.com", # NOTE: Do not use holesky for the source chain, because we use an anvil fork for local testing.
+      "https://ethereum-holesky-rpc.publicnode.com",
+      "${TESTNET_EVM_RPC_URL_3}", # Example using a paid endpoint
+    ]
+  TESTNET_EVM_CHAIN_NAMES: ["sepolia", "holesky", "holesky"]
+  TESTNET_CHAIN_COUNT: 3 # Count of testnet chains in TESTNET_EVM_RPC_URLS
+  ACTIVE_CHAIN_COUNT:
+    sh: |
+      # Count running docker containers
+      docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+  ACTIVE_WAVS_COUNT:
+    sh: |
+      # Count running docker containers
+      docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
+  SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_ENV "LOCAL")}}'
