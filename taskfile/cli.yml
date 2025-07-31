@@ -47,7 +47,6 @@ tasks:
     internal: true
     dir: "./submodules/eigenlayer-middleware"
     preconditions:
-      - test -d "./submodules/eigenlayer-middleware"
       - sh: "command -v forge"
         msg: "Foundry forge is required but not installed"
     sources: ["contracts/**/*.sol"]
@@ -65,7 +64,6 @@ tasks:
     internal: true
     dir: "./node_modules/@wavs/solidity/contracts"
     preconditions:
-      - test -d "./node_modules/@wavs/solidity/contracts"
       - sh: "command -v forge"
         msg: "Foundry forge is required but not installed"
     sources: ["eigenlayer/ecdsa/**/*.sol"]
