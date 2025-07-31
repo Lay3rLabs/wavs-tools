@@ -20,6 +20,7 @@ tasks:
       - task --list-all
 
   clean:
+    desc: "Clean up all project artifacts and build outputs"
     cmds:
       # Clean up all projects by running `task clean` in each project directory
       - |
@@ -33,12 +34,14 @@ tasks:
         done
 
   setup:
+    desc: "Initialize project dependencies and build ABI files"
     cmds:
       - npm install
       - cd tests && npm install
       - task: cli:build-abi
 
   setup-ci:
+    desc: "Initialize project dependencies for CI environment"
     vars:
       BUILD_ABI: "{{.BUILD_ABI | default true}}"
     cmds:
@@ -49,16 +52,19 @@ tasks:
           BUILD_ABI: "{{.BUILD_ABI}}"
 
   test:
+    desc: "Run test suite and generate report"
     dir: tests
     cmds:
       - npm run test:report
 
   test:report:
+    desc: "Open test report in browser"
     dir: tests
     cmds:
       - npm run test:report:open
 
   lint:
+    desc: "Run code formatting and linting checks"
     cmds:
       - cargo fmt --all -- --check
       - cargo fix --allow-dirty --allow-staged

@@ -31,7 +31,7 @@ tasks:
     desc: "Deploys the middleware (mock or real based on USES_MOCK setting)"
     vars:
       USES_MOCK: '{{.USES_MOCK | default "false"}}'
-      CHAIN_ARG: '{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}'
+      CHAIN_ARG: "{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}"
     cmds:
       - |
         if [ "{{.USES_MOCK}}" = "true" ]; then

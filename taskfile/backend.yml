@@ -40,8 +40,13 @@ tasks:
   ######################## Chains ###################################
   ###################################################################
   start-chains:
+    desc: "Start Anvil blockchain instances for local development"
     status:
       - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
+    preconditions:
+      - test -f "{{.BACKEND_DIR}}/docker-compose-anvil.yml"
+      - sh: "command -v docker"
+        msg: "Docker is required but not installed"
     # Pull the latest images before starting
     deps: [docker-pull-chains]
     cmds:
@@ -51,19 +56,8 @@ tasks:
           CHAINS: "{{.CHAINS | default 1}}"
 
   stop-chains:
+    desc: "Stop all running Anvil blockchain instances"
     cmds:
-      - |
-        if [ {{.ACTIVE_CHAIN_COUNT}} -gt 0 ]; then
-          task backend:stop-chains-inner CHAINS={{.ACTIVE_CHAIN_COUNT}}
-        else
-          echo "No chains to stop (CHAINS={{.ACTIVE_CHAIN_COUNT}})"
-        fi
-
-  stop-chains-inner:
-    requires:
-      vars: [CHAINS]
-    cmds:
-      - echo "Stopping all Anvil chains"
       - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml down --remove-orphans --volumes
 
   start-chains-inner:
@@ -90,7 +84,7 @@ tasks:
       # Wait for the Anvil chain to be up and running
       # The deps here will ensure that the docker-start-chain-* task is run first
       - |
-        for ((i=0; i<5; i++)); do
+        for ((i=0; i<{{.HEALTH_CHECK_RETRIES}}; i++)); do
           if nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
             break
           fi
@@ -98,7 +92,7 @@ tasks:
           sleep 1
         done
         if ! nc -z 127.0.0.1 {{.ANVIL_PORT}}; then
-          echo "Anvil did not start after 5 seconds"
+          echo "Anvil did not start after {{.HEALTH_CHECK_RETRIES}} seconds"
           exit 1
         fi
       - |
@@ -230,6 +224,12 @@ tasks:
   ######################## WAVS #####################################
   ###################################################################
   start-wavs:
+    desc: "Start WAVS operator instances and aggregator"
+    preconditions:
+      - test -f "{{.BACKEND_DIR}}/docker-compose-wavs-aggregator.yml"
+      - test -f "{{.BACKEND_DIR}}/docker-compose-wavs-instance.yml"
+      - sh: "command -v docker"
+        msg: "Docker is required but not installed"
     # Pull the latest images before starting
     deps: [docker-pull-wavs]
     cmds:
@@ -267,7 +267,7 @@ tasks:
     cmds:
       # Wait for WAVS Aggregator to be up and running
       - |
-        for ((i=0; i<5; i++)); do
+        for ((i=0; i<{{.HEALTH_CHECK_RETRIES}}; i++)); do
           if nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
             break
           fi
@@ -275,7 +275,7 @@ tasks:
           sleep 1
         done
         if ! nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
-          echo "Aggregator did not start after 5 seconds"
+          echo "Aggregator did not start after {{.HEALTH_CHECK_RETRIES}} seconds"
           exit 1
         fi
       - echo "Aggregator is up!"
@@ -283,7 +283,6 @@ tasks:
   start-wavs-*:
     internal: true
     vars:
-      TIMEOUT: 10
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_PORT:
         sh: task backend:get-wavs-port-{{.WAVS_INSTANCE}}
@@ -295,7 +294,7 @@ tasks:
     cmds:
       # Wait for WAVS instance to be up and running
       - |
-        for ((i=0; i<{{.TIMEOUT}}; i++)); do
+        for ((i=0; i<{{.HEALTH_CHECK_TIMEOUT}}; i++)); do
           if nc -z 127.0.0.1 {{.WAVS_PORT}}; then
             break
           fi
@@ -303,7 +302,7 @@ tasks:
           sleep 1
         done
         if ! nc -z 127.0.0.1 {{.WAVS_PORT}}; then
-          echo "WAVS #{{.WAVS_INSTANCE}} did not start after {{.TIMEOUT}} seconds"
+          echo "WAVS #{{.WAVS_INSTANCE}} did not start after {{.HEALTH_CHECK_TIMEOUT}} seconds"
           exit 1
         fi
       - |
@@ -338,17 +337,20 @@ tasks:
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate -d
 
   stop-wavs:
+    desc: "Stop all WAVS instances and aggregator"
     cmds:
       - task: stop-wavs-instances
       - task: stop-wavs-aggregator
 
   stop-wavs-aggregator:
+    desc: "Stop WAVS aggregator service"
     cmds:
       - |
         echo "Stopping WAVS Aggregator"
         cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans --volumes
 
   stop-wavs-instances:
+    desc: "Stop all WAVS operator instances"
     cmds:
       - echo "Stopping WAVS instances"
       - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml down --remove-orphans --volumes
@@ -376,6 +378,7 @@ tasks:
   ###################################################################
 
   start-telemetry:
+    desc: "Start telemetry services (Jaeger and Prometheus)"
     # Pull the latest images before starting
     deps: [docker-pull-telemetry]
     cmds:
@@ -413,6 +416,7 @@ tasks:
       - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
 
   docker-stop-telemetry:
+    desc: "Stop telemetry services"
     aliases: [stop-telemetry]
     cmds:
       - echo "Stopping Telemetry"
