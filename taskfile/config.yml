@@ -22,8 +22,7 @@ vars:
   WAVS_AGGREGATOR_PORT: 8200
 
   # Timeout Configuration
-  HEALTH_CHECK_TIMEOUT: 10 # seconds to wait for service health checks
-  HEALTH_CHECK_RETRIES: 5 # number of retries for health checks
+  HEALTH_CHECK_TIMEOUT: 5 # seconds to wait for service health checks
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
   MIDDLEWARE_CHAIN_ID: 17000
@@ -50,10 +49,8 @@ vars:
   TESTNET_CHAIN_COUNT: 3 # Count of testnet chains in TESTNET_EVM_RPC_URLS
   ACTIVE_CHAIN_COUNT:
     sh: |
-      # Count running docker containers
-      docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+      docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'anvil-' | wc -l | xargs
   ACTIVE_WAVS_COUNT:
     sh: |
-      # Count running docker containers
-      docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
+      docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'wavs-' | grep -v 'wavs-aggregator' | wc -l | xargs
   SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_ENV "LOCAL")}}'

@@ -21,17 +21,22 @@ tasks:
 
   clean:
     desc: "Clean up all project artifacts and build outputs"
+    vars:
+      PROJECTS:
+        sh: find {{.REPO_ROOT}}/projects -maxdepth 1 -type d -name "*" | grep -v "^{{.REPO_ROOT}}/projects$" | xargs -I {} basename {}
     cmds:
-      # Clean up all projects by running `task clean` in each project directory
-      - |
-        for dir in projects/*/; do
-          if [ -d "$dir" ]; then
-            echo "Cleaning $dir"
-            cd "$dir"
-            task clean
-            cd "{{.REPO_ROOT}}"
-          fi
-        done
+      - for: { var: PROJECTS, split: "\n" }
+        task: clean-project
+        vars:
+          PROJECT: "{{.ITEM}}"
+
+  clean-project:
+    desc: "Clean a specific project"
+    requires:
+      vars: [PROJECT]
+    dir: "{{.REPO_ROOT}}/projects/{{.PROJECT}}"
+    cmds:
+      - task clean
 
   setup:
     desc: "Initialize project dependencies and build ABI files"
