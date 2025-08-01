@@ -3,15 +3,7 @@ version: "3"
 vars:
   REPO_ROOT:
     # find the root directory of the repository by looking for the `.git` directory.
-    sh: |
-      dir="$(pwd)"
-      while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ]; then
-          echo "$dir"
-          exit 0
-        fi
-        dir="$(dirname "$dir")"
-      done
+    sh: git rev-parse --show-toplevel
   PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_FORK_CHAIN_ID: 31337

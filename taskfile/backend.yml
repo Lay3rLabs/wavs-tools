@@ -80,9 +80,8 @@ tasks:
     internal: true
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.DOCKER_SUDO}} docker compose --project-name anvil-{{.CHAIN_NUMBER}} --file docker-compose-anvil.yml down --remove-orphans --volumes"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --project-name anvil-{{.CHAIN_NUMBER}} --file docker-compose-anvil.yml down --remove-orphans --volumes
 
   start-chain-*:
     internal: true
@@ -114,13 +113,11 @@ tasks:
     status:
       - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml pull"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml pull
 
   docker-start-chain-*:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
@@ -136,7 +133,7 @@ tasks:
       COMPOSE_ANVIL_PORT:
         sh: task backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-anvil.yml up --force-recreate -d
 
   # HELPERS
   get-anvil-port-*:
@@ -252,10 +249,9 @@ tasks:
 
   docker-pull-wavs:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml pull"
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml pull"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml pull
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml pull
 
   start-wavs-inner:
     internal: true
@@ -318,14 +314,12 @@ tasks:
     internal: true
     env:
       COMPOSE_WAVS_AGGREGATOR_PORT: "{{.WAVS_AGGREGATOR_PORT}}"
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - echo "Starting WAVS Aggregator on port {{.WAVS_AGGREGATOR_PORT}}"
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml up --force-recreate -d"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml up --force-recreate -d
 
   docker-start-wavs-*:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
     env:
@@ -337,7 +331,7 @@ tasks:
     cmds:
       - |
         echo "Starting WAVS #{{.WAVS_INSTANCE}} on port $COMPOSE_WAVS_PORT"
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate -d"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate -d
 
   stop-wavs:
     desc: "Stop all WAVS instances and aggregator"
@@ -347,10 +341,9 @@ tasks:
 
   stop-wavs-aggregator:
     desc: "Stop WAVS aggregator service"
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - echo "Stopping WAVS Aggregator"
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans --volumes"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans --volumes
 
   stop-wavs-instances:
     desc: "Stop all WAVS operator instances"
@@ -365,9 +358,8 @@ tasks:
     internal: true
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.DOCKER_SUDO}} docker compose --project-name wavs-{{.WAVS_INSTANCE}} --file docker-compose-wavs-instance.yml down --remove-orphans --volumes"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --project-name wavs-{{.WAVS_INSTANCE}} --file docker-compose-wavs-instance.yml down --remove-orphans --volumes
 
   # HELPERS
   get-wavs-port-*:
@@ -400,9 +392,8 @@ tasks:
 
   docker-pull-telemetry:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml pull"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml pull
 
   start-telemetry-inner:
     internal: true
@@ -425,15 +416,13 @@ tasks:
 
   docker-start-telemetry:
     internal: true
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - echo "Starting Telemetry"
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml up --force-recreate -d
 
   docker-stop-telemetry:
     desc: "Stop telemetry services"
     aliases: [stop-telemetry]
-    dir: "{{.BACKEND_DIR}}"
     cmds:
       - echo "Stopping Telemetry"
-      - "{{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans --volumes"
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-telemetry.yml down --remove-orphans --volumes
