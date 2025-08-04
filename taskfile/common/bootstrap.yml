@@ -10,11 +10,15 @@ tasks:
     deps: [components-clean]
     vars:
       COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
+    requires:
+      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT, ROOT_DIR]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
 
   components-clean:
     desc: "Deletes the WASI components"
+    requires:
+      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:clean-all PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}"
 
@@ -24,6 +28,8 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+    requires:
+      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
@@ -32,6 +38,8 @@ tasks:
     vars:
       USES_MOCK: '{{.USES_MOCK | default "false"}}'
       CHAIN_ARG: "{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}"
+    requires:
+      vars: [PROJECT, REPO_ROOT]
     cmds:
       - |
         if [ "{{.USES_MOCK}}" = "true" ]; then
@@ -98,6 +106,8 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
+    requires:
+      vars: [REPO_ROOT, COMPONENT_NAME, SERVICE_OUTPUT_DIR, WAVS_CLI_SERVICE_JSON_PATH, SOURCE_CHAIN_NUMBER]
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
@@ -111,14 +121,19 @@ tasks:
 
   clean-service:
     desc: "Cleans up the service configuration"
+    requires:
+      vars: [SERVICE_OUTPUT_DIR]
     cmds:
       - rm -rf "{{.SERVICE_OUTPUT_DIR}}"
 
   upload-service:
+    desc: "Upload service configuration to WAVS endpoint"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+    requires:
+      vars: [REPO_ROOT, SERVICE_JSON_PATH, TEMP_SERVICE_HASH_JSON_PATH]
     cmds:
       - >
         curl --fail-with-body -X POST "{{.WAVS_ENDPOINT}}/save-service" 

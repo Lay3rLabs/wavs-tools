@@ -3,6 +3,8 @@ version: "3"
 tasks:
   mirror-deploy:
     desc: "Deploys the mirror contracts for all chains"
+    requires:
+      vars: [ACTIVE_CHAIN_COUNT, SOURCE_CHAIN_NUMBER]
     cmds:
       - |
         if [ {{.ACTIVE_CHAIN_COUNT}} -lt 2 ]; then
@@ -24,6 +26,8 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
       MIRROR_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+    requires:
+      vars: [REPO_ROOT, PROJECT, SOURCE_CHAIN_NUMBER]
     cmds:
       - >
         cd "{{.REPO_ROOT}}" && task middleware:deploy-mirror

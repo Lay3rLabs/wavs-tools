@@ -5,11 +5,15 @@ tasks:
     desc: "Get component digest from build artifacts"
     vars:
       COMPONENT_WASM_PATH: '{{joinPath .COMPONENTS_CARGO_RELEASE_DIR (printf "%s.wasm" .COMPONENT_NAME)}}'
+    requires:
+      vars: [COMPONENTS_CARGO_RELEASE_DIR, COMPONENT_NAME]
     cmds:
       - sha256sum "{{.COMPONENT_WASM_PATH}}" | cut -d' ' -f1
 
   get-temp-service-hash:
     desc: "Get temp service hash from upload response"
+    requires:
+      vars: [TEMP_SERVICE_HASH_JSON_PATH]
     cmds:
       - jq -r '.hash' "{{.TEMP_SERVICE_HASH_JSON_PATH}}"
 
@@ -17,6 +21,8 @@ tasks:
     desc: "Get service manager address with testnet support"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+    requires:
+      vars: [REPO_ROOT, PROJECT]
     cmds:
       - cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
 
@@ -24,10 +30,13 @@ tasks:
     desc: "Get stake registry address with testnet support"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+    requires:
+      vars: [REPO_ROOT, PROJECT]
     cmds:
       - cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
 
   get-service-hd-index:
+    desc: "Get service HD index from WAVS endpoint"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_ENDPOINT:
@@ -36,6 +45,8 @@ tasks:
         sh: task get-service-manager-address
       CHAIN_NAME:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+    requires:
+      vars: [REPO_ROOT]
     cmds:
       - >
         curl -X POST "{{.WAVS_ENDPOINT}}/service-key" 
@@ -59,6 +70,8 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       AVS_SIGNING_ADDRESS:
         sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index {{.HD_INDEX}}
+    requires:
+      vars: [REPO_ROOT]
     cmds:
       - echo "{{.AVS_SIGNING_ADDRESS}}"
 
@@ -70,6 +83,8 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       OPERATOR_ADDRESS:
         sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}"
+    requires:
+      vars: [REPO_ROOT]
     cmds:
       - echo "{{.OPERATOR_ADDRESS}}"
 
@@ -81,6 +96,8 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
       OPERATOR_PRIVATE_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
+    requires:
+      vars: [REPO_ROOT]
     cmds:
       - echo "{{.OPERATOR_PRIVATE_KEY}}"
 
