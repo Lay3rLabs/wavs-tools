@@ -115,6 +115,21 @@ tasks:
 
         echo "Mock config written to {{.MOCK_CONFIG_PATH}} with $(echo "$OPERATORS_JSON" | jq length) operators"
 
+  build-aggregator:
+    desc: "Build and upload aggregator component"
+    vars:
+      AGGREGATOR_PROJECT: '{{.AGGREGATOR_PROJECT | default "aggregator-simple"}}'
+      AGGREGATOR_COMPONENT_NAME: '{{.AGGREGATOR_COMPONENT_NAME | default "aggregator_simple"}}'
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      WAVS_ENDPOINT:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
+      COMPONENT_SOURCE_DIR: '{{ joinPath .REPO_ROOT "projects" .AGGREGATOR_PROJECT "component" }}'
+    requires:
+      vars: [REPO_ROOT, PROJECT]
+    cmds:
+      - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
+
   build-empty-service:
     desc: "Build the empty service configuration"
     deps: [clean-service]

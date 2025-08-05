@@ -52,6 +52,7 @@ tasks:
         task bootstrap:middleware-deploy
         task bootstrap:components-build
         task bootstrap:components-upload
+        task bootstrap:build-aggregator
         task bootstrap:contracts-deploy
         task bootstrap:build-service
         task bootstrap:upload-service
