@@ -187,3 +187,28 @@ USES_MOCK: true
 ```
 
 > Note: Only wavs-drand currently uses mock deployments. Sync services must use real deployments on the source chain, as they rely on EigenLayer core contracts for testing and cannot operate with mocks.
+
+## Transfer Ownership
+
+After deploying middleware contracts, you may want to transfer ownership of the ECDSA proxy and AVS contracts to different addresses. 
+
+### Configuration
+
+1. **Set owner addresses** in [taskfile/config.yml](taskfile/config.yml):
+   ```yaml
+   AVS_OWNER: "0x1111111111111111111111111111111111111111"
+   PROXY_OWNER: "0x2222222222222222222222222222222222222222"
+   ```
+
+2. **Enable ownership transfer** in your project's **Taskfile**:
+   ```yaml
+   vars:
+     TRANSFER_OWNERSHIP: true
+   ```
+
+When `TRANSFER_OWNERSHIP` is set to `true`, the bootstrap process will automatically transfer ownership after middleware deployment using the addresses configured in config.yml. The system will use the appropriate transfer method based on your deployment mode:
+
+- **Regular deployments**: Uses `middleware:transfer-ownership`
+- **Mock deployments**: Uses `middleware:mock-transfer-ownership` with mock-specific environment variables
+
+If `TRANSFER_OWNERSHIP` is `false` or not set, ownership transfer will be skipped entirely.
