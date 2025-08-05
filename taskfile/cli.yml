@@ -10,7 +10,7 @@ includes:
 
 tasks:
   wavs:
-    desc: "Runs WAVS CLI commands"
+    desc: "Run WAVS CLI commands in Docker container"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_SUBMISSION_MNEMONIC:
@@ -24,28 +24,8 @@ tasks:
         {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
 
-  fund-address:
-    desc: "Check and fund address with 15 ETH if balance is < 1 ETH"
-    vars:
-      CURRENT_BALANCE:
-        sh: cast balance --ether {{.ADDRESS}} --rpc-url {{.EVM_RPC_URL}}
-    cmds:
-      - |
-        echo "🔎 Checking balance for address: {{.ADDRESS}}"
-        echo "Current balance: {{.CURRENT_BALANCE}} ETH"
-
-        if (( $(echo "{{.CURRENT_BALANCE}} < 1.0" | bc -l) )); then
-          echo "💰 Funding {{.ADDRESS}} with 15 ETH..."
-          cast rpc anvil_setBalance "{{.ADDRESS}}" "15000000000000000000" --rpc-url {{.EVM_RPC_URL}} > /dev/null
-          NEW_BALANCE=$(cast balance --ether {{.ADDRESS}} --rpc-url {{.EVM_RPC_URL}})
-          echo "✅ Funded. New balance: ${NEW_BALANCE} ETH"
-        else
-          echo "✅ Address already has ≥ 1 ETH"
-        fi
-    requires:
-      vars: [ADDRESS, EVM_RPC_URL]
-
   build-abi-ci:
+    desc: "Build ABI files for CI environment (conditional)"
     internal: true
     requires:
       vars: [BUILD_ABI]
@@ -56,14 +36,23 @@ tasks:
       - task: build-wavs-abi
 
   build-abi:
+    desc: "Build all ABI files from smart contracts"
     internal: true
     deps:
       - task: build-eigenlayer-abi
       - task: build-wavs-abi
 
   build-eigenlayer-abi:
+    desc: "Build EigenLayer middleware ABI files"
     internal: true
     dir: "./submodules/eigenlayer-middleware"
+    preconditions:
+      - sh: "command -v forge"
+        msg: "Foundry forge is required but not installed"
+    sources: ["contracts/**/*.sol"]
+    generates:
+      - "{{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}/ECDSAStakeRegistry.sol/**"
+      - "{{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}/AllocationManager.sol/**"
     cmds:
       - mkdir -p {{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}
       - forge build
@@ -71,8 +60,15 @@ tasks:
         cmd: cp -r "out/{{.ITEM}}" "{{.ABI_EIGENLAYER_MIDDLEWARE_DIR}}/"
 
   build-wavs-abi:
+    desc: "Build WAVS middleware ABI files"
     internal: true
     dir: "./node_modules/@wavs/solidity/contracts"
+    preconditions:
+      - sh: "command -v forge"
+        msg: "Foundry forge is required but not installed"
+    sources: ["eigenlayer/ecdsa/**/*.sol"]
+    generates:
+      - "{{.ABI_WAVS_MIDDLEWARE_DIR}}/IWavsServiceManager.sol/**"
     cmds:
       - mkdir -p {{.ABI_WAVS_MIDDLEWARE_DIR}}
       - forge build -C eigenlayer/ecdsa

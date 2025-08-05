@@ -10,12 +10,24 @@ includes:
 
 tasks:
   build:
-    desc: "Builds a WASI component"
+    desc: "Build a WASI component from Rust source"
     vars:
       COMPONENT_OUTPUT_DIR:
         sh: task component:get-output-dir PROJECT={{.PROJECT}}
     requires:
       vars: [PROJECT, COMPONENT_NAME, COMPONENT_SOURCE_DIR]
+    preconditions:
+      - test -d "{{.COMPONENT_SOURCE_DIR}}"
+      - test -f "{{.COMPONENT_SOURCE_DIR}}/Cargo.toml"
+      - sh: "command -v cargo"
+        msg: "Rust cargo is required but not installed"
+      - sh: "cargo component --version"
+        msg: "cargo-component is required but not installed"
+    sources:
+      - "{{.COMPONENT_SOURCE_DIR}}/src/**/*.rs"
+      - "{{.COMPONENT_SOURCE_DIR}}/Cargo.toml"
+    generates:
+      - "{{.COMPONENT_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.wasm"
     cmds:
       - |
         echo "Building component: {{.COMPONENT_NAME}} for {{.PROJECT}}"
@@ -25,7 +37,7 @@ tasks:
         cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENT_OUTPUT_DIR}}/
 
   clean-single:
-    desc: "Deletes a WASI component output directory"
+    desc: "Delete a specific WASI component binary"
     vars:
       COMPONENT_OUTPUT_DIR:
         sh: task component:get-output-dir PROJECT={{.PROJECT}}
@@ -35,7 +47,7 @@ tasks:
       - rm -f "{{.COMPONENT_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.wasm"
 
   clean-all:
-    desc: "Deletes a WASI output directory"
+    desc: "Delete all WASI component binaries for a project"
     vars:
       COMPONENT_OUTPUT_DIR:
         sh: task component:get-output-dir PROJECT={{.PROJECT}}
@@ -45,7 +57,7 @@ tasks:
       - rm -rf "{{.COMPONENT_OUTPUT_DIR}}"
 
   upload:
-    desc: "Uploads a WASI component"
+    desc: "Upload a WASI component to WAVS endpoint"
     requires:
       vars: [PROJECT, COMPONENT_NAME, WAVS_ENDPOINT]
     vars:
@@ -58,7 +70,6 @@ tasks:
       # unfortunately, the wavs-cli upload-component command doesn't write to JSON
       # but, fortunately, the last line of the output is the digest
       - |
-        cd "{{.REPO_ROOT}}" 
         OUTPUT=$(task component:docker-upload WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}" -- "{{.COMPONENT_BINARY}}" --data "{{.DATA_DIR}}")
         DIGEST=$(echo "$OUTPUT" | tail -n 1)
         if [[ "$OUTPUT" == *"Digest"* ]]; then
@@ -70,6 +81,7 @@ tasks:
         fi
 
   docker-upload:
+    desc: "Upload component via Docker container"
     requires:
       vars: [WAVS_ENDPOINT]
     cmds:
@@ -90,7 +102,7 @@ tasks:
       - echo "{{.OUTPUT_DIR}}"
 
   get-digest-filepath:
-    desc: "Get the path to the component digest text file"
+    desc: "Get the path to the component digest file"
     vars:
       OUTPUT_DIR:
         sh: task component:get-output-dir PROJECT={{.PROJECT}}

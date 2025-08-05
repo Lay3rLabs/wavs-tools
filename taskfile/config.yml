@@ -3,22 +3,18 @@ version: "3"
 vars:
   REPO_ROOT:
     # find the root directory of the repository by looking for the `.git` directory.
-    sh: |
-      dir="$(pwd)"
-      while [ "$dir" != "/" ]; do
-        if [ -d "$dir/.git" ]; then
-          echo "$dir"
-          exit 0
-        fi
-        dir="$(dirname "$dir")"
-      done
+    sh: git rev-parse --show-toplevel
   PROJECT_OUTPUT_DIRNAME: ".project-output"
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_FORK_CHAIN_ID: 31337
+  # Network Configuration
   ANVIL_HOLESKY_FORK_URL: "https://eth-holesky.g.alchemy.com/v2/Hr83A86i2pYH_ABCxFveDMBmKvhIo_Gi"
   ANVIL_BASE_PORT: 8548 # Base port for Anvil, subsequent ports will be incremented by 1 for each instance
   WAVS_BASE_PORT: 8123 # Base port for WAVS, subsequent ports will be incremented by 1 for each instance
   WAVS_AGGREGATOR_PORT: 8200
+
+  # Timeout Configuration
+  HEALTH_CHECK_TIMEOUT: 5 # seconds to wait for service health checks
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
   WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
   MIDDLEWARE_CHAIN_ID: 17000
@@ -45,10 +41,8 @@ vars:
   TESTNET_CHAIN_COUNT: 3 # Count of testnet chains in TESTNET_EVM_RPC_URLS
   ACTIVE_CHAIN_COUNT:
     sh: |
-      # Count running docker containers
-      docker ps --filter "name=chain-anvil-" --format '{{"{{"}}.Names{{"}}"}}' | wc -l | xargs
+      docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'anvil-' | wc -l | xargs
   ACTIVE_WAVS_COUNT:
     sh: |
-      # Count running docker containers
-      docker ps --filter "name=wavs-" --format '{{"{{"}}.Names{{"}}"}}' | grep -v '^wavs-aggregator$' | wc -l | xargs
+      docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'wavs-' | grep -v 'wavs-aggregator' | wc -l | xargs
   SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_ENV "LOCAL")}}'

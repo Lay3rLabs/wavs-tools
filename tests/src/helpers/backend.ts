@@ -61,48 +61,6 @@ export class BackendManager {
         cwd: rootPath(),
       });
       console.log('Backend stopped successfully');
-
-      // Actively wait for resources to be cleaned up
-      console.log('Waiting for resource cleanup...');
-      await this.waitForResourceCleanup();
-    }
-  }
-
-  private async waitForResourceCleanup() {
-    const checkInterval = 500; // Check every 500ms
-
-    const timeoutPromise = new Promise<void>((resolve) => {
-      setTimeout(() => {
-        console.warn('Resource cleanup timeout reached, proceeding anyway');
-        resolve();
-      }, TIMEOUTS.RESOURCE_CLEANUP);
-    });
-
-    const cleanupPromise = this.pollForCleanup(checkInterval);
-
-    await Promise.race([cleanupPromise, timeoutPromise]);
-  }
-
-  private async pollForCleanup(checkInterval: number): Promise<void> {
-    while (true) {
-      try {
-        // Check if any wavs/chain containers are still running
-        const result = await execAsync('docker', [
-          'ps', '--filter', 'name=wavs-', '--filter', 'name=chain-anvil-', '--filter', 'name=jaeger', '--filter', 'name=prometheus', '--format', '{{.Names}}'
-        ], { captureOutput: true });
-
-        if (!result || !result.stdout.trim()) {
-          console.log('All containers cleaned up successfully');
-          return;
-        }
-
-        console.log(`Containers still running: ${result.stdout.trim()}`);
-        await new Promise(resolve => setTimeout(resolve, checkInterval));
-      } catch (error) {
-        // If docker command fails, assume cleanup is complete
-        console.log('Docker command failed, assuming cleanup complete');
-        return;
-      }
     }
   }
 

@@ -20,25 +20,33 @@ tasks:
       - task --list-all
 
   clean:
+    desc: "Clean up all project artifacts and build outputs"
+    vars:
+      PROJECTS:
+        sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
     cmds:
-      # Clean up all projects by running `task clean` in each project directory
-      - |
-        for dir in projects/*/; do
-          if [ -d "$dir" ]; then
-            echo "Cleaning $dir"
-            cd "$dir"
-            task clean
-            cd "{{.REPO_ROOT}}"
-          fi
-        done
+      - for: { var: PROJECTS, split: "\n" }
+        task: clean-project
+        vars:
+          PROJECT: "{{.ITEM}}"
+
+  clean-project:
+    desc: "Clean a specific project"
+    requires:
+      vars: [PROJECT]
+    dir: "{{.REPO_ROOT}}/projects/{{.PROJECT}}"
+    cmds:
+      - task clean
 
   setup:
+    desc: "Initialize project dependencies and build ABI files"
     cmds:
       - npm install
       - cd tests && npm install
       - task: cli:build-abi
 
   setup-ci:
+    desc: "Initialize project dependencies for CI environment"
     vars:
       BUILD_ABI: "{{.BUILD_ABI | default true}}"
     cmds:
@@ -49,16 +57,19 @@ tasks:
           BUILD_ABI: "{{.BUILD_ABI}}"
 
   test:
+    desc: "Run test suite and generate report"
     dir: tests
     cmds:
       - npm run test:report
 
   test:report:
+    desc: "Open test report in browser"
     dir: tests
     cmds:
       - npm run test:report:open
 
   lint:
+    desc: "Run code formatting and linting checks"
     cmds:
       - cargo fmt --all -- --check
       - cargo fix --allow-dirty --allow-staged
