@@ -1,5 +1,5 @@
 [package]
-name = "aggregator-router"
+name = "aggregator-simple"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
@@ -11,7 +11,7 @@ rust-version.workspace = true
 crate-type = ["cdylib"]
 
 [package.metadata.component]
-package = "component:aggregator-router"
+package = "component:aggregator-simple"
 target = "wavs:aggregator@0.6.0-alpha.5"
 
 [dependencies]

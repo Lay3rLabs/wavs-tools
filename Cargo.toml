@@ -4,7 +4,7 @@ members = [
     "projects/multi-chain-operator-sync/component",
     "projects/multi-chain-quorum-sync/component",
     "projects/wavs-drand/component",
-    "projects/aggregator-router/component",
+    "projects/aggregator-simple/component",
 ]
 resolver = "2"
 
