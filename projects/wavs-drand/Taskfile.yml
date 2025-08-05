@@ -41,6 +41,7 @@ vars:
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   TEMP_SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
   SOURCE_CHAIN_NUMBER: 1
+  TRANSFER_OWNERSHIP: true
 
 tasks:
   bootstrap:
@@ -59,6 +60,7 @@ tasks:
         task bootstrap:deploy-service
         task bootstrap:wavs-all
         task bootstrap:register-operator
+        task bootstrap:middleware-transfer-ownership
 
   clean:
     desc: "Cleans up the tool"

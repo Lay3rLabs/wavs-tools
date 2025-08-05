@@ -46,3 +46,6 @@ vars:
     sh: |
       docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'wavs-' | grep -v 'wavs-aggregator' | wc -l | xargs
   SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_ENV "LOCAL")}}'
+  # Transfer Ownership Config
+  AVS_OWNER: "0x1111111111111111111111111111111111111111"
+  PROXY_OWNER: "0x2222222222222222222222222222222222222222"

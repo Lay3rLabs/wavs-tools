@@ -48,6 +48,24 @@ tasks:
           cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
         fi
 
+  middleware-transfer-ownership:
+    desc: "Transfer ownership of ECDSA proxy and AVS contracts (conditional on TRANSFER_OWNERSHIP)"
+    vars:
+      TRANSFER_OWNERSHIP: '{{.TRANSFER_OWNERSHIP | default "false"}}'
+      USES_MOCK: '{{.USES_MOCK | default "false"}}'
+      CHAIN_ARG: "{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}"
+    requires:
+      vars: [PROJECT, REPO_ROOT, PROXY_OWNER, AVS_OWNER]
+    status:
+      - '[ "{{.TRANSFER_OWNERSHIP}}" != "true" ]'
+    cmds:
+      - |
+        if [ "{{.USES_MOCK}}" = "true" ]; then
+          cd "{{.REPO_ROOT}}" && task middleware:mock-transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+        else
+          cd "{{.REPO_ROOT}}" && task middleware:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+        fi
+
   build-mock-config:
     desc: "Build mock configuration JSON with all active operators"
     vars:
