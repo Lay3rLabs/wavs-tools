@@ -107,7 +107,14 @@ tasks:
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
     requires:
-      vars: [REPO_ROOT, COMPONENT_NAME, SERVICE_OUTPUT_DIR, WAVS_CLI_SERVICE_JSON_PATH, SOURCE_CHAIN_NUMBER]
+      vars:
+        [
+          REPO_ROOT,
+          COMPONENT_NAME,
+          SERVICE_OUTPUT_DIR,
+          WAVS_CLI_SERVICE_JSON_PATH,
+          SOURCE_CHAIN_NUMBER,
+        ]
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
