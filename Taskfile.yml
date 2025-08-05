@@ -23,7 +23,7 @@ tasks:
     desc: "Clean up all project artifacts and build outputs"
     vars:
       PROJECTS:
-        sh: find {{.REPO_ROOT}}/projects -maxdepth 1 -type d -name "*" | grep -v "^{{.REPO_ROOT}}/projects$" | xargs -I {} basename {}
+        sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
     cmds:
       - for: { var: PROJECTS, split: "\n" }
         task: clean-project
