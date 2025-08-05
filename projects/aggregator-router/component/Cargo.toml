@@ -1,0 +1,20 @@
+[package]
+name = "aggregator-router"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+crate-type = ["cdylib"]
+
+[package.metadata.component]
+package = "component:aggregator-router"
+target = "wavs:aggregator@0.6.0-alpha.5"
+
+[dependencies]
+alloy-primitives = { workspace = true }
+wit-bindgen-rt = { workspace = true }
+serde = { workspace = true, features = ["derive"] }

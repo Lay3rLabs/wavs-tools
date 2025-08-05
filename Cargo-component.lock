@@ -3,9 +3,17 @@
 version = 1
 
 [[package]]
+name = "wavs:aggregator"
+
+[[package.version]]
+requirement = "^0.6.0-alpha.5"
+version = "0.6.0-alpha.5"
+digest = "sha256:5591a16d83f9fc6e37d8471784420aa9f568a4819e73edbe972677e64f44a484"
+
+[[package]]
 name = "wavs:worker"
 
 [[package.version]]
-requirement = "^0.6.0-alpha.2"
-version = "0.6.0-alpha.2"
-digest = "sha256:7111a4111ef9c19d26e5231774e0989bcb46a2e490bb69589682e1ced0d00152"
+requirement = "^0.6.0-alpha.5"
+version = "0.6.0-alpha.5"
+digest = "sha256:91c3f5b956a0b6c96fe9d92bbb39b9c3fd2f8a3381523a4cf0c32254c61d00c1"
