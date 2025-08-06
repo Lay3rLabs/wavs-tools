@@ -186,8 +186,6 @@ This configuration should be set in the project's **Taskfile** variables:
 USES_MOCK: true
 ```
 
-> Note: Only wavs-drand currently uses mock deployments. Sync services must use real deployments on the source chain, as they rely on EigenLayer core contracts for testing and cannot operate with mocks.
-
 ## Transfer Ownership
 
 After deploying middleware contracts, you may want to transfer ownership of the ECDSA proxy and AVS contracts to different addresses. 
