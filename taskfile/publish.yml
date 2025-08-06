@@ -6,7 +6,7 @@ tasks:
     desc: "Build all WASI components across all projects"
     vars:
       PROJECTS:
-        sh: find {{.REPO_ROOT}}/projects -maxdepth 1 -type d -name "*" | grep -v "^{{.REPO_ROOT}}/projects$" | xargs -I {} basename {}
+        sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
     deps:
       - for: { var: PROJECTS, split: "\n" }
         task: build-component
@@ -18,7 +18,7 @@ tasks:
     deps: ["build-all-components"]
     vars:
       PROJECTS:
-        sh: find {{.REPO_ROOT}}/projects -maxdepth 1 -type d -name "*" | grep -v "^{{.REPO_ROOT}}/projects$" | xargs -I {} basename {}
+        sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
     cmds:
       - for: { var: PROJECTS, split: "\n" }
         task: publish-component
