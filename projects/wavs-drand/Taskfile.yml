@@ -28,7 +28,7 @@ vars:
   # These are all locally defined here, do not depend on config.yml being loaded first
   # For this reason, we sometimes need to redefined vars like .project-output here
   # see: https://github.com/go-task/task/issues/2303
-  # wavs-drand uses MOCK mode
+  # wavs-drand uses MOCK mode since it doesn't rely on any eigenlayer core contractrs
   USES_MOCK: true
   COMPONENT_NAME: "wavs_drand"
   PROJECT:
@@ -41,6 +41,7 @@ vars:
   SERVICE_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/{{.COMPONENT_NAME}}.json"
   TEMP_SERVICE_HASH_JSON_PATH: "{{.SERVICE_OUTPUT_DIR}}/hash.json"
   SOURCE_CHAIN_NUMBER: 1
+  TRANSFER_OWNERSHIP: true
 
 tasks:
   bootstrap:
@@ -59,6 +60,7 @@ tasks:
         task bootstrap:deploy-service
         task bootstrap:wavs-all
         task bootstrap:register-operator
+        task bootstrap:middleware-transfer-ownership
 
   clean:
     desc: "Cleans up the tool"

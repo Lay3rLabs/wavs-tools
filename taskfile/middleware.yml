@@ -450,3 +450,69 @@ tasks:
       CHAIN_ID: "{{.CHAIN_ID | default .MIDDLEWARE_CHAIN_ID}}"
     cmds:
       - sh -c 'jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json" 2>/dev/null || true'
+
+  transfer-ownership:
+    desc: "Transfer ownership of ECDSA proxy and AVS contracts"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, PROXY_OWNER, AVS_OWNER]
+    env:
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      WAVS_SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      PROXY_OWNER: "{{.PROXY_OWNER}}"
+      AVS_OWNER: "{{.AVS_OWNER}}"
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+    preconditions:
+      - sh: cast to-checksum {{.AVS_OWNER}}
+        msg: AVS_OWNER is not a valid address
+      - sh: cast to-checksum {{.PROXY_OWNER}}
+        msg: PROXY_OWNER is not a valid address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e PROXY_OWNER
+        -e AVS_OWNER
+        -e FUNDED_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} transfer_ownership
+
+  mock-transfer-ownership:
+    desc: "Transfer ownership of mock ECDSA proxy and AVS contracts"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, PROXY_OWNER, AVS_OWNER]
+    env:
+      MOCK_RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      WAVS_SERVICE_MANAGER_ADDRESS:
+        sh: task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      PROXY_OWNER: "{{.PROXY_OWNER}}"
+      AVS_OWNER: "{{.AVS_OWNER}}"
+      MOCK_DEPLOYER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+    preconditions:
+      - sh: cast to-checksum {{.AVS_OWNER}}
+        msg: AVS_OWNER is not a valid address
+      - sh: cast to-checksum {{.PROXY_OWNER}}
+        msg: PROXY_OWNER is not a valid address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e MOCK_RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e PROXY_OWNER
+        -e AVS_OWNER
+        -e MOCK_DEPLOYER_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock transfer_ownership
