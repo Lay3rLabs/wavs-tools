@@ -12,23 +12,43 @@ struct Component;
 
 impl Guest for Component {
     fn process_packet(_pkt: Packet) -> Result<Vec<AggregatorAction>, String> {
-        let chain_name =
-            host::config_var("chain_name").ok_or("chain_name config variable is required")?;
-        let service_handler_str = host::config_var("service_handler")
-            .ok_or("service_handler config variable is required")?;
+        // Fetch and parse comma-separated chain names
+        let chains_str =
+            host::config_var("chain_names").ok_or("chain_names config variable is required")?;
 
-        let address: alloy_primitives::Address = service_handler_str
-            .parse()
-            .map_err(|e| format!("Failed to parse service handler address: {e}"))?;
+        let chain_names: Vec<String> = chains_str
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .collect();
 
-        let submit_action = SubmitAction {
-            chain_name,
-            contract_address: EvmAddress {
-                raw_bytes: address.to_vec(),
-            },
-        };
+        if chain_names.is_empty() {
+            return Err("chain_names config is empty".to_string());
+        }
 
-        Ok(vec![AggregatorAction::Submit(submit_action)])
+        let mut actions = Vec::new();
+
+        for chain_name in chain_names {
+            // Construct key like "evm_service_handler_ethereum"
+            let handler_key = format!("evm_service_handler_{}", chain_name);
+
+            let service_handler_str = host::config_var(&handler_key)
+                .ok_or(format!("Missing config value for key '{}'", handler_key))?;
+
+            let address: alloy_primitives::Address = service_handler_str
+                .parse()
+                .map_err(|e| format!("Failed to parse address for '{}': {e}", chain_name))?;
+
+            let submit_action = SubmitAction {
+                chain_name: chain_name.clone(),
+                contract_address: EvmAddress {
+                    raw_bytes: address.to_vec(),
+                },
+            };
+
+            actions.push(AggregatorAction::Submit(submit_action));
+        }
+
+        Ok(actions)
     }
 
     fn handle_timer_callback(_packet: Packet) -> Result<Vec<AggregatorAction>, String> {
