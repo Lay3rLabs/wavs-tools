@@ -4,7 +4,8 @@ tasks:
   get-component-digest:
     desc: "Get component digest from build artifacts"
     vars:
-      COMPONENT_WASM_PATH: '{{joinPath .COMPONENTS_CARGO_RELEASE_DIR (printf "%s.wasm" .COMPONENT_NAME)}}'
+      COMPONENT: "{{.COMPONENT | default .COMPONENT_NAME}}" # https://github.com/go-task/task/issues/888#issuecomment-1371651627
+      COMPONENT_WASM_PATH: '{{joinPath .COMPONENTS_CARGO_RELEASE_DIR (printf "%s.wasm" .COMPONENT)}}'
     requires:
       vars: [COMPONENTS_CARGO_RELEASE_DIR, COMPONENT_NAME]
     cmds:
@@ -100,8 +101,3 @@ tasks:
       vars: [REPO_ROOT]
     cmds:
       - echo "{{.OPERATOR_PRIVATE_KEY}}"
-
-
-
-
-

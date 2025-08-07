@@ -13,21 +13,23 @@ struct Component;
 impl Guest for Component {
     fn process_packet(_pkt: Packet) -> Result<Vec<AggregatorAction>, String> {
         // Fetch and parse comma-separated chain names
-        let chains_str =
-            host::config_var("chain_names").ok_or("chain_names config variable is required")?;
+        let chains_str = host::config_var("evm_chain_names")
+            .ok_or("evm_chain_names config variable is required")?;
 
-        let chain_names: Vec<String> = chains_str
-            .split(',')
-            .map(|s| s.trim().to_string())
+        let evm_chain_names: Vec<String> = chains_str
+            .split('|')
+            .map(|s| s.trim())
+            .filter(|s| !s.is_empty())
+            .map(|s| s.to_string())
             .collect();
 
-        if chain_names.is_empty() {
-            return Err("chain_names config is empty".to_string());
+        if evm_chain_names.is_empty() {
+            return Err("evm_chain_names config is empty".to_string());
         }
 
         let mut actions = Vec::new();
 
-        for chain_name in chain_names {
+        for chain_name in evm_chain_names {
             // Construct key like "evm_service_handler_ethereum"
             let handler_key = format!("evm_service_handler_{}", chain_name);
 

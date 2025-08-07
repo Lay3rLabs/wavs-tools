@@ -13,3 +13,38 @@ tasks:
     cmds:
       - |
         jq -r '.addresses.operatorSyncHandler' "{{.MIRROR_PATH}}"
+
+  get-evm-chain-names:
+    desc: "Get pipe-separated chain names for active chains (excluding source chain)"
+    cmds:
+      - |
+        CHAIN_NAMES=""
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            CHAIN_NAME=$(cd "{{.REPO_ROOT}}" && task backend:get-chain-name-$i)
+            if [ -n "$CHAIN_NAMES" ]; then
+              CHAIN_NAMES="${CHAIN_NAMES}|${CHAIN_NAME}"
+            else
+              CHAIN_NAMES="$CHAIN_NAME"
+            fi
+          fi
+        done
+        echo "$CHAIN_NAMES"
+
+  get-evm-service-handlers:
+    desc: "Get comma-separated service handler addresses for active chains (excluding source chain)"
+    cmds:
+      - |
+        SERVICE_HANDLERS=""
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            CHAIN_NAME=$(cd "{{.REPO_ROOT}}" && task backend:get-chain-name-$i)
+            SUBMISSION_ADDRESS=$(task get-submission-address-$i)
+            if [ -n "$SERVICE_HANDLERS" ]; then
+              SERVICE_HANDLERS="${SERVICE_HANDLERS},evm_service_handler_${CHAIN_NAME}=${SUBMISSION_ADDRESS}"
+            else
+              SERVICE_HANDLERS="evm_service_handler_${CHAIN_NAME}=${SUBMISSION_ADDRESS}"
+            fi
+          fi
+        done
+        echo "$SERVICE_HANDLERS"

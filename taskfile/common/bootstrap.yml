@@ -42,7 +42,7 @@ tasks:
       vars: [PROJECT, COMPONENT_NAME, REPO_ROOT, AGGREGATOR_COMPONENT_NAME]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
-      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload-aggregator PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
     desc: "Deploys the middleware (mock or real based on USES_MOCK setting)"
@@ -250,6 +250,28 @@ tasks:
       SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+
+  get-aggregator-config:
+    desc: "Get the aggregators config"
+    requires:
+      vars: [AGGREGATOR_PROJECT]
+    vars:
+      EVM_CHAIN_NAMES:
+        sh: task get-evm-chain-names
+      EVM_SERVICE_HANDLERS:
+        sh: task get-evm-service-handlers
+    cmds:
+      - |
+        case "{{.AGGREGATOR_PROJECT}}" in
+          "aggregator-simple")
+            # Output the config vars in the expected format
+            echo "evm_chain_names={{.EVM_CHAIN_NAMES}},{{.EVM_SERVICE_HANDLERS}}"
+            ;;
+          *)
+            echo "Error: Unsupported aggregator project '{{.AGGREGATOR_PROJECT}}'. Only 'aggregator-simple' is supported." >&2
+            exit 1
+            ;;
+        esac
 
   wavs-*:
     vars:

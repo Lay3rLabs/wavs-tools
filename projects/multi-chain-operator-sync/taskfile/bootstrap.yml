@@ -21,6 +21,10 @@ tasks:
         sh: task get-service-manager-address
       STAKE_REGISTRY_ADDRESS:
         sh: task get-stake-registry-address
+      AGGREGATOR_COMPONENT_DIGEST:
+        sh: task get-component-digest COMPONENT="{{.AGGREGATOR_COMPONENT_NAME}}"
+      AGGREGATOR_COMPONENT_CONFIG:
+        sh: task bootstrap:get-aggregator-config AGGREGATOR_PROJECT="{{.AGGREGATOR_PROJECT}}"
     cmds:
       - task: build-register-workflow
         vars:
@@ -28,12 +32,16 @@ tasks:
           SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
           COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_DIGEST: "{{.AGGREGATOR_COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
       - task: build-deregister-workflow
         vars:
           SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
           SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
           COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_DIGEST: "{{.AGGREGATOR_COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
       - task: build-update-workflow
         vars:
           SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
@@ -41,6 +49,8 @@ tasks:
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
           COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
           SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+          AGGREGATOR_COMPONENT_DIGEST: "{{.AGGREGATOR_COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
 
   build-register-workflow:
     desc: "Configure and register a workflow"
@@ -51,6 +61,8 @@ tasks:
           SOURCE_CHAIN,
           STAKE_REGISTRY_ADDRESS,
           COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_CONFIG,
         ]
     vars:
       OPERATOR_REGISTERED_EVENT_HASH:
@@ -62,15 +74,10 @@ tasks:
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
-      - |
-        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-          fi
-        done
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config --values {{.AGGREGATOR_COMPONENT_CONFIG}}
 
-      - |
-        cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
 
@@ -85,6 +92,8 @@ tasks:
           SOURCE_CHAIN,
           STAKE_REGISTRY_ADDRESS,
           COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_CONFIG,
         ]
     vars:
       OPERATOR_DEREGISTERED_EVENT_HASH:
@@ -96,15 +105,10 @@ tasks:
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
 
-      - |
-        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-          fi
-        done
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config --values {{.AGGREGATOR_COMPONENT_CONFIG}}
 
-      - |
-        cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
 
@@ -120,6 +124,8 @@ tasks:
           STAKE_REGISTRY_ADDRESS,
           COMPONENT_DIGEST,
           SERVICE_MANAGER_ADDRESS,
+          AGGREGATOR_COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_CONFIG,
         ]
     vars:
       WORKFLOW_ID:
@@ -129,38 +135,13 @@ tasks:
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-block-interval --chain-name {{.SOURCE_CHAIN}} --n-blocks {{.UPDATE_INTERVAL_BLOCKS}}
 
-      - |
-        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-          fi
-        done
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config --values {{.AGGREGATOR_COMPONENT_CONFIG}}
 
-      - |
-        cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} config --values "service_manager_address={{.SERVICE_MANAGER_ADDRESS}}"
 
         echo "Workflow registered"
-
-  build-submit-*:
-    desc: "Submit workflow for a specific chain"
-    requires:
-      vars: [SERVICE_JSON_CMD, WORKFLOW_ID]
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_NAME:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.CHAIN_NUMBER}}
-      SUBMISSION_ADDRESS:
-        sh: task get-submission-address-{{.CHAIN_NUMBER}}
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-
-        if [ "{{.CHAIN_NUMBER}}" -eq 2 ]; then
-          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
-        else
-          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
-        fi

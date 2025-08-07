@@ -17,6 +17,10 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
       COMPONENT_DIGEST:
         sh: task get-component-digest
+      AGGREGATOR_COMPONENT_DIGEST:
+        sh: task get-component-digest COMPONENT="{{.AGGREGATOR_COMPONENT_NAME}}"
+      AGGREGATOR_COMPONENT_CONFIG:
+        sh: task bootstrap:get-aggregator-config AGGREGATOR_PROJECT="{{.AGGREGATOR_PROJECT}}"
       SERVICE_MANAGER_ADDRESS:
         sh: task get-service-manager-address
       QUORUM_THRESHOLD_UPDATED_EVENT_HASH:
@@ -28,36 +32,11 @@ tasks:
         cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} --event-hash {{.QUORUM_THRESHOLD_UPDATED_EVENT_HASH}}
 
-      - |
-        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            task bootstrap:build-submit-$i SERVICE_JSON_CMD="{{.SERVICE_JSON_CMD}}" WORKFLOW_ID="{{.WORKFLOW_ID}}"
-          fi
-        done
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config --values {{.AGGREGATOR_COMPONENT_CONFIG}}
 
-      - |
-        cd "{{.REPO_ROOT}}"
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
 
         echo "Workflow registered"
-
-  build-submit-*:
-    desc: "Submit workflow for a specific chain"
-    requires:
-      vars: [SERVICE_JSON_CMD, WORKFLOW_ID]
-    vars:
-      CHAIN_NUMBER: "{{index .MATCH 0}}"
-      CHAIN_NAME:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.CHAIN_NUMBER}}
-      SUBMISSION_ADDRESS:
-        sh: task get-submission-address-{{.CHAIN_NUMBER}}
-    cmds:
-      - |
-        cd "{{.REPO_ROOT}}"
-
-        if [ "{{.CHAIN_NUMBER}}" -eq 2 ]; then
-          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
-        else
-          task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} add-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address "{{.SUBMISSION_ADDRESS}}" --chain-name "{{.CHAIN_NAME}}"
-        fi
