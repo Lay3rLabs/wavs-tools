@@ -110,7 +110,7 @@ impl Guest for Component {
                             ordering: None,
                         }))
                     } else {
-                        return Err(format!("Could not decode the event {log:?}"));
+                        Err(format!("Could not decode the event {log:?}"))
                     }
                 })
             }
