@@ -31,14 +31,14 @@ impl Guest for Component {
 
         for chain_name in evm_chain_names {
             // Construct key like "evm_service_handler_ethereum"
-            let handler_key = format!("evm_service_handler_{}", chain_name);
+            let handler_key = format!("evm_service_handler_{chain_name}");
 
             let service_handler_str = host::config_var(&handler_key)
-                .ok_or(format!("Missing config value for key '{}'", handler_key))?;
+                .ok_or(format!("Missing config value for key '{handler_key}'"))?;
 
             let address: alloy_primitives::Address = service_handler_str
                 .parse()
-                .map_err(|e| format!("Failed to parse address for '{}': {e}", chain_name))?;
+                .map_err(|e| format!("Failed to parse address for '{chain_name}': {e}"))?;
 
             let submit_action = SubmitAction {
                 chain_name: chain_name.clone(),
