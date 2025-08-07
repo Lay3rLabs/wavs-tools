@@ -240,13 +240,14 @@ tasks:
 
   deploy-service-*:
     vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
       SOURCE_WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.SOURCE_CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.FIRST_OPERATOR}}
       SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
@@ -292,6 +293,6 @@ tasks:
       - |
         for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
           if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
-            task bootstrap:wavs-$OPERATOR
+            task bootstrap:wavs-$OPERATOR FIRST_OPERATOR="{{.FIRST_OPERATOR}}"
           fi
         done
