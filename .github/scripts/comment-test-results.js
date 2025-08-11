@@ -143,6 +143,10 @@ function extractDetails(report) {
     recurseSuites(report.results, suite => {
       if (suite.tests) {
         suite.tests.forEach(test => {
+          // Skip hooks - they have null state by design and shouldn't appear in details
+          if (test.isHook) {
+            return;
+          }
           details += `### ${renderIcon(test.state)} ${test.fullTitle}\n`;
           details += `- **State:** ${test.state}\n`;
           if (test.err && test.err.message) {
