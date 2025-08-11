@@ -4,7 +4,7 @@ mod bindings;
 
 use crate::bindings::{
     export, host,
-    wavs::aggregator::aggregator::{ChainName, EvmAddress, SubmitAction},
+    wavs::aggregator::aggregator::{EvmAddress, SubmitAction},
     AggregatorAction, AnyTxHash, Guest, Packet,
 };
 
@@ -16,8 +16,11 @@ impl Guest for Component {
         let chains_str =
             host::config_var("chain_names").ok_or("chain_names config variable is required")?;
 
-        let chain_names: Vec<ChainName> = serde_json::from_str(&chains_str)
-            .map_err(|e| format!("Could not parse chain names: {e}"))?;
+        let chain_names: Vec<&str> = chains_str
+            .split(',')
+            .map(str::trim)
+            .filter(|s| !s.is_empty())
+            .collect();
 
         if chain_names.is_empty() {
             return Err("chain_names config is empty".to_string());
@@ -26,7 +29,7 @@ impl Guest for Component {
         let mut actions = Vec::new();
 
         for chain_name in chain_names {
-            if host::get_evm_chain_config(&chain_name).is_some() {
+            if host::get_evm_chain_config(chain_name).is_some() {
                 // Construct key like "service_handler_ethereum"
                 let handler_key = format!("service_handler_{chain_name}");
 
@@ -38,14 +41,14 @@ impl Guest for Component {
                     .map_err(|e| format!("Failed to parse address for '{chain_name}': {e}"))?;
 
                 let submit_action = SubmitAction {
-                    chain_name: chain_name.clone(),
+                    chain_name: chain_name.to_string(),
                     contract_address: EvmAddress {
                         raw_bytes: address.to_vec(),
                     },
                 };
 
                 actions.push(AggregatorAction::Submit(submit_action));
-            } else if host::get_cosmos_chain_config(&chain_name).is_some() {
+            } else if host::get_cosmos_chain_config(chain_name).is_some() {
                 todo!("Cosmos support coming soon...")
             } else {
                 return Err(format!("Could not get chain config for chain {chain_name}"));

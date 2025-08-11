@@ -252,21 +252,21 @@ tasks:
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
-  get-aggregator-config:
-    desc: "Get the aggregators config"
+  get-aggregator-config-values:
+    desc: "Get the aggregators config values"
     requires:
       vars: [AGGREGATOR_PROJECT]
     vars:
       EVM_CHAIN_NAMES:
-        sh: task get-evm-chain-names
+        sh: task get-evm-chain-names-flag
       EVM_SERVICE_HANDLERS:
-        sh: task get-evm-service-handlers
+        sh: task get-evm-service-handler-flags
     cmds:
       - |
         case "{{.AGGREGATOR_PROJECT}}" in
           "aggregator-simple")
             # Output the config vars in the expected format
-            echo "evm_chain_names={{.EVM_CHAIN_NAMES}},{{.EVM_SERVICE_HANDLERS}}"
+            echo "{{.EVM_CHAIN_NAMES}} {{.EVM_SERVICE_HANDLERS}}"
             ;;
           *)
             echo "Error: Unsupported aggregator project '{{.AGGREGATOR_PROJECT}}'. Only 'aggregator-simple' is supported." >&2

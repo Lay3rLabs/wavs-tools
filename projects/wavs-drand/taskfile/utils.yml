@@ -19,20 +19,20 @@ tasks:
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
         "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.CHAIN_ID}}/run-latest.json"
 
-  get-evm-chain-names:
-    desc: "Get the chain name config"
+  get-evm-chain-names-flag:
+    desc: "Get --values chain_names flag with chain name"
     vars:
       CHAIN_NAME:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
     cmds:
-      - echo "{{.CHAIN_NAME}}"
+      - echo "--values chain_names={{.CHAIN_NAME}}"
 
-  get-evm-service-handlers:
-    desc: "Get comma-separated service handler addresses"
+  get-evm-service-handler-flags:
+    desc: "Get --values service handler addresses"
     vars:
       CHAIN_NAME:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
     cmds:
-      - echo "evm_service_handler_{{.CHAIN_NAME}}={{.SUBMISSION_ADDRESS}}"
+      - echo "--values service_handler_{{.CHAIN_NAME}}={{.SUBMISSION_ADDRESS}}"
