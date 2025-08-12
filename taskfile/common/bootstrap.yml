@@ -258,7 +258,7 @@ tasks:
       vars: [AGGREGATOR_PROJECT]
     vars:
       EVM_CHAIN_NAMES:
-        sh: task get-evm-chain-names-flag
+        sh: task get-evm-chain-names-flag | sed 's/"/\\\\\"/g'
       EVM_SERVICE_HANDLERS:
         sh: task get-evm-service-handler-flags
     cmds:

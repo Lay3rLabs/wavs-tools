@@ -15,20 +15,23 @@ tasks:
         jq -r '.addresses.quorumSyncHandler' "{{.MIRROR_PATH}}"
 
   get-evm-chain-names-flag:
-    desc: "Get --values chain_names flag with comma-delimited chain names for active chains (excluding source chain)"
+    desc: "Get --values chain_names flag with JSON array of chain names for active chains (excluding source chain)"
     cmds:
       - |
-        CHAIN_NAMES=""
+        CHAIN_NAMES="["
+        FIRST_CHAIN=true
         for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
             CHAIN_NAME=$(cd "{{.REPO_ROOT}}" && task backend:get-chain-name-$i)
-            if [ -n "$CHAIN_NAMES" ]; then
-              CHAIN_NAMES="${CHAIN_NAMES},${CHAIN_NAME}"
+            if [ "$FIRST_CHAIN" = true ]; then
+              FIRST_CHAIN=false
             else
-              CHAIN_NAMES="$CHAIN_NAME"
+              CHAIN_NAMES="${CHAIN_NAMES},"
             fi
+            CHAIN_NAMES="${CHAIN_NAMES}\\\"${CHAIN_NAME}\\\""
           fi
         done
+        CHAIN_NAMES="${CHAIN_NAMES}]"
         echo "--values chain_names=$CHAIN_NAMES"
 
   get-evm-service-handler-flags:

@@ -23,6 +23,7 @@ version = "0.6.0-alpha.1"
 dependencies = [
  "alloy-primitives",
  "serde",
+ "serde_json",
  "wit-bindgen-rt 0.43.0",
 ]
 

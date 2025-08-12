@@ -12,16 +12,11 @@ struct Component;
 
 impl Guest for Component {
     fn process_packet(_pkt: Packet) -> Result<Vec<AggregatorAction>, String> {
-        // Fetch and parse comma-separated chain names
         let chains_str =
             host::config_var("chain_names").ok_or("chain_names config variable is required")?;
 
-        let chain_names: Vec<&str> = chains_str
-            .split(',')
-            .map(str::trim)
-            .filter(|s| !s.is_empty())
-            .collect();
-
+        let chain_names: Vec<&str> = serde_json::from_str(&chains_str)
+            .map_err(|e| format!("Could not parse chain names: {e}"))?;
         if chain_names.is_empty() {
             return Err("chain_names config is empty".to_string());
         }
