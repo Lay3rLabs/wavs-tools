@@ -40,8 +40,14 @@ jobs:
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Cache Target
+        uses: actions/cache@v4
+        with:
+          path: |
+            target/
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
 
       - name: Install Foundry
         if: steps.cache-forge.outputs.cache-hit != 'true'
