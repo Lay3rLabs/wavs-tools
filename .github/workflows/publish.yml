@@ -118,4 +118,4 @@ jobs:
           EOF
 
       - name: Publish components
-        run: task publish VERSION="${GITHUB_REF_NAME#v}" FLAGS="--values wkg-config.toml"
+        run: task publish VERSION="${GITHUB_REF_NAME#v}" FLAGS="--config wkg-config.toml"
