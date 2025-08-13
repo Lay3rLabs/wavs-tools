@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [package.metadata.component]
 package = "component:aggregator-simple"
-target = "wavs:aggregator@0.6.0-alpha.5"
+target = "wavs:aggregator@0.6.0-alpha.7"
 
 [dependencies]
 alloy-primitives = { workspace = true }

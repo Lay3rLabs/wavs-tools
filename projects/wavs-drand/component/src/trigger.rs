@@ -3,7 +3,7 @@ use anyhow::{anyhow, Result};
 use wavs_wasi_utils::decode_event_log_data;
 
 use crate::bindings::host::{get_cosmos_chain_config, get_evm_chain_config};
-use crate::bindings::wavs::worker::input::{TriggerData, TriggerDataEvmContractEvent};
+use crate::bindings::wavs::operator::input::{TriggerData, TriggerDataEvmContractEvent};
 use crate::bindings::TriggerAction;
 use crate::config::Config;
 use crate::utils::{get_evm_block, vec_into_fixed_bytes};
