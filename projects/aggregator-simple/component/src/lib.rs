@@ -4,7 +4,10 @@ mod bindings;
 
 use crate::bindings::{
     export, host,
-    wavs::aggregator::aggregator::{EvmAddress, SubmitAction},
+    wavs::{
+        aggregator::aggregator::{EvmAddress, SubmitAction},
+        types::service::Submit,
+    },
     AggregatorAction, AnyTxHash, Guest, Packet,
 };
 
@@ -12,15 +15,20 @@ struct Component;
 
 impl Guest for Component {
     fn process_packet(_pkt: Packet) -> Result<Vec<AggregatorAction>, String> {
-        let workflow_config = host::get_workflow().workflow.component.config;
-        
-        if workflow_config.is_empty() {
-            return Err("Workflow component config is empty".to_string());
+        let workflow = host::get_workflow().workflow;
+
+        let submit_config = match workflow.submit {
+            Submit::None => unreachable!(),
+            Submit::Aggregator(aggregator_submit) => aggregator_submit.component.config,
+        };
+
+        if submit_config.is_empty() {
+            return Err("Workflow submit component config is empty".to_string());
         }
 
         let mut actions = Vec::new();
 
-        for (chain_name, service_handler_address) in workflow_config {
+        for (chain_name, service_handler_address) in submit_config {
             if host::get_evm_chain_config(&chain_name).is_some() {
                 let address: alloy_primitives::Address = service_handler_address
                     .parse()
