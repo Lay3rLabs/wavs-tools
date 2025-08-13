@@ -21,7 +21,7 @@ rust-version = "1.80.0"
 wit-bindgen-rt = { version = "0.43.0", features = ["bitflags"] }
 wstd = "0.5.3"
 wasi = "0.14.2"
-wavs-wasi-utils = "0.6.0-alpha.7"
+wavs-wasi-utils = "0.6.0-alpha.8"
 
 # Other
 serde = { version = "1.0.219", features = ["derive"] }

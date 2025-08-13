@@ -20372,6 +20372,38 @@ pub mod wavs {
                         .finish()
                 }
             }
+            #[derive(Clone)]
+            pub struct ServiceAndWorkflowId {
+                pub service: Service,
+                pub workflow_id: WorkflowId,
+            }
+            impl ::core::fmt::Debug for ServiceAndWorkflowId {
+                fn fmt(
+                    &self,
+                    f: &mut ::core::fmt::Formatter<'_>,
+                ) -> ::core::fmt::Result {
+                    f.debug_struct("ServiceAndWorkflowId")
+                        .field("service", &self.service)
+                        .field("workflow-id", &self.workflow_id)
+                        .finish()
+                }
+            }
+            #[derive(Clone)]
+            pub struct WorkflowAndWorkflowId {
+                pub workflow: Workflow,
+                pub workflow_id: WorkflowId,
+            }
+            impl ::core::fmt::Debug for WorkflowAndWorkflowId {
+                fn fmt(
+                    &self,
+                    f: &mut ::core::fmt::Formatter<'_>,
+                ) -> ::core::fmt::Result {
+                    f.debug_struct("WorkflowAndWorkflowId")
+                        .field("workflow", &self.workflow)
+                        .field("workflow-id", &self.workflow_id)
+                        .finish()
+                }
+            }
         }
     }
 }
@@ -20384,6 +20416,8 @@ pub mod host {
     pub type EvmChainConfig = super::wavs::types::chain::EvmChainConfig;
     pub type CosmosChainConfig = super::wavs::types::chain::CosmosChainConfig;
     pub type LogLevel = super::wavs::types::core::LogLevel;
+    pub type ServiceAndWorkflowId = super::wavs::types::service::ServiceAndWorkflowId;
+    pub type WorkflowAndWorkflowId = super::wavs::types::service::WorkflowAndWorkflowId;
     #[allow(unused_unsafe, clippy::all)]
     pub fn get_evm_chain_config(chain_name: &str) -> Option<EvmChainConfig> {
         unsafe {
@@ -20719,6 +20753,1903 @@ pub mod host {
             unsafe { wit_import3(result1, ptr2.cast_mut(), len2) };
         }
     }
+    #[allow(unused_unsafe, clippy::all)]
+    /// gets the service and workflow id that called this component
+    pub fn get_service() -> ServiceAndWorkflowId {
+        unsafe {
+            #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
+            #[cfg_attr(target_pointer_width = "32", repr(align(4)))]
+            struct RetArea(
+                [::core::mem::MaybeUninit<u8>; 12 * ::core::mem::size_of::<*const u8>()],
+            );
+            let mut ret_area = RetArea(
+                [::core::mem::MaybeUninit::uninit(); 12
+                    * ::core::mem::size_of::<*const u8>()],
+            );
+            let ptr0 = ret_area.0.as_mut_ptr().cast::<u8>();
+            #[cfg(target_arch = "wasm32")]
+            #[link(wasm_import_module = "host")]
+            unsafe extern "C" {
+                #[link_name = "get-service"]
+                fn wit_import1(_: *mut u8);
+            }
+            #[cfg(not(target_arch = "wasm32"))]
+            unsafe extern "C" fn wit_import1(_: *mut u8) {
+                unreachable!()
+            }
+            unsafe { wit_import1(ptr0) };
+            let l2 = *ptr0.add(0).cast::<*mut u8>();
+            let l3 = *ptr0.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let len4 = l3;
+            let bytes4 = _rt::Vec::from_raw_parts(l2.cast(), len4, len4);
+            let l5 = *ptr0
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l6 = *ptr0.add(3 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let base157 = l5;
+            let len157 = l6;
+            let mut result157 = _rt::Vec::with_capacity(len157);
+            for i in 0..len157 {
+                let base = base157
+                    .add(i * (136 + 42 * ::core::mem::size_of::<*const u8>()));
+                let e157 = {
+                    let l7 = *base.add(0).cast::<*mut u8>();
+                    let l8 = *base
+                        .add(::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let len9 = l8;
+                    let bytes9 = _rt::Vec::from_raw_parts(l7.cast(), len9, len9);
+                    let l10 = i32::from(
+                        *base.add(2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                    );
+                    use super::wavs::types::service::Trigger as V45;
+                    let v45 = match l10 {
+                        0 => {
+                            let e45 = {
+                                let l11 = *base
+                                    .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l12 = *base
+                                    .add(8 + 3 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len13 = l12;
+                                let l14 = *base
+                                    .add(8 + 4 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l15 = *base
+                                    .add(8 + 5 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len16 = l15;
+                                let bytes16 = _rt::Vec::from_raw_parts(
+                                    l14.cast(),
+                                    len16,
+                                    len16,
+                                );
+                                let l17 = *base
+                                    .add(8 + 6 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l18 = *base
+                                    .add(8 + 7 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len19 = l18;
+                                super::wavs::types::service::TriggerEvmContractEvent {
+                                    address: super::wavs::types::chain::EvmAddress {
+                                        raw_bytes: _rt::Vec::from_raw_parts(
+                                            l11.cast(),
+                                            len13,
+                                            len13,
+                                        ),
+                                    },
+                                    chain_name: _rt::string_lift(bytes16),
+                                    event_hash: _rt::Vec::from_raw_parts(
+                                        l17.cast(),
+                                        len19,
+                                        len19,
+                                    ),
+                                }
+                            };
+                            V45::EvmContractEvent(e45)
+                        }
+                        1 => {
+                            let e45 = {
+                                let l20 = *base
+                                    .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l21 = *base
+                                    .add(8 + 3 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len22 = l21;
+                                let bytes22 = _rt::Vec::from_raw_parts(
+                                    l20.cast(),
+                                    len22,
+                                    len22,
+                                );
+                                let l23 = *base
+                                    .add(8 + 4 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<i32>();
+                                let l24 = *base
+                                    .add(8 + 5 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l25 = *base
+                                    .add(8 + 6 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len26 = l25;
+                                let bytes26 = _rt::Vec::from_raw_parts(
+                                    l24.cast(),
+                                    len26,
+                                    len26,
+                                );
+                                let l27 = *base
+                                    .add(8 + 7 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l28 = *base
+                                    .add(8 + 8 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len29 = l28;
+                                let bytes29 = _rt::Vec::from_raw_parts(
+                                    l27.cast(),
+                                    len29,
+                                    len29,
+                                );
+                                super::wavs::types::service::TriggerCosmosContractEvent {
+                                    address: super::wavs::types::chain::CosmosAddress {
+                                        bech32_addr: _rt::string_lift(bytes22),
+                                        prefix_len: l23 as u32,
+                                    },
+                                    chain_name: _rt::string_lift(bytes26),
+                                    event_type: _rt::string_lift(bytes29),
+                                }
+                            };
+                            V45::CosmosContractEvent(e45)
+                        }
+                        2 => {
+                            let e45 = {
+                                let l30 = *base
+                                    .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l31 = *base
+                                    .add(8 + 3 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len32 = l31;
+                                let bytes32 = _rt::Vec::from_raw_parts(
+                                    l30.cast(),
+                                    len32,
+                                    len32,
+                                );
+                                let l33 = *base
+                                    .add(8 + 4 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<i32>();
+                                let l34 = i32::from(
+                                    *base
+                                        .add(16 + 4 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l36 = i32::from(
+                                    *base
+                                        .add(32 + 4 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                super::wavs::types::service::TriggerBlockInterval {
+                                    chain_name: _rt::string_lift(bytes32),
+                                    n_blocks: l33 as u32,
+                                    start_block: match l34 {
+                                        0 => None,
+                                        1 => {
+                                            let e = {
+                                                let l35 = *base
+                                                    .add(24 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<i64>();
+                                                l35 as u64
+                                            };
+                                            Some(e)
+                                        }
+                                        _ => _rt::invalid_enum_discriminant(),
+                                    },
+                                    end_block: match l36 {
+                                        0 => None,
+                                        1 => {
+                                            let e = {
+                                                let l37 = *base
+                                                    .add(40 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<i64>();
+                                                l37 as u64
+                                            };
+                                            Some(e)
+                                        }
+                                        _ => _rt::invalid_enum_discriminant(),
+                                    },
+                                }
+                            };
+                            V45::BlockInterval(e45)
+                        }
+                        3 => {
+                            let e45 = {
+                                let l38 = *base
+                                    .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l39 = *base
+                                    .add(8 + 3 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len40 = l39;
+                                let bytes40 = _rt::Vec::from_raw_parts(
+                                    l38.cast(),
+                                    len40,
+                                    len40,
+                                );
+                                let l41 = i32::from(
+                                    *base
+                                        .add(8 + 4 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l43 = i32::from(
+                                    *base
+                                        .add(24 + 4 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                super::wavs::types::service::TriggerCron {
+                                    schedule: _rt::string_lift(bytes40),
+                                    start_time: match l41 {
+                                        0 => None,
+                                        1 => {
+                                            let e = {
+                                                let l42 = *base
+                                                    .add(16 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<i64>();
+                                                super::wavs::types::core::Timestamp {
+                                                    nanos: l42 as u64,
+                                                }
+                                            };
+                                            Some(e)
+                                        }
+                                        _ => _rt::invalid_enum_discriminant(),
+                                    },
+                                    end_time: match l43 {
+                                        0 => None,
+                                        1 => {
+                                            let e = {
+                                                let l44 = *base
+                                                    .add(32 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<i64>();
+                                                super::wavs::types::core::Timestamp {
+                                                    nanos: l44 as u64,
+                                                }
+                                            };
+                                            Some(e)
+                                        }
+                                        _ => _rt::invalid_enum_discriminant(),
+                                    },
+                                }
+                            };
+                            V45::Cron(e45)
+                        }
+                        n => {
+                            debug_assert_eq!(n, 4, "invalid enum discriminant");
+                            V45::Manual
+                        }
+                    };
+                    let l46 = i32::from(
+                        *base
+                            .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
+                    );
+                    use super::wavs::types::service::ComponentSource as V70;
+                    let v70 = match l46 {
+                        0 => {
+                            let e70 = {
+                                let l47 = *base
+                                    .add(48 + 5 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l48 = *base
+                                    .add(48 + 6 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len49 = l48;
+                                let bytes49 = _rt::Vec::from_raw_parts(
+                                    l47.cast(),
+                                    len49,
+                                    len49,
+                                );
+                                let l50 = *base
+                                    .add(48 + 7 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l51 = *base
+                                    .add(48 + 8 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len52 = l51;
+                                let bytes52 = _rt::Vec::from_raw_parts(
+                                    l50.cast(),
+                                    len52,
+                                    len52,
+                                );
+                                super::wavs::types::service::ComponentSourceDownload {
+                                    url: _rt::string_lift(bytes49),
+                                    digest: _rt::string_lift(bytes52),
+                                }
+                            };
+                            V70::Download(e70)
+                        }
+                        1 => {
+                            let e70 = {
+                                let l53 = *base
+                                    .add(48 + 5 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l54 = *base
+                                    .add(48 + 6 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len55 = l54;
+                                let bytes55 = _rt::Vec::from_raw_parts(
+                                    l53.cast(),
+                                    len55,
+                                    len55,
+                                );
+                                let l56 = i32::from(
+                                    *base
+                                        .add(48 + 7 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l60 = i32::from(
+                                    *base
+                                        .add(48 + 10 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l64 = *base
+                                    .add(48 + 13 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l65 = *base
+                                    .add(48 + 14 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len66 = l65;
+                                let bytes66 = _rt::Vec::from_raw_parts(
+                                    l64.cast(),
+                                    len66,
+                                    len66,
+                                );
+                                super::wavs::types::service::Registry {
+                                    digest: _rt::string_lift(bytes55),
+                                    domain: match l56 {
+                                        0 => None,
+                                        1 => {
+                                            let e = {
+                                                let l57 = *base
+                                                    .add(48 + 8 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<*mut u8>();
+                                                let l58 = *base
+                                                    .add(48 + 9 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<usize>();
+                                                let len59 = l58;
+                                                let bytes59 = _rt::Vec::from_raw_parts(
+                                                    l57.cast(),
+                                                    len59,
+                                                    len59,
+                                                );
+                                                _rt::string_lift(bytes59)
+                                            };
+                                            Some(e)
+                                        }
+                                        _ => _rt::invalid_enum_discriminant(),
+                                    },
+                                    version: match l60 {
+                                        0 => None,
+                                        1 => {
+                                            let e = {
+                                                let l61 = *base
+                                                    .add(48 + 11 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<*mut u8>();
+                                                let l62 = *base
+                                                    .add(48 + 12 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<usize>();
+                                                let len63 = l62;
+                                                let bytes63 = _rt::Vec::from_raw_parts(
+                                                    l61.cast(),
+                                                    len63,
+                                                    len63,
+                                                );
+                                                _rt::string_lift(bytes63)
+                                            };
+                                            Some(e)
+                                        }
+                                        _ => _rt::invalid_enum_discriminant(),
+                                    },
+                                    pkg: _rt::string_lift(bytes66),
+                                }
+                            };
+                            V70::Registry(e70)
+                        }
+                        n => {
+                            debug_assert_eq!(n, 2, "invalid enum discriminant");
+                            let e70 = {
+                                let l67 = *base
+                                    .add(48 + 5 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l68 = *base
+                                    .add(48 + 6 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len69 = l68;
+                                let bytes69 = _rt::Vec::from_raw_parts(
+                                    l67.cast(),
+                                    len69,
+                                    len69,
+                                );
+                                _rt::string_lift(bytes69)
+                            };
+                            V70::Digest(e70)
+                        }
+                    };
+                    let l71 = i32::from(
+                        *base
+                            .add(48 + 15 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
+                    );
+                    use super::wavs::types::service::AllowedHostPermission as V78;
+                    let v78 = match l71 {
+                        0 => V78::All,
+                        1 => {
+                            let e78 = {
+                                let l72 = *base
+                                    .add(48 + 16 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l73 = *base
+                                    .add(48 + 17 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let base77 = l72;
+                                let len77 = l73;
+                                let mut result77 = _rt::Vec::with_capacity(len77);
+                                for i in 0..len77 {
+                                    let base = base77
+                                        .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                    let e77 = {
+                                        let l74 = *base.add(0).cast::<*mut u8>();
+                                        let l75 = *base
+                                            .add(::core::mem::size_of::<*const u8>())
+                                            .cast::<usize>();
+                                        let len76 = l75;
+                                        let bytes76 = _rt::Vec::from_raw_parts(
+                                            l74.cast(),
+                                            len76,
+                                            len76,
+                                        );
+                                        _rt::string_lift(bytes76)
+                                    };
+                                    result77.push(e77);
+                                }
+                                _rt::cabi_dealloc(
+                                    base77,
+                                    len77 * (2 * ::core::mem::size_of::<*const u8>()),
+                                    ::core::mem::size_of::<*const u8>(),
+                                );
+                                result77
+                            };
+                            V78::Only(e78)
+                        }
+                        n => {
+                            debug_assert_eq!(n, 2, "invalid enum discriminant");
+                            V78::None
+                        }
+                    };
+                    let l79 = i32::from(
+                        *base
+                            .add(48 + 18 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
+                    );
+                    let l80 = i32::from(
+                        *base
+                            .add(56 + 18 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
+                    );
+                    let l82 = i32::from(
+                        *base
+                            .add(72 + 18 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
+                    );
+                    let l84 = *base
+                        .add(88 + 18 * ::core::mem::size_of::<*const u8>())
+                        .cast::<*mut u8>();
+                    let l85 = *base
+                        .add(88 + 19 * ::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let base92 = l84;
+                    let len92 = l85;
+                    let mut result92 = _rt::Vec::with_capacity(len92);
+                    for i in 0..len92 {
+                        let base = base92
+                            .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                        let e92 = {
+                            let l86 = *base.add(0).cast::<*mut u8>();
+                            let l87 = *base
+                                .add(::core::mem::size_of::<*const u8>())
+                                .cast::<usize>();
+                            let len88 = l87;
+                            let bytes88 = _rt::Vec::from_raw_parts(
+                                l86.cast(),
+                                len88,
+                                len88,
+                            );
+                            let l89 = *base
+                                .add(2 * ::core::mem::size_of::<*const u8>())
+                                .cast::<*mut u8>();
+                            let l90 = *base
+                                .add(3 * ::core::mem::size_of::<*const u8>())
+                                .cast::<usize>();
+                            let len91 = l90;
+                            let bytes91 = _rt::Vec::from_raw_parts(
+                                l89.cast(),
+                                len91,
+                                len91,
+                            );
+                            (_rt::string_lift(bytes88), _rt::string_lift(bytes91))
+                        };
+                        result92.push(e92);
+                    }
+                    _rt::cabi_dealloc(
+                        base92,
+                        len92 * (4 * ::core::mem::size_of::<*const u8>()),
+                        ::core::mem::size_of::<*const u8>(),
+                    );
+                    let l93 = *base
+                        .add(88 + 20 * ::core::mem::size_of::<*const u8>())
+                        .cast::<*mut u8>();
+                    let l94 = *base
+                        .add(88 + 21 * ::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let base98 = l93;
+                    let len98 = l94;
+                    let mut result98 = _rt::Vec::with_capacity(len98);
+                    for i in 0..len98 {
+                        let base = base98
+                            .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                        let e98 = {
+                            let l95 = *base.add(0).cast::<*mut u8>();
+                            let l96 = *base
+                                .add(::core::mem::size_of::<*const u8>())
+                                .cast::<usize>();
+                            let len97 = l96;
+                            let bytes97 = _rt::Vec::from_raw_parts(
+                                l95.cast(),
+                                len97,
+                                len97,
+                            );
+                            _rt::string_lift(bytes97)
+                        };
+                        result98.push(e98);
+                    }
+                    _rt::cabi_dealloc(
+                        base98,
+                        len98 * (2 * ::core::mem::size_of::<*const u8>()),
+                        ::core::mem::size_of::<*const u8>(),
+                    );
+                    let l99 = i32::from(
+                        *base
+                            .add(88 + 22 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
+                    );
+                    use super::wavs::types::service::Submit as V156;
+                    let v156 = match l99 {
+                        0 => V156::None,
+                        n => {
+                            debug_assert_eq!(n, 1, "invalid enum discriminant");
+                            let e156 = {
+                                let l100 = *base
+                                    .add(96 + 22 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l101 = *base
+                                    .add(96 + 23 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len102 = l101;
+                                let bytes102 = _rt::Vec::from_raw_parts(
+                                    l100.cast(),
+                                    len102,
+                                    len102,
+                                );
+                                let l103 = i32::from(
+                                    *base
+                                        .add(96 + 24 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                use super::wavs::types::service::ComponentSource as V127;
+                                let v127 = match l103 {
+                                    0 => {
+                                        let e127 = {
+                                            let l104 = *base
+                                                .add(96 + 25 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<*mut u8>();
+                                            let l105 = *base
+                                                .add(96 + 26 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let len106 = l105;
+                                            let bytes106 = _rt::Vec::from_raw_parts(
+                                                l104.cast(),
+                                                len106,
+                                                len106,
+                                            );
+                                            let l107 = *base
+                                                .add(96 + 27 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<*mut u8>();
+                                            let l108 = *base
+                                                .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let len109 = l108;
+                                            let bytes109 = _rt::Vec::from_raw_parts(
+                                                l107.cast(),
+                                                len109,
+                                                len109,
+                                            );
+                                            super::wavs::types::service::ComponentSourceDownload {
+                                                url: _rt::string_lift(bytes106),
+                                                digest: _rt::string_lift(bytes109),
+                                            }
+                                        };
+                                        V127::Download(e127)
+                                    }
+                                    1 => {
+                                        let e127 = {
+                                            let l110 = *base
+                                                .add(96 + 25 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<*mut u8>();
+                                            let l111 = *base
+                                                .add(96 + 26 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let len112 = l111;
+                                            let bytes112 = _rt::Vec::from_raw_parts(
+                                                l110.cast(),
+                                                len112,
+                                                len112,
+                                            );
+                                            let l113 = i32::from(
+                                                *base
+                                                    .add(96 + 27 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<u8>(),
+                                            );
+                                            let l117 = i32::from(
+                                                *base
+                                                    .add(96 + 30 * ::core::mem::size_of::<*const u8>())
+                                                    .cast::<u8>(),
+                                            );
+                                            let l121 = *base
+                                                .add(96 + 33 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<*mut u8>();
+                                            let l122 = *base
+                                                .add(96 + 34 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let len123 = l122;
+                                            let bytes123 = _rt::Vec::from_raw_parts(
+                                                l121.cast(),
+                                                len123,
+                                                len123,
+                                            );
+                                            super::wavs::types::service::Registry {
+                                                digest: _rt::string_lift(bytes112),
+                                                domain: match l113 {
+                                                    0 => None,
+                                                    1 => {
+                                                        let e = {
+                                                            let l114 = *base
+                                                                .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                                                .cast::<*mut u8>();
+                                                            let l115 = *base
+                                                                .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                                .cast::<usize>();
+                                                            let len116 = l115;
+                                                            let bytes116 = _rt::Vec::from_raw_parts(
+                                                                l114.cast(),
+                                                                len116,
+                                                                len116,
+                                                            );
+                                                            _rt::string_lift(bytes116)
+                                                        };
+                                                        Some(e)
+                                                    }
+                                                    _ => _rt::invalid_enum_discriminant(),
+                                                },
+                                                version: match l117 {
+                                                    0 => None,
+                                                    1 => {
+                                                        let e = {
+                                                            let l118 = *base
+                                                                .add(96 + 31 * ::core::mem::size_of::<*const u8>())
+                                                                .cast::<*mut u8>();
+                                                            let l119 = *base
+                                                                .add(96 + 32 * ::core::mem::size_of::<*const u8>())
+                                                                .cast::<usize>();
+                                                            let len120 = l119;
+                                                            let bytes120 = _rt::Vec::from_raw_parts(
+                                                                l118.cast(),
+                                                                len120,
+                                                                len120,
+                                                            );
+                                                            _rt::string_lift(bytes120)
+                                                        };
+                                                        Some(e)
+                                                    }
+                                                    _ => _rt::invalid_enum_discriminant(),
+                                                },
+                                                pkg: _rt::string_lift(bytes123),
+                                            }
+                                        };
+                                        V127::Registry(e127)
+                                    }
+                                    n => {
+                                        debug_assert_eq!(n, 2, "invalid enum discriminant");
+                                        let e127 = {
+                                            let l124 = *base
+                                                .add(96 + 25 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<*mut u8>();
+                                            let l125 = *base
+                                                .add(96 + 26 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let len126 = l125;
+                                            let bytes126 = _rt::Vec::from_raw_parts(
+                                                l124.cast(),
+                                                len126,
+                                                len126,
+                                            );
+                                            _rt::string_lift(bytes126)
+                                        };
+                                        V127::Digest(e127)
+                                    }
+                                };
+                                let l128 = i32::from(
+                                    *base
+                                        .add(96 + 35 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                use super::wavs::types::service::AllowedHostPermission as V135;
+                                let v135 = match l128 {
+                                    0 => V135::All,
+                                    1 => {
+                                        let e135 = {
+                                            let l129 = *base
+                                                .add(96 + 36 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<*mut u8>();
+                                            let l130 = *base
+                                                .add(96 + 37 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let base134 = l129;
+                                            let len134 = l130;
+                                            let mut result134 = _rt::Vec::with_capacity(len134);
+                                            for i in 0..len134 {
+                                                let base = base134
+                                                    .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                                let e134 = {
+                                                    let l131 = *base.add(0).cast::<*mut u8>();
+                                                    let l132 = *base
+                                                        .add(::core::mem::size_of::<*const u8>())
+                                                        .cast::<usize>();
+                                                    let len133 = l132;
+                                                    let bytes133 = _rt::Vec::from_raw_parts(
+                                                        l131.cast(),
+                                                        len133,
+                                                        len133,
+                                                    );
+                                                    _rt::string_lift(bytes133)
+                                                };
+                                                result134.push(e134);
+                                            }
+                                            _rt::cabi_dealloc(
+                                                base134,
+                                                len134 * (2 * ::core::mem::size_of::<*const u8>()),
+                                                ::core::mem::size_of::<*const u8>(),
+                                            );
+                                            result134
+                                        };
+                                        V135::Only(e135)
+                                    }
+                                    n => {
+                                        debug_assert_eq!(n, 2, "invalid enum discriminant");
+                                        V135::None
+                                    }
+                                };
+                                let l136 = i32::from(
+                                    *base
+                                        .add(96 + 38 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l137 = i32::from(
+                                    *base
+                                        .add(104 + 38 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l139 = i32::from(
+                                    *base
+                                        .add(120 + 38 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<u8>(),
+                                );
+                                let l141 = *base
+                                    .add(136 + 38 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l142 = *base
+                                    .add(136 + 39 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let base149 = l141;
+                                let len149 = l142;
+                                let mut result149 = _rt::Vec::with_capacity(len149);
+                                for i in 0..len149 {
+                                    let base = base149
+                                        .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                                    let e149 = {
+                                        let l143 = *base.add(0).cast::<*mut u8>();
+                                        let l144 = *base
+                                            .add(::core::mem::size_of::<*const u8>())
+                                            .cast::<usize>();
+                                        let len145 = l144;
+                                        let bytes145 = _rt::Vec::from_raw_parts(
+                                            l143.cast(),
+                                            len145,
+                                            len145,
+                                        );
+                                        let l146 = *base
+                                            .add(2 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<*mut u8>();
+                                        let l147 = *base
+                                            .add(3 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<usize>();
+                                        let len148 = l147;
+                                        let bytes148 = _rt::Vec::from_raw_parts(
+                                            l146.cast(),
+                                            len148,
+                                            len148,
+                                        );
+                                        (_rt::string_lift(bytes145), _rt::string_lift(bytes148))
+                                    };
+                                    result149.push(e149);
+                                }
+                                _rt::cabi_dealloc(
+                                    base149,
+                                    len149 * (4 * ::core::mem::size_of::<*const u8>()),
+                                    ::core::mem::size_of::<*const u8>(),
+                                );
+                                let l150 = *base
+                                    .add(136 + 40 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l151 = *base
+                                    .add(136 + 41 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let base155 = l150;
+                                let len155 = l151;
+                                let mut result155 = _rt::Vec::with_capacity(len155);
+                                for i in 0..len155 {
+                                    let base = base155
+                                        .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                    let e155 = {
+                                        let l152 = *base.add(0).cast::<*mut u8>();
+                                        let l153 = *base
+                                            .add(::core::mem::size_of::<*const u8>())
+                                            .cast::<usize>();
+                                        let len154 = l153;
+                                        let bytes154 = _rt::Vec::from_raw_parts(
+                                            l152.cast(),
+                                            len154,
+                                            len154,
+                                        );
+                                        _rt::string_lift(bytes154)
+                                    };
+                                    result155.push(e155);
+                                }
+                                _rt::cabi_dealloc(
+                                    base155,
+                                    len155 * (2 * ::core::mem::size_of::<*const u8>()),
+                                    ::core::mem::size_of::<*const u8>(),
+                                );
+                                super::wavs::types::service::AggregatorSubmit {
+                                    url: _rt::string_lift(bytes102),
+                                    component: super::wavs::types::service::Component {
+                                        source: v127,
+                                        permissions: super::wavs::types::service::Permissions {
+                                            allowed_http_hosts: v135,
+                                            file_system: _rt::bool_lift(l136 as u8),
+                                        },
+                                        fuel_limit: match l137 {
+                                            0 => None,
+                                            1 => {
+                                                let e = {
+                                                    let l138 = *base
+                                                        .add(112 + 38 * ::core::mem::size_of::<*const u8>())
+                                                        .cast::<i64>();
+                                                    l138 as u64
+                                                };
+                                                Some(e)
+                                            }
+                                            _ => _rt::invalid_enum_discriminant(),
+                                        },
+                                        time_limit_seconds: match l139 {
+                                            0 => None,
+                                            1 => {
+                                                let e = {
+                                                    let l140 = *base
+                                                        .add(128 + 38 * ::core::mem::size_of::<*const u8>())
+                                                        .cast::<i64>();
+                                                    l140 as u64
+                                                };
+                                                Some(e)
+                                            }
+                                            _ => _rt::invalid_enum_discriminant(),
+                                        },
+                                        config: result149,
+                                        env_keys: result155,
+                                    },
+                                }
+                            };
+                            V156::Aggregator(e156)
+                        }
+                    };
+                    (
+                        _rt::string_lift(bytes9),
+                        super::wavs::types::service::Workflow {
+                            trigger: v45,
+                            component: super::wavs::types::service::Component {
+                                source: v70,
+                                permissions: super::wavs::types::service::Permissions {
+                                    allowed_http_hosts: v78,
+                                    file_system: _rt::bool_lift(l79 as u8),
+                                },
+                                fuel_limit: match l80 {
+                                    0 => None,
+                                    1 => {
+                                        let e = {
+                                            let l81 = *base
+                                                .add(64 + 18 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<i64>();
+                                            l81 as u64
+                                        };
+                                        Some(e)
+                                    }
+                                    _ => _rt::invalid_enum_discriminant(),
+                                },
+                                time_limit_seconds: match l82 {
+                                    0 => None,
+                                    1 => {
+                                        let e = {
+                                            let l83 = *base
+                                                .add(80 + 18 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<i64>();
+                                            l83 as u64
+                                        };
+                                        Some(e)
+                                    }
+                                    _ => _rt::invalid_enum_discriminant(),
+                                },
+                                config: result92,
+                                env_keys: result98,
+                            },
+                            submit: v156,
+                        },
+                    )
+                };
+                result157.push(e157);
+            }
+            _rt::cabi_dealloc(
+                base157,
+                len157 * (136 + 42 * ::core::mem::size_of::<*const u8>()),
+                8,
+            );
+            let l158 = i32::from(
+                *ptr0.add(4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            use super::wavs::types::service::ServiceStatus as V159;
+            let v159 = match l158 {
+                0 => V159::Active,
+                n => {
+                    debug_assert_eq!(n, 1, "invalid enum discriminant");
+                    V159::Paused
+                }
+            };
+            let l160 = i32::from(
+                *ptr0.add(5 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            use super::wavs::types::service::ServiceManager as V167;
+            let v167 = match l160 {
+                n => {
+                    debug_assert_eq!(n, 0, "invalid enum discriminant");
+                    let e167 = {
+                        let l161 = *ptr0
+                            .add(6 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l162 = *ptr0
+                            .add(7 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len163 = l162;
+                        let bytes163 = _rt::Vec::from_raw_parts(
+                            l161.cast(),
+                            len163,
+                            len163,
+                        );
+                        let l164 = *ptr0
+                            .add(8 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l165 = *ptr0
+                            .add(9 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len166 = l165;
+                        super::wavs::types::service::EvmManager {
+                            chain_name: _rt::string_lift(bytes163),
+                            address: super::wavs::types::chain::EvmAddress {
+                                raw_bytes: _rt::Vec::from_raw_parts(
+                                    l164.cast(),
+                                    len166,
+                                    len166,
+                                ),
+                            },
+                        }
+                    };
+                    V167::Evm(e167)
+                }
+            };
+            let l168 = *ptr0
+                .add(10 * ::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l169 = *ptr0
+                .add(11 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
+            let len170 = l169;
+            let bytes170 = _rt::Vec::from_raw_parts(l168.cast(), len170, len170);
+            let result171 = super::wavs::types::service::ServiceAndWorkflowId {
+                service: super::wavs::types::service::Service {
+                    name: _rt::string_lift(bytes4),
+                    workflows: result157,
+                    status: v159,
+                    manager: v167,
+                },
+                workflow_id: _rt::string_lift(bytes170),
+            };
+            result171
+        }
+    }
+    #[allow(unused_unsafe, clippy::all)]
+    /// convenience function to get the workflow without having to walk service.workflows
+    pub fn get_workflow() -> WorkflowAndWorkflowId {
+        unsafe {
+            #[repr(align(8))]
+            struct RetArea(
+                [::core::mem::MaybeUninit<
+                    u8,
+                >; 136 + 42 * ::core::mem::size_of::<*const u8>()],
+            );
+            let mut ret_area = RetArea(
+                [::core::mem::MaybeUninit::uninit(); 136
+                    + 42 * ::core::mem::size_of::<*const u8>()],
+            );
+            let ptr0 = ret_area.0.as_mut_ptr().cast::<u8>();
+            #[cfg(target_arch = "wasm32")]
+            #[link(wasm_import_module = "host")]
+            unsafe extern "C" {
+                #[link_name = "get-workflow"]
+                fn wit_import1(_: *mut u8);
+            }
+            #[cfg(not(target_arch = "wasm32"))]
+            unsafe extern "C" fn wit_import1(_: *mut u8) {
+                unreachable!()
+            }
+            unsafe { wit_import1(ptr0) };
+            let l2 = i32::from(*ptr0.add(0).cast::<u8>());
+            use super::wavs::types::service::Trigger as V37;
+            let v37 = match l2 {
+                0 => {
+                    let e37 = {
+                        let l3 = *ptr0.add(8).cast::<*mut u8>();
+                        let l4 = *ptr0
+                            .add(8 + 1 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len5 = l4;
+                        let l6 = *ptr0
+                            .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l7 = *ptr0
+                            .add(8 + 3 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len8 = l7;
+                        let bytes8 = _rt::Vec::from_raw_parts(l6.cast(), len8, len8);
+                        let l9 = *ptr0
+                            .add(8 + 4 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l10 = *ptr0
+                            .add(8 + 5 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len11 = l10;
+                        super::wavs::types::service::TriggerEvmContractEvent {
+                            address: super::wavs::types::chain::EvmAddress {
+                                raw_bytes: _rt::Vec::from_raw_parts(l3.cast(), len5, len5),
+                            },
+                            chain_name: _rt::string_lift(bytes8),
+                            event_hash: _rt::Vec::from_raw_parts(l9.cast(), len11, len11),
+                        }
+                    };
+                    V37::EvmContractEvent(e37)
+                }
+                1 => {
+                    let e37 = {
+                        let l12 = *ptr0.add(8).cast::<*mut u8>();
+                        let l13 = *ptr0
+                            .add(8 + 1 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len14 = l13;
+                        let bytes14 = _rt::Vec::from_raw_parts(l12.cast(), len14, len14);
+                        let l15 = *ptr0
+                            .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                            .cast::<i32>();
+                        let l16 = *ptr0
+                            .add(8 + 3 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l17 = *ptr0
+                            .add(8 + 4 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len18 = l17;
+                        let bytes18 = _rt::Vec::from_raw_parts(l16.cast(), len18, len18);
+                        let l19 = *ptr0
+                            .add(8 + 5 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l20 = *ptr0
+                            .add(8 + 6 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len21 = l20;
+                        let bytes21 = _rt::Vec::from_raw_parts(l19.cast(), len21, len21);
+                        super::wavs::types::service::TriggerCosmosContractEvent {
+                            address: super::wavs::types::chain::CosmosAddress {
+                                bech32_addr: _rt::string_lift(bytes14),
+                                prefix_len: l15 as u32,
+                            },
+                            chain_name: _rt::string_lift(bytes18),
+                            event_type: _rt::string_lift(bytes21),
+                        }
+                    };
+                    V37::CosmosContractEvent(e37)
+                }
+                2 => {
+                    let e37 = {
+                        let l22 = *ptr0.add(8).cast::<*mut u8>();
+                        let l23 = *ptr0
+                            .add(8 + 1 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len24 = l23;
+                        let bytes24 = _rt::Vec::from_raw_parts(l22.cast(), len24, len24);
+                        let l25 = *ptr0
+                            .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                            .cast::<i32>();
+                        let l26 = i32::from(
+                            *ptr0
+                                .add(16 + 2 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l28 = i32::from(
+                            *ptr0
+                                .add(32 + 2 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        super::wavs::types::service::TriggerBlockInterval {
+                            chain_name: _rt::string_lift(bytes24),
+                            n_blocks: l25 as u32,
+                            start_block: match l26 {
+                                0 => None,
+                                1 => {
+                                    let e = {
+                                        let l27 = *ptr0
+                                            .add(24 + 2 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<i64>();
+                                        l27 as u64
+                                    };
+                                    Some(e)
+                                }
+                                _ => _rt::invalid_enum_discriminant(),
+                            },
+                            end_block: match l28 {
+                                0 => None,
+                                1 => {
+                                    let e = {
+                                        let l29 = *ptr0
+                                            .add(40 + 2 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<i64>();
+                                        l29 as u64
+                                    };
+                                    Some(e)
+                                }
+                                _ => _rt::invalid_enum_discriminant(),
+                            },
+                        }
+                    };
+                    V37::BlockInterval(e37)
+                }
+                3 => {
+                    let e37 = {
+                        let l30 = *ptr0.add(8).cast::<*mut u8>();
+                        let l31 = *ptr0
+                            .add(8 + 1 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len32 = l31;
+                        let bytes32 = _rt::Vec::from_raw_parts(l30.cast(), len32, len32);
+                        let l33 = i32::from(
+                            *ptr0
+                                .add(8 + 2 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l35 = i32::from(
+                            *ptr0
+                                .add(24 + 2 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        super::wavs::types::service::TriggerCron {
+                            schedule: _rt::string_lift(bytes32),
+                            start_time: match l33 {
+                                0 => None,
+                                1 => {
+                                    let e = {
+                                        let l34 = *ptr0
+                                            .add(16 + 2 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<i64>();
+                                        super::wavs::types::core::Timestamp {
+                                            nanos: l34 as u64,
+                                        }
+                                    };
+                                    Some(e)
+                                }
+                                _ => _rt::invalid_enum_discriminant(),
+                            },
+                            end_time: match l35 {
+                                0 => None,
+                                1 => {
+                                    let e = {
+                                        let l36 = *ptr0
+                                            .add(32 + 2 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<i64>();
+                                        super::wavs::types::core::Timestamp {
+                                            nanos: l36 as u64,
+                                        }
+                                    };
+                                    Some(e)
+                                }
+                                _ => _rt::invalid_enum_discriminant(),
+                            },
+                        }
+                    };
+                    V37::Cron(e37)
+                }
+                n => {
+                    debug_assert_eq!(n, 4, "invalid enum discriminant");
+                    V37::Manual
+                }
+            };
+            let l38 = i32::from(
+                *ptr0.add(48 + 2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            use super::wavs::types::service::ComponentSource as V62;
+            let v62 = match l38 {
+                0 => {
+                    let e62 = {
+                        let l39 = *ptr0
+                            .add(48 + 3 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l40 = *ptr0
+                            .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len41 = l40;
+                        let bytes41 = _rt::Vec::from_raw_parts(l39.cast(), len41, len41);
+                        let l42 = *ptr0
+                            .add(48 + 5 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l43 = *ptr0
+                            .add(48 + 6 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len44 = l43;
+                        let bytes44 = _rt::Vec::from_raw_parts(l42.cast(), len44, len44);
+                        super::wavs::types::service::ComponentSourceDownload {
+                            url: _rt::string_lift(bytes41),
+                            digest: _rt::string_lift(bytes44),
+                        }
+                    };
+                    V62::Download(e62)
+                }
+                1 => {
+                    let e62 = {
+                        let l45 = *ptr0
+                            .add(48 + 3 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l46 = *ptr0
+                            .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len47 = l46;
+                        let bytes47 = _rt::Vec::from_raw_parts(l45.cast(), len47, len47);
+                        let l48 = i32::from(
+                            *ptr0
+                                .add(48 + 5 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l52 = i32::from(
+                            *ptr0
+                                .add(48 + 8 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l56 = *ptr0
+                            .add(48 + 11 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l57 = *ptr0
+                            .add(48 + 12 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len58 = l57;
+                        let bytes58 = _rt::Vec::from_raw_parts(l56.cast(), len58, len58);
+                        super::wavs::types::service::Registry {
+                            digest: _rt::string_lift(bytes47),
+                            domain: match l48 {
+                                0 => None,
+                                1 => {
+                                    let e = {
+                                        let l49 = *ptr0
+                                            .add(48 + 6 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<*mut u8>();
+                                        let l50 = *ptr0
+                                            .add(48 + 7 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<usize>();
+                                        let len51 = l50;
+                                        let bytes51 = _rt::Vec::from_raw_parts(
+                                            l49.cast(),
+                                            len51,
+                                            len51,
+                                        );
+                                        _rt::string_lift(bytes51)
+                                    };
+                                    Some(e)
+                                }
+                                _ => _rt::invalid_enum_discriminant(),
+                            },
+                            version: match l52 {
+                                0 => None,
+                                1 => {
+                                    let e = {
+                                        let l53 = *ptr0
+                                            .add(48 + 9 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<*mut u8>();
+                                        let l54 = *ptr0
+                                            .add(48 + 10 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<usize>();
+                                        let len55 = l54;
+                                        let bytes55 = _rt::Vec::from_raw_parts(
+                                            l53.cast(),
+                                            len55,
+                                            len55,
+                                        );
+                                        _rt::string_lift(bytes55)
+                                    };
+                                    Some(e)
+                                }
+                                _ => _rt::invalid_enum_discriminant(),
+                            },
+                            pkg: _rt::string_lift(bytes58),
+                        }
+                    };
+                    V62::Registry(e62)
+                }
+                n => {
+                    debug_assert_eq!(n, 2, "invalid enum discriminant");
+                    let e62 = {
+                        let l59 = *ptr0
+                            .add(48 + 3 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l60 = *ptr0
+                            .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len61 = l60;
+                        let bytes61 = _rt::Vec::from_raw_parts(l59.cast(), len61, len61);
+                        _rt::string_lift(bytes61)
+                    };
+                    V62::Digest(e62)
+                }
+            };
+            let l63 = i32::from(
+                *ptr0.add(48 + 13 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            use super::wavs::types::service::AllowedHostPermission as V70;
+            let v70 = match l63 {
+                0 => V70::All,
+                1 => {
+                    let e70 = {
+                        let l64 = *ptr0
+                            .add(48 + 14 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l65 = *ptr0
+                            .add(48 + 15 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let base69 = l64;
+                        let len69 = l65;
+                        let mut result69 = _rt::Vec::with_capacity(len69);
+                        for i in 0..len69 {
+                            let base = base69
+                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let e69 = {
+                                let l66 = *base.add(0).cast::<*mut u8>();
+                                let l67 = *base
+                                    .add(::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len68 = l67;
+                                let bytes68 = _rt::Vec::from_raw_parts(
+                                    l66.cast(),
+                                    len68,
+                                    len68,
+                                );
+                                _rt::string_lift(bytes68)
+                            };
+                            result69.push(e69);
+                        }
+                        _rt::cabi_dealloc(
+                            base69,
+                            len69 * (2 * ::core::mem::size_of::<*const u8>()),
+                            ::core::mem::size_of::<*const u8>(),
+                        );
+                        result69
+                    };
+                    V70::Only(e70)
+                }
+                n => {
+                    debug_assert_eq!(n, 2, "invalid enum discriminant");
+                    V70::None
+                }
+            };
+            let l71 = i32::from(
+                *ptr0.add(48 + 16 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            let l72 = i32::from(
+                *ptr0.add(56 + 16 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            let l74 = i32::from(
+                *ptr0.add(72 + 16 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            let l76 = *ptr0
+                .add(88 + 16 * ::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l77 = *ptr0
+                .add(88 + 17 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
+            let base84 = l76;
+            let len84 = l77;
+            let mut result84 = _rt::Vec::with_capacity(len84);
+            for i in 0..len84 {
+                let base = base84.add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                let e84 = {
+                    let l78 = *base.add(0).cast::<*mut u8>();
+                    let l79 = *base
+                        .add(::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let len80 = l79;
+                    let bytes80 = _rt::Vec::from_raw_parts(l78.cast(), len80, len80);
+                    let l81 = *base
+                        .add(2 * ::core::mem::size_of::<*const u8>())
+                        .cast::<*mut u8>();
+                    let l82 = *base
+                        .add(3 * ::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let len83 = l82;
+                    let bytes83 = _rt::Vec::from_raw_parts(l81.cast(), len83, len83);
+                    (_rt::string_lift(bytes80), _rt::string_lift(bytes83))
+                };
+                result84.push(e84);
+            }
+            _rt::cabi_dealloc(
+                base84,
+                len84 * (4 * ::core::mem::size_of::<*const u8>()),
+                ::core::mem::size_of::<*const u8>(),
+            );
+            let l85 = *ptr0
+                .add(88 + 18 * ::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l86 = *ptr0
+                .add(88 + 19 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
+            let base90 = l85;
+            let len90 = l86;
+            let mut result90 = _rt::Vec::with_capacity(len90);
+            for i in 0..len90 {
+                let base = base90.add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                let e90 = {
+                    let l87 = *base.add(0).cast::<*mut u8>();
+                    let l88 = *base
+                        .add(::core::mem::size_of::<*const u8>())
+                        .cast::<usize>();
+                    let len89 = l88;
+                    let bytes89 = _rt::Vec::from_raw_parts(l87.cast(), len89, len89);
+                    _rt::string_lift(bytes89)
+                };
+                result90.push(e90);
+            }
+            _rt::cabi_dealloc(
+                base90,
+                len90 * (2 * ::core::mem::size_of::<*const u8>()),
+                ::core::mem::size_of::<*const u8>(),
+            );
+            let l91 = i32::from(
+                *ptr0.add(88 + 20 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+            );
+            use super::wavs::types::service::Submit as V148;
+            let v148 = match l91 {
+                0 => V148::None,
+                n => {
+                    debug_assert_eq!(n, 1, "invalid enum discriminant");
+                    let e148 = {
+                        let l92 = *ptr0
+                            .add(96 + 20 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l93 = *ptr0
+                            .add(96 + 21 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let len94 = l93;
+                        let bytes94 = _rt::Vec::from_raw_parts(l92.cast(), len94, len94);
+                        let l95 = i32::from(
+                            *ptr0
+                                .add(96 + 22 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        use super::wavs::types::service::ComponentSource as V119;
+                        let v119 = match l95 {
+                            0 => {
+                                let e119 = {
+                                    let l96 = *ptr0
+                                        .add(96 + 23 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<*mut u8>();
+                                    let l97 = *ptr0
+                                        .add(96 + 24 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<usize>();
+                                    let len98 = l97;
+                                    let bytes98 = _rt::Vec::from_raw_parts(
+                                        l96.cast(),
+                                        len98,
+                                        len98,
+                                    );
+                                    let l99 = *ptr0
+                                        .add(96 + 25 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<*mut u8>();
+                                    let l100 = *ptr0
+                                        .add(96 + 26 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<usize>();
+                                    let len101 = l100;
+                                    let bytes101 = _rt::Vec::from_raw_parts(
+                                        l99.cast(),
+                                        len101,
+                                        len101,
+                                    );
+                                    super::wavs::types::service::ComponentSourceDownload {
+                                        url: _rt::string_lift(bytes98),
+                                        digest: _rt::string_lift(bytes101),
+                                    }
+                                };
+                                V119::Download(e119)
+                            }
+                            1 => {
+                                let e119 = {
+                                    let l102 = *ptr0
+                                        .add(96 + 23 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<*mut u8>();
+                                    let l103 = *ptr0
+                                        .add(96 + 24 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<usize>();
+                                    let len104 = l103;
+                                    let bytes104 = _rt::Vec::from_raw_parts(
+                                        l102.cast(),
+                                        len104,
+                                        len104,
+                                    );
+                                    let l105 = i32::from(
+                                        *ptr0
+                                            .add(96 + 25 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<u8>(),
+                                    );
+                                    let l109 = i32::from(
+                                        *ptr0
+                                            .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                            .cast::<u8>(),
+                                    );
+                                    let l113 = *ptr0
+                                        .add(96 + 31 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<*mut u8>();
+                                    let l114 = *ptr0
+                                        .add(96 + 32 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<usize>();
+                                    let len115 = l114;
+                                    let bytes115 = _rt::Vec::from_raw_parts(
+                                        l113.cast(),
+                                        len115,
+                                        len115,
+                                    );
+                                    super::wavs::types::service::Registry {
+                                        digest: _rt::string_lift(bytes104),
+                                        domain: match l105 {
+                                            0 => None,
+                                            1 => {
+                                                let e = {
+                                                    let l106 = *ptr0
+                                                        .add(96 + 26 * ::core::mem::size_of::<*const u8>())
+                                                        .cast::<*mut u8>();
+                                                    let l107 = *ptr0
+                                                        .add(96 + 27 * ::core::mem::size_of::<*const u8>())
+                                                        .cast::<usize>();
+                                                    let len108 = l107;
+                                                    let bytes108 = _rt::Vec::from_raw_parts(
+                                                        l106.cast(),
+                                                        len108,
+                                                        len108,
+                                                    );
+                                                    _rt::string_lift(bytes108)
+                                                };
+                                                Some(e)
+                                            }
+                                            _ => _rt::invalid_enum_discriminant(),
+                                        },
+                                        version: match l109 {
+                                            0 => None,
+                                            1 => {
+                                                let e = {
+                                                    let l110 = *ptr0
+                                                        .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                        .cast::<*mut u8>();
+                                                    let l111 = *ptr0
+                                                        .add(96 + 30 * ::core::mem::size_of::<*const u8>())
+                                                        .cast::<usize>();
+                                                    let len112 = l111;
+                                                    let bytes112 = _rt::Vec::from_raw_parts(
+                                                        l110.cast(),
+                                                        len112,
+                                                        len112,
+                                                    );
+                                                    _rt::string_lift(bytes112)
+                                                };
+                                                Some(e)
+                                            }
+                                            _ => _rt::invalid_enum_discriminant(),
+                                        },
+                                        pkg: _rt::string_lift(bytes115),
+                                    }
+                                };
+                                V119::Registry(e119)
+                            }
+                            n => {
+                                debug_assert_eq!(n, 2, "invalid enum discriminant");
+                                let e119 = {
+                                    let l116 = *ptr0
+                                        .add(96 + 23 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<*mut u8>();
+                                    let l117 = *ptr0
+                                        .add(96 + 24 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<usize>();
+                                    let len118 = l117;
+                                    let bytes118 = _rt::Vec::from_raw_parts(
+                                        l116.cast(),
+                                        len118,
+                                        len118,
+                                    );
+                                    _rt::string_lift(bytes118)
+                                };
+                                V119::Digest(e119)
+                            }
+                        };
+                        let l120 = i32::from(
+                            *ptr0
+                                .add(96 + 33 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        use super::wavs::types::service::AllowedHostPermission as V127;
+                        let v127 = match l120 {
+                            0 => V127::All,
+                            1 => {
+                                let e127 = {
+                                    let l121 = *ptr0
+                                        .add(96 + 34 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<*mut u8>();
+                                    let l122 = *ptr0
+                                        .add(96 + 35 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<usize>();
+                                    let base126 = l121;
+                                    let len126 = l122;
+                                    let mut result126 = _rt::Vec::with_capacity(len126);
+                                    for i in 0..len126 {
+                                        let base = base126
+                                            .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                        let e126 = {
+                                            let l123 = *base.add(0).cast::<*mut u8>();
+                                            let l124 = *base
+                                                .add(::core::mem::size_of::<*const u8>())
+                                                .cast::<usize>();
+                                            let len125 = l124;
+                                            let bytes125 = _rt::Vec::from_raw_parts(
+                                                l123.cast(),
+                                                len125,
+                                                len125,
+                                            );
+                                            _rt::string_lift(bytes125)
+                                        };
+                                        result126.push(e126);
+                                    }
+                                    _rt::cabi_dealloc(
+                                        base126,
+                                        len126 * (2 * ::core::mem::size_of::<*const u8>()),
+                                        ::core::mem::size_of::<*const u8>(),
+                                    );
+                                    result126
+                                };
+                                V127::Only(e127)
+                            }
+                            n => {
+                                debug_assert_eq!(n, 2, "invalid enum discriminant");
+                                V127::None
+                            }
+                        };
+                        let l128 = i32::from(
+                            *ptr0
+                                .add(96 + 36 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l129 = i32::from(
+                            *ptr0
+                                .add(104 + 36 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l131 = i32::from(
+                            *ptr0
+                                .add(120 + 36 * ::core::mem::size_of::<*const u8>())
+                                .cast::<u8>(),
+                        );
+                        let l133 = *ptr0
+                            .add(136 + 36 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l134 = *ptr0
+                            .add(136 + 37 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let base141 = l133;
+                        let len141 = l134;
+                        let mut result141 = _rt::Vec::with_capacity(len141);
+                        for i in 0..len141 {
+                            let base = base141
+                                .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                            let e141 = {
+                                let l135 = *base.add(0).cast::<*mut u8>();
+                                let l136 = *base
+                                    .add(::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len137 = l136;
+                                let bytes137 = _rt::Vec::from_raw_parts(
+                                    l135.cast(),
+                                    len137,
+                                    len137,
+                                );
+                                let l138 = *base
+                                    .add(2 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l139 = *base
+                                    .add(3 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len140 = l139;
+                                let bytes140 = _rt::Vec::from_raw_parts(
+                                    l138.cast(),
+                                    len140,
+                                    len140,
+                                );
+                                (_rt::string_lift(bytes137), _rt::string_lift(bytes140))
+                            };
+                            result141.push(e141);
+                        }
+                        _rt::cabi_dealloc(
+                            base141,
+                            len141 * (4 * ::core::mem::size_of::<*const u8>()),
+                            ::core::mem::size_of::<*const u8>(),
+                        );
+                        let l142 = *ptr0
+                            .add(136 + 38 * ::core::mem::size_of::<*const u8>())
+                            .cast::<*mut u8>();
+                        let l143 = *ptr0
+                            .add(136 + 39 * ::core::mem::size_of::<*const u8>())
+                            .cast::<usize>();
+                        let base147 = l142;
+                        let len147 = l143;
+                        let mut result147 = _rt::Vec::with_capacity(len147);
+                        for i in 0..len147 {
+                            let base = base147
+                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let e147 = {
+                                let l144 = *base.add(0).cast::<*mut u8>();
+                                let l145 = *base
+                                    .add(::core::mem::size_of::<*const u8>())
+                                    .cast::<usize>();
+                                let len146 = l145;
+                                let bytes146 = _rt::Vec::from_raw_parts(
+                                    l144.cast(),
+                                    len146,
+                                    len146,
+                                );
+                                _rt::string_lift(bytes146)
+                            };
+                            result147.push(e147);
+                        }
+                        _rt::cabi_dealloc(
+                            base147,
+                            len147 * (2 * ::core::mem::size_of::<*const u8>()),
+                            ::core::mem::size_of::<*const u8>(),
+                        );
+                        super::wavs::types::service::AggregatorSubmit {
+                            url: _rt::string_lift(bytes94),
+                            component: super::wavs::types::service::Component {
+                                source: v119,
+                                permissions: super::wavs::types::service::Permissions {
+                                    allowed_http_hosts: v127,
+                                    file_system: _rt::bool_lift(l128 as u8),
+                                },
+                                fuel_limit: match l129 {
+                                    0 => None,
+                                    1 => {
+                                        let e = {
+                                            let l130 = *ptr0
+                                                .add(112 + 36 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<i64>();
+                                            l130 as u64
+                                        };
+                                        Some(e)
+                                    }
+                                    _ => _rt::invalid_enum_discriminant(),
+                                },
+                                time_limit_seconds: match l131 {
+                                    0 => None,
+                                    1 => {
+                                        let e = {
+                                            let l132 = *ptr0
+                                                .add(128 + 36 * ::core::mem::size_of::<*const u8>())
+                                                .cast::<i64>();
+                                            l132 as u64
+                                        };
+                                        Some(e)
+                                    }
+                                    _ => _rt::invalid_enum_discriminant(),
+                                },
+                                config: result141,
+                                env_keys: result147,
+                            },
+                        }
+                    };
+                    V148::Aggregator(e148)
+                }
+            };
+            let l149 = *ptr0
+                .add(136 + 40 * ::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l150 = *ptr0
+                .add(136 + 41 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
+            let len151 = l150;
+            let bytes151 = _rt::Vec::from_raw_parts(l149.cast(), len151, len151);
+            let result152 = super::wavs::types::service::WorkflowAndWorkflowId {
+                workflow: super::wavs::types::service::Workflow {
+                    trigger: v37,
+                    component: super::wavs::types::service::Component {
+                        source: v62,
+                        permissions: super::wavs::types::service::Permissions {
+                            allowed_http_hosts: v70,
+                            file_system: _rt::bool_lift(l71 as u8),
+                        },
+                        fuel_limit: match l72 {
+                            0 => None,
+                            1 => {
+                                let e = {
+                                    let l73 = *ptr0
+                                        .add(64 + 16 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<i64>();
+                                    l73 as u64
+                                };
+                                Some(e)
+                            }
+                            _ => _rt::invalid_enum_discriminant(),
+                        },
+                        time_limit_seconds: match l74 {
+                            0 => None,
+                            1 => {
+                                let e = {
+                                    let l75 = *ptr0
+                                        .add(80 + 16 * ::core::mem::size_of::<*const u8>())
+                                        .cast::<i64>();
+                                    l75 as u64
+                                };
+                                Some(e)
+                            }
+                            _ => _rt::invalid_enum_discriminant(),
+                        },
+                        config: result84,
+                        env_keys: result90,
+                    },
+                    submit: v148,
+                },
+                workflow_id: _rt::string_lift(bytes151),
+            };
+            result152
+        }
+    }
 }
 #[rustfmt::skip]
 mod _rt {
@@ -20951,16 +22882,16 @@ macro_rules! __export_aggregator_world_impl {
 pub(crate) use __export_aggregator_world_impl as export;
 #[cfg(target_arch = "wasm32")]
 #[unsafe(
-    link_section = "component-type:wit-bindgen:0.41.0:wavs:aggregator@0.6.0-alpha.7:aggregator-world:encoded world"
+    link_section = "component-type:wit-bindgen:0.41.0:wavs:aggregator@0.6.0-alpha.8:aggregator-world:encoded world"
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 19960] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xf0\x9a\x01\x01A\x02\
-\x01A{\x01B\x08\x01s\x04\0\x06digest\x03\0\0\x01r\x01\x05nanosw\x04\0\x09timesta\
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 20129] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\x99\x9c\x01\x01A\x02\
+\x01A}\x01B\x08\x01s\x04\0\x06digest\x03\0\0\x01r\x01\x05nanosw\x04\0\x09timesta\
 mp\x03\0\x02\x01r\x01\x04secsw\x04\0\x08duration\x03\0\x04\x01q\x05\x05error\0\0\
 \x04warn\0\0\x04info\0\0\x05debug\0\0\x05trace\0\0\x04\0\x09log-level\x03\0\x06\x03\
-\0\x1dwavs:types/core@0.6.0-alpha.7\x05\0\x01B\x1d\x01s\x04\0\x0achain-name\x03\0\
+\0\x1dwavs:types/core@0.6.0-alpha.8\x05\0\x01B\x1d\x01s\x04\0\x0achain-name\x03\0\
 \0\x01p}\x04\0\x0bevm-tx-hash\x03\0\x02\x01s\x04\0\x0ecosmos-tx-hash\x03\0\x04\x01\
 q\x02\x03evm\x01\x03\0\x06cosmos\x01\x05\0\x04\0\x0bany-tx-hash\x03\0\x06\x01r\x02\
 \x0bbech32-addrs\x0aprefix-leny\x04\0\x0ecosmos-address\x03\0\x08\x01o\x02ss\x01\
@@ -20973,7 +22904,7 @@ kw\x01r\x09\x07address\x13\x04data\x16\x07tx-hash\x03\x0cblock-numberw\x09log-in
 dexw\x0ablock-hash\x17\x0fblock-timestamp\x18\x08tx-index\x18\x07removed\x7f\x04\
 \0\x0devm-event-log\x03\0\x19\x01r\x03\x08chain-ids\x0bws-endpoint\x0e\x0dhttp-e\
 ndpoint\x0e\x04\0\x10evm-chain-config\x03\0\x1b\x03\0\x1ewavs:types/chain@0.6.0-\
-alpha.7\x05\x01\x02\x03\0\0\x06digest\x02\x03\0\0\x09timestamp\x02\x03\0\x01\x0a\
+alpha.8\x05\x01\x02\x03\0\0\x06digest\x02\x03\0\0\x09timestamp\x02\x03\0\x01\x0a\
 chain-name\x02\x03\0\x01\x0bevm-address\x02\x03\0\x01\x0ecosmos-address\x01BH\x02\
 \x03\x02\x01\x02\x04\0\x06digest\x03\0\0\x02\x03\x02\x01\x03\x04\0\x09timestamp\x03\
 \0\x02\x02\x03\x02\x01\x04\x04\0\x0achain-name\x03\0\x04\x02\x03\x02\x01\x05\x04\
@@ -21005,7 +22936,7 @@ ws=\x06status\x13\x07manager\x17\x04\0\x07service\x03\0>\x01r\x03\x0achain-name\
 evm\x01\xc1\0\0\x04\0\x0aaggregator\x03\0B\x01r\x02\x07service?\x0bworkflow-id\x0d\
 \x04\0\x17service-and-workflow-id\x03\0D\x01r\x02\x08workflow;\x0bworkflow-id\x0d\
 \x04\0\x18workflow-and-workflow-id\x03\0F\x03\0\x20wavs:types/service@0.6.0-alph\
-a.7\x05\x07\x02\x03\0\0\x08duration\x02\x03\0\x02\x07service\x02\x03\0\x02\x0bwo\
+a.8\x05\x07\x02\x03\0\0\x08duration\x02\x03\0\x02\x07service\x02\x03\0\x02\x0bwo\
 rkflow-id\x01B\x19\x02\x03\x02\x01\x08\x04\0\x08duration\x03\0\0\x02\x03\x02\x01\
 \x09\x04\0\x07service\x03\0\x02\x02\x03\x02\x01\x0a\x04\0\x0bworkflow-id\x03\0\x04\
 \x02\x03\x02\x01\x04\x04\0\x0achain-name\x03\0\x06\x02\x03\x02\x01\x05\x04\0\x0b\
@@ -21016,7 +22947,7 @@ ignature\x03\0\x0d\x01q\x01\x09secp256k1\x01\x0e\0\x04\0\x12envelope-signature\x
 \x04\0\x06packet\x03\0\x11\x01r\x01\x05delay\x01\x04\0\x0ctimer-action\x03\0\x13\
 \x01r\x02\x0achain-name\x07\x10contract-address\x09\x04\0\x0dsubmit-action\x03\0\
 \x15\x01q\x02\x05timer\x01\x14\0\x06submit\x01\x16\0\x04\0\x11aggregator-action\x03\
-\0\x17\x03\0(wavs:aggregator/aggregator@0.6.0-alpha.7\x05\x0b\x02\x03\0\x03\x06p\
+\0\x17\x03\0(wavs:aggregator/aggregator@0.6.0-alpha.8\x05\x0b\x02\x03\0\x03\x06p\
 acket\x03\0\x06packet\x03\0\x0c\x02\x03\0\x03\x11aggregator-action\x03\0\x11aggr\
 egator-action\x03\0\x0e\x02\x03\0\x01\x0bany-tx-hash\x03\0\x0bany-tx-hash\x03\0\x10\
 \x01B\x0a\x04\0\x08pollable\x03\x01\x01h\0\x01@\x01\x04self\x01\0\x7f\x04\0\x16[\
@@ -21144,224 +23075,228 @@ nse\x03\0\x04\x02\x03\x02\x01\x1f\x04\0\x0aerror-code\x03\0\x06\x01i\x01\x01i\x0
 \x01k\x09\x01i\x05\x01j\x01\x0b\x01\x07\x01@\x02\x07request\x08\x07options\x0a\0\
 \x0c\x04\0\x06handle\x01\x0d\x03\0\x20wasi:http/outgoing-handler@0.2.0\x05\x20\x02\
 \x03\0\x01\x10evm-chain-config\x02\x03\0\x01\x13cosmos-chain-config\x02\x03\0\0\x09\
-log-level\x01B\x11\x02\x03\x02\x01!\x04\0\x10evm-chain-config\x03\0\0\x02\x03\x02\
-\x01\"\x04\0\x13cosmos-chain-config\x03\0\x02\x02\x03\x02\x01#\x04\0\x09log-leve\
-l\x03\0\x04\x01k\x01\x01@\x01\x0achain-names\0\x06\x04\0\x14get-evm-chain-config\
-\x01\x07\x01k\x03\x01@\x01\x0achain-names\0\x08\x04\0\x17get-cosmos-chain-config\
-\x01\x09\x01ks\x01@\x01\x03keys\0\x0a\x04\0\x0aconfig-var\x01\x0b\x01@\x02\x05le\
-vel\x05\x07messages\x01\0\x04\0\x03log\x01\x0c\x03\0\x04host\x05$\x01B\x0a\x01o\x02\
-ss\x01p\0\x01@\0\0\x01\x04\0\x0fget-environment\x01\x02\x01ps\x01@\0\0\x03\x04\0\
-\x0dget-arguments\x01\x04\x01ks\x01@\0\0\x05\x04\0\x0binitial-cwd\x01\x06\x03\0\x1a\
-wasi:cli/environment@0.2.0\x05%\x01B\x03\x01j\0\0\x01@\x01\x06status\0\x01\0\x04\
-\0\x04exit\x01\x01\x03\0\x13wasi:cli/exit@0.2.0\x05&\x01B\x05\x02\x03\x02\x01\x19\
-\x04\0\x0cinput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x09get-stdin\x01\x03\x03\
-\0\x14wasi:cli/stdin@0.2.0\x05'\x01B\x05\x02\x03\x02\x01\x1a\x04\0\x0doutput-str\
-eam\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x0aget-stdout\x01\x03\x03\0\x15wasi:cli/\
-stdout@0.2.0\x05(\x01B\x05\x02\x03\x02\x01\x1a\x04\0\x0doutput-stream\x03\0\0\x01\
-i\x01\x01@\0\0\x02\x04\0\x0aget-stderr\x01\x03\x03\0\x15wasi:cli/stderr@0.2.0\x05\
-)\x01B\x01\x04\0\x0eterminal-input\x03\x01\x03\0\x1dwasi:cli/terminal-input@0.2.\
-0\x05*\x01B\x01\x04\0\x0fterminal-output\x03\x01\x03\0\x1ewasi:cli/terminal-outp\
-ut@0.2.0\x05+\x02\x03\0\x10\x0eterminal-input\x01B\x06\x02\x03\x02\x01,\x04\0\x0e\
-terminal-input\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\0\x12get-terminal-stdi\
-n\x01\x04\x03\0\x1dwasi:cli/terminal-stdin@0.2.0\x05-\x02\x03\0\x11\x0fterminal-\
-output\x01B\x06\x02\x03\x02\x01.\x04\0\x0fterminal-output\x03\0\0\x01i\x01\x01k\x02\
-\x01@\0\0\x03\x04\0\x13get-terminal-stdout\x01\x04\x03\0\x1ewasi:cli/terminal-st\
-dout@0.2.0\x05/\x01B\x06\x02\x03\x02\x01.\x04\0\x0fterminal-output\x03\0\0\x01i\x01\
-\x01k\x02\x01@\0\0\x03\x04\0\x13get-terminal-stderr\x01\x04\x03\0\x1ewasi:cli/te\
-rminal-stderr@0.2.0\x050\x01B\x05\x01r\x02\x07secondsw\x0bnanosecondsy\x04\0\x08\
-datetime\x03\0\0\x01@\0\0\x01\x04\0\x03now\x01\x02\x04\0\x0aresolution\x01\x02\x03\
-\0\x1cwasi:clocks/wall-clock@0.2.0\x051\x02\x03\0\x07\x05error\x02\x03\0\x15\x08\
-datetime\x01Br\x02\x03\x02\x01\x19\x04\0\x0cinput-stream\x03\0\0\x02\x03\x02\x01\
-\x1a\x04\0\x0doutput-stream\x03\0\x02\x02\x03\x02\x012\x04\0\x05error\x03\0\x04\x02\
-\x03\x02\x013\x04\0\x08datetime\x03\0\x06\x01w\x04\0\x08filesize\x03\0\x08\x01m\x08\
-\x07unknown\x0cblock-device\x10character-device\x09directory\x04fifo\x0dsymbolic\
--link\x0cregular-file\x06socket\x04\0\x0fdescriptor-type\x03\0\x0a\x01n\x06\x04r\
-ead\x05write\x13file-integrity-sync\x13data-integrity-sync\x14requested-write-sy\
-nc\x10mutate-directory\x04\0\x10descriptor-flags\x03\0\x0c\x01n\x01\x0esymlink-f\
-ollow\x04\0\x0apath-flags\x03\0\x0e\x01n\x04\x06create\x09directory\x09exclusive\
-\x08truncate\x04\0\x0aopen-flags\x03\0\x10\x01w\x04\0\x0alink-count\x03\0\x12\x01\
-k\x07\x01r\x06\x04type\x0b\x0alink-count\x13\x04size\x09\x15data-access-timestam\
-p\x14\x1bdata-modification-timestamp\x14\x17status-change-timestamp\x14\x04\0\x0f\
-descriptor-stat\x03\0\x15\x01q\x03\x09no-change\0\0\x03now\0\0\x09timestamp\x01\x07\
-\0\x04\0\x0dnew-timestamp\x03\0\x17\x01r\x02\x04type\x0b\x04names\x04\0\x0fdirec\
-tory-entry\x03\0\x19\x01m%\x06access\x0bwould-block\x07already\x0ebad-descriptor\
-\x04busy\x08deadlock\x05quota\x05exist\x0efile-too-large\x15illegal-byte-sequenc\
-e\x0bin-progress\x0binterrupted\x07invalid\x02io\x0cis-directory\x04loop\x0etoo-\
-many-links\x0cmessage-size\x0dname-too-long\x09no-device\x08no-entry\x07no-lock\x13\
-insufficient-memory\x12insufficient-space\x0dnot-directory\x09not-empty\x0fnot-r\
-ecoverable\x0bunsupported\x06no-tty\x0eno-such-device\x08overflow\x0dnot-permitt\
-ed\x04pipe\x09read-only\x0cinvalid-seek\x0etext-file-busy\x0ccross-device\x04\0\x0a\
-error-code\x03\0\x1b\x01m\x06\x06normal\x0asequential\x06random\x09will-need\x09\
-dont-need\x08no-reuse\x04\0\x06advice\x03\0\x1d\x01r\x02\x05lowerw\x05upperw\x04\
-\0\x13metadata-hash-value\x03\0\x1f\x04\0\x0adescriptor\x03\x01\x04\0\x16directo\
-ry-entry-stream\x03\x01\x01h!\x01i\x01\x01j\x01$\x01\x1c\x01@\x02\x04self#\x06of\
-fset\x09\0%\x04\0\"[method]descriptor.read-via-stream\x01&\x01i\x03\x01j\x01'\x01\
-\x1c\x01@\x02\x04self#\x06offset\x09\0(\x04\0#[method]descriptor.write-via-strea\
-m\x01)\x01@\x01\x04self#\0(\x04\0$[method]descriptor.append-via-stream\x01*\x01j\
-\0\x01\x1c\x01@\x04\x04self#\x06offset\x09\x06length\x09\x06advice\x1e\0+\x04\0\x19\
-[method]descriptor.advise\x01,\x01@\x01\x04self#\0+\x04\0\x1c[method]descriptor.\
-sync-data\x01-\x01j\x01\x0d\x01\x1c\x01@\x01\x04self#\0.\x04\0\x1c[method]descri\
-ptor.get-flags\x01/\x01j\x01\x0b\x01\x1c\x01@\x01\x04self#\00\x04\0\x1b[method]d\
-escriptor.get-type\x011\x01@\x02\x04self#\x04size\x09\0+\x04\0\x1b[method]descri\
-ptor.set-size\x012\x01@\x03\x04self#\x15data-access-timestamp\x18\x1bdata-modifi\
-cation-timestamp\x18\0+\x04\0\x1c[method]descriptor.set-times\x013\x01p}\x01o\x02\
-4\x7f\x01j\x015\x01\x1c\x01@\x03\x04self#\x06length\x09\x06offset\x09\06\x04\0\x17\
-[method]descriptor.read\x017\x01j\x01\x09\x01\x1c\x01@\x03\x04self#\x06buffer4\x06\
-offset\x09\08\x04\0\x18[method]descriptor.write\x019\x01i\"\x01j\x01:\x01\x1c\x01\
-@\x01\x04self#\0;\x04\0![method]descriptor.read-directory\x01<\x04\0\x17[method]\
-descriptor.sync\x01-\x01@\x02\x04self#\x04paths\0+\x04\0&[method]descriptor.crea\
-te-directory-at\x01=\x01j\x01\x16\x01\x1c\x01@\x01\x04self#\0>\x04\0\x17[method]\
-descriptor.stat\x01?\x01@\x03\x04self#\x0apath-flags\x0f\x04paths\0>\x04\0\x1a[m\
-ethod]descriptor.stat-at\x01@\x01@\x05\x04self#\x0apath-flags\x0f\x04paths\x15da\
-ta-access-timestamp\x18\x1bdata-modification-timestamp\x18\0+\x04\0\x1f[method]d\
-escriptor.set-times-at\x01A\x01@\x05\x04self#\x0eold-path-flags\x0f\x08old-paths\
-\x0enew-descriptor#\x08new-paths\0+\x04\0\x1a[method]descriptor.link-at\x01B\x01\
-i!\x01j\x01\xc3\0\x01\x1c\x01@\x05\x04self#\x0apath-flags\x0f\x04paths\x0aopen-f\
-lags\x11\x05flags\x0d\0\xc4\0\x04\0\x1a[method]descriptor.open-at\x01E\x01j\x01s\
-\x01\x1c\x01@\x02\x04self#\x04paths\0\xc6\0\x04\0\x1e[method]descriptor.readlink\
--at\x01G\x04\0&[method]descriptor.remove-directory-at\x01=\x01@\x04\x04self#\x08\
-old-paths\x0enew-descriptor#\x08new-paths\0+\x04\0\x1c[method]descriptor.rename-\
-at\x01H\x01@\x03\x04self#\x08old-paths\x08new-paths\0+\x04\0\x1d[method]descript\
-or.symlink-at\x01I\x04\0![method]descriptor.unlink-file-at\x01=\x01@\x02\x04self\
-#\x05other#\0\x7f\x04\0![method]descriptor.is-same-object\x01J\x01j\x01\x20\x01\x1c\
-\x01@\x01\x04self#\0\xcb\0\x04\0\x20[method]descriptor.metadata-hash\x01L\x01@\x03\
-\x04self#\x0apath-flags\x0f\x04paths\0\xcb\0\x04\0#[method]descriptor.metadata-h\
-ash-at\x01M\x01h\"\x01k\x1a\x01j\x01\xcf\0\x01\x1c\x01@\x01\x04self\xce\0\0\xd0\0\
-\x04\03[method]directory-entry-stream.read-directory-entry\x01Q\x01h\x05\x01k\x1c\
-\x01@\x01\x03err\xd2\0\0\xd3\0\x04\0\x15filesystem-error-code\x01T\x03\0\x1bwasi\
-:filesystem/types@0.2.0\x054\x02\x03\0\x16\x0adescriptor\x01B\x07\x02\x03\x02\x01\
-5\x04\0\x0adescriptor\x03\0\0\x01i\x01\x01o\x02\x02s\x01p\x03\x01@\0\0\x04\x04\0\
-\x0fget-directories\x01\x05\x03\0\x1ewasi:filesystem/preopens@0.2.0\x056\x01B\x11\
-\x04\0\x07network\x03\x01\x01m\x15\x07unknown\x0daccess-denied\x0dnot-supported\x10\
-invalid-argument\x0dout-of-memory\x07timeout\x14concurrency-conflict\x0fnot-in-p\
-rogress\x0bwould-block\x0dinvalid-state\x10new-socket-limit\x14address-not-binda\
-ble\x0eaddress-in-use\x12remote-unreachable\x12connection-refused\x10connection-\
-reset\x12connection-aborted\x12datagram-too-large\x11name-unresolvable\x1atempor\
-ary-resolver-failure\x1apermanent-resolver-failure\x04\0\x0aerror-code\x03\0\x01\
-\x01m\x02\x04ipv4\x04ipv6\x04\0\x11ip-address-family\x03\0\x03\x01o\x04}}}}\x04\0\
-\x0cipv4-address\x03\0\x05\x01o\x08{{{{{{{{\x04\0\x0cipv6-address\x03\0\x07\x01q\
-\x02\x04ipv4\x01\x06\0\x04ipv6\x01\x08\0\x04\0\x0aip-address\x03\0\x09\x01r\x02\x04\
-port{\x07address\x06\x04\0\x13ipv4-socket-address\x03\0\x0b\x01r\x04\x04port{\x09\
-flow-infoy\x07address\x08\x08scope-idy\x04\0\x13ipv6-socket-address\x03\0\x0d\x01\
-q\x02\x04ipv4\x01\x0c\0\x04ipv6\x01\x0e\0\x04\0\x11ip-socket-address\x03\0\x0f\x03\
-\0\x1awasi:sockets/network@0.2.0\x057\x02\x03\0\x18\x07network\x01B\x05\x02\x03\x02\
-\x018\x04\0\x07network\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x10instance-network\x01\
-\x03\x03\0#wasi:sockets/instance-network@0.2.0\x059\x02\x03\0\x18\x0aerror-code\x02\
-\x03\0\x18\x11ip-socket-address\x02\x03\0\x18\x11ip-address-family\x01BD\x02\x03\
-\x02\x01\x13\x04\0\x08pollable\x03\0\0\x02\x03\x02\x018\x04\0\x07network\x03\0\x02\
-\x02\x03\x02\x01:\x04\0\x0aerror-code\x03\0\x04\x02\x03\x02\x01;\x04\0\x11ip-soc\
-ket-address\x03\0\x06\x02\x03\x02\x01<\x04\0\x11ip-address-family\x03\0\x08\x01p\
-}\x01r\x02\x04data\x0a\x0eremote-address\x07\x04\0\x11incoming-datagram\x03\0\x0b\
-\x01k\x07\x01r\x02\x04data\x0a\x0eremote-address\x0d\x04\0\x11outgoing-datagram\x03\
-\0\x0e\x04\0\x0audp-socket\x03\x01\x04\0\x18incoming-datagram-stream\x03\x01\x04\
-\0\x18outgoing-datagram-stream\x03\x01\x01h\x10\x01h\x03\x01j\0\x01\x05\x01@\x03\
-\x04self\x13\x07network\x14\x0dlocal-address\x07\0\x15\x04\0\x1d[method]udp-sock\
-et.start-bind\x01\x16\x01@\x01\x04self\x13\0\x15\x04\0\x1e[method]udp-socket.fin\
-ish-bind\x01\x17\x01i\x11\x01i\x12\x01o\x02\x18\x19\x01j\x01\x1a\x01\x05\x01@\x02\
-\x04self\x13\x0eremote-address\x0d\0\x1b\x04\0\x19[method]udp-socket.stream\x01\x1c\
-\x01j\x01\x07\x01\x05\x01@\x01\x04self\x13\0\x1d\x04\0\x20[method]udp-socket.loc\
-al-address\x01\x1e\x04\0![method]udp-socket.remote-address\x01\x1e\x01@\x01\x04s\
-elf\x13\0\x09\x04\0![method]udp-socket.address-family\x01\x1f\x01j\x01}\x01\x05\x01\
-@\x01\x04self\x13\0\x20\x04\0$[method]udp-socket.unicast-hop-limit\x01!\x01@\x02\
-\x04self\x13\x05value}\0\x15\x04\0([method]udp-socket.set-unicast-hop-limit\x01\"\
-\x01j\x01w\x01\x05\x01@\x01\x04self\x13\0#\x04\0&[method]udp-socket.receive-buff\
-er-size\x01$\x01@\x02\x04self\x13\x05valuew\0\x15\x04\0*[method]udp-socket.set-r\
-eceive-buffer-size\x01%\x04\0#[method]udp-socket.send-buffer-size\x01$\x04\0'[me\
-thod]udp-socket.set-send-buffer-size\x01%\x01i\x01\x01@\x01\x04self\x13\0&\x04\0\
-\x1c[method]udp-socket.subscribe\x01'\x01h\x11\x01p\x0c\x01j\x01)\x01\x05\x01@\x02\
-\x04self(\x0bmax-resultsw\0*\x04\0([method]incoming-datagram-stream.receive\x01+\
-\x01@\x01\x04self(\0&\x04\0*[method]incoming-datagram-stream.subscribe\x01,\x01h\
-\x12\x01@\x01\x04self-\0#\x04\0+[method]outgoing-datagram-stream.check-send\x01.\
-\x01p\x0f\x01@\x02\x04self-\x09datagrams/\0#\x04\0%[method]outgoing-datagram-str\
-eam.send\x010\x01@\x01\x04self-\0&\x04\0*[method]outgoing-datagram-stream.subscr\
-ibe\x011\x03\0\x16wasi:sockets/udp@0.2.0\x05=\x02\x03\0\x1a\x0audp-socket\x01B\x0c\
-\x02\x03\x02\x018\x04\0\x07network\x03\0\0\x02\x03\x02\x01:\x04\0\x0aerror-code\x03\
-\0\x02\x02\x03\x02\x01<\x04\0\x11ip-address-family\x03\0\x04\x02\x03\x02\x01>\x04\
-\0\x0audp-socket\x03\0\x06\x01i\x07\x01j\x01\x08\x01\x03\x01@\x01\x0eaddress-fam\
-ily\x05\0\x09\x04\0\x11create-udp-socket\x01\x0a\x03\0$wasi:sockets/udp-create-s\
-ocket@0.2.0\x05?\x01BT\x02\x03\x02\x01\x19\x04\0\x0cinput-stream\x03\0\0\x02\x03\
-\x02\x01\x1a\x04\0\x0doutput-stream\x03\0\x02\x02\x03\x02\x01\x13\x04\0\x08polla\
-ble\x03\0\x04\x02\x03\x02\x01\x18\x04\0\x08duration\x03\0\x06\x02\x03\x02\x018\x04\
-\0\x07network\x03\0\x08\x02\x03\x02\x01:\x04\0\x0aerror-code\x03\0\x0a\x02\x03\x02\
-\x01;\x04\0\x11ip-socket-address\x03\0\x0c\x02\x03\x02\x01<\x04\0\x11ip-address-\
-family\x03\0\x0e\x01m\x03\x07receive\x04send\x04both\x04\0\x0dshutdown-type\x03\0\
-\x10\x04\0\x0atcp-socket\x03\x01\x01h\x12\x01h\x09\x01j\0\x01\x0b\x01@\x03\x04se\
-lf\x13\x07network\x14\x0dlocal-address\x0d\0\x15\x04\0\x1d[method]tcp-socket.sta\
-rt-bind\x01\x16\x01@\x01\x04self\x13\0\x15\x04\0\x1e[method]tcp-socket.finish-bi\
-nd\x01\x17\x01@\x03\x04self\x13\x07network\x14\x0eremote-address\x0d\0\x15\x04\0\
-\x20[method]tcp-socket.start-connect\x01\x18\x01i\x01\x01i\x03\x01o\x02\x19\x1a\x01\
-j\x01\x1b\x01\x0b\x01@\x01\x04self\x13\0\x1c\x04\0![method]tcp-socket.finish-con\
-nect\x01\x1d\x04\0\x1f[method]tcp-socket.start-listen\x01\x17\x04\0\x20[method]t\
-cp-socket.finish-listen\x01\x17\x01i\x12\x01o\x03\x1e\x19\x1a\x01j\x01\x1f\x01\x0b\
-\x01@\x01\x04self\x13\0\x20\x04\0\x19[method]tcp-socket.accept\x01!\x01j\x01\x0d\
-\x01\x0b\x01@\x01\x04self\x13\0\"\x04\0\x20[method]tcp-socket.local-address\x01#\
-\x04\0![method]tcp-socket.remote-address\x01#\x01@\x01\x04self\x13\0\x7f\x04\0\x1f\
-[method]tcp-socket.is-listening\x01$\x01@\x01\x04self\x13\0\x0f\x04\0![method]tc\
-p-socket.address-family\x01%\x01@\x02\x04self\x13\x05valuew\0\x15\x04\0*[method]\
-tcp-socket.set-listen-backlog-size\x01&\x01j\x01\x7f\x01\x0b\x01@\x01\x04self\x13\
-\0'\x04\0%[method]tcp-socket.keep-alive-enabled\x01(\x01@\x02\x04self\x13\x05val\
-ue\x7f\0\x15\x04\0)[method]tcp-socket.set-keep-alive-enabled\x01)\x01j\x01\x07\x01\
-\x0b\x01@\x01\x04self\x13\0*\x04\0'[method]tcp-socket.keep-alive-idle-time\x01+\x01\
-@\x02\x04self\x13\x05value\x07\0\x15\x04\0+[method]tcp-socket.set-keep-alive-idl\
-e-time\x01,\x04\0&[method]tcp-socket.keep-alive-interval\x01+\x04\0*[method]tcp-\
-socket.set-keep-alive-interval\x01,\x01j\x01y\x01\x0b\x01@\x01\x04self\x13\0-\x04\
-\0#[method]tcp-socket.keep-alive-count\x01.\x01@\x02\x04self\x13\x05valuey\0\x15\
-\x04\0'[method]tcp-socket.set-keep-alive-count\x01/\x01j\x01}\x01\x0b\x01@\x01\x04\
-self\x13\00\x04\0\x1c[method]tcp-socket.hop-limit\x011\x01@\x02\x04self\x13\x05v\
-alue}\0\x15\x04\0\x20[method]tcp-socket.set-hop-limit\x012\x01j\x01w\x01\x0b\x01\
-@\x01\x04self\x13\03\x04\0&[method]tcp-socket.receive-buffer-size\x014\x04\0*[me\
-thod]tcp-socket.set-receive-buffer-size\x01&\x04\0#[method]tcp-socket.send-buffe\
-r-size\x014\x04\0'[method]tcp-socket.set-send-buffer-size\x01&\x01i\x05\x01@\x01\
-\x04self\x13\05\x04\0\x1c[method]tcp-socket.subscribe\x016\x01@\x02\x04self\x13\x0d\
-shutdown-type\x11\0\x15\x04\0\x1b[method]tcp-socket.shutdown\x017\x03\0\x16wasi:\
-sockets/tcp@0.2.0\x05@\x02\x03\0\x1c\x0atcp-socket\x01B\x0c\x02\x03\x02\x018\x04\
-\0\x07network\x03\0\0\x02\x03\x02\x01:\x04\0\x0aerror-code\x03\0\x02\x02\x03\x02\
-\x01<\x04\0\x11ip-address-family\x03\0\x04\x02\x03\x02\x01A\x04\0\x0atcp-socket\x03\
+log-level\x02\x03\0\x02\x17service-and-workflow-id\x02\x03\0\x02\x18workflow-and\
+-workflow-id\x01B\x19\x02\x03\x02\x01!\x04\0\x10evm-chain-config\x03\0\0\x02\x03\
+\x02\x01\"\x04\0\x13cosmos-chain-config\x03\0\x02\x02\x03\x02\x01#\x04\0\x09log-\
+level\x03\0\x04\x02\x03\x02\x01$\x04\0\x17service-and-workflow-id\x03\0\x06\x02\x03\
+\x02\x01%\x04\0\x18workflow-and-workflow-id\x03\0\x08\x01k\x01\x01@\x01\x0achain\
+-names\0\x0a\x04\0\x14get-evm-chain-config\x01\x0b\x01k\x03\x01@\x01\x0achain-na\
+mes\0\x0c\x04\0\x17get-cosmos-chain-config\x01\x0d\x01ks\x01@\x01\x03keys\0\x0e\x04\
+\0\x0aconfig-var\x01\x0f\x01@\x02\x05level\x05\x07messages\x01\0\x04\0\x03log\x01\
+\x10\x01@\0\0\x07\x04\0\x0bget-service\x01\x11\x01@\0\0\x09\x04\0\x0cget-workflo\
+w\x01\x12\x03\0\x04host\x05&\x01B\x0a\x01o\x02ss\x01p\0\x01@\0\0\x01\x04\0\x0fge\
+t-environment\x01\x02\x01ps\x01@\0\0\x03\x04\0\x0dget-arguments\x01\x04\x01ks\x01\
+@\0\0\x05\x04\0\x0binitial-cwd\x01\x06\x03\0\x1awasi:cli/environment@0.2.0\x05'\x01\
+B\x03\x01j\0\0\x01@\x01\x06status\0\x01\0\x04\0\x04exit\x01\x01\x03\0\x13wasi:cl\
+i/exit@0.2.0\x05(\x01B\x05\x02\x03\x02\x01\x19\x04\0\x0cinput-stream\x03\0\0\x01\
+i\x01\x01@\0\0\x02\x04\0\x09get-stdin\x01\x03\x03\0\x14wasi:cli/stdin@0.2.0\x05)\
+\x01B\x05\x02\x03\x02\x01\x1a\x04\0\x0doutput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\
+\x04\0\x0aget-stdout\x01\x03\x03\0\x15wasi:cli/stdout@0.2.0\x05*\x01B\x05\x02\x03\
+\x02\x01\x1a\x04\0\x0doutput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x0aget-s\
+tderr\x01\x03\x03\0\x15wasi:cli/stderr@0.2.0\x05+\x01B\x01\x04\0\x0eterminal-inp\
+ut\x03\x01\x03\0\x1dwasi:cli/terminal-input@0.2.0\x05,\x01B\x01\x04\0\x0ftermina\
+l-output\x03\x01\x03\0\x1ewasi:cli/terminal-output@0.2.0\x05-\x02\x03\0\x10\x0et\
+erminal-input\x01B\x06\x02\x03\x02\x01.\x04\0\x0eterminal-input\x03\0\0\x01i\x01\
+\x01k\x02\x01@\0\0\x03\x04\0\x12get-terminal-stdin\x01\x04\x03\0\x1dwasi:cli/ter\
+minal-stdin@0.2.0\x05/\x02\x03\0\x11\x0fterminal-output\x01B\x06\x02\x03\x02\x01\
+0\x04\0\x0fterminal-output\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\0\x13get-t\
+erminal-stdout\x01\x04\x03\0\x1ewasi:cli/terminal-stdout@0.2.0\x051\x01B\x06\x02\
+\x03\x02\x010\x04\0\x0fterminal-output\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\
+\0\x13get-terminal-stderr\x01\x04\x03\0\x1ewasi:cli/terminal-stderr@0.2.0\x052\x01\
+B\x05\x01r\x02\x07secondsw\x0bnanosecondsy\x04\0\x08datetime\x03\0\0\x01@\0\0\x01\
+\x04\0\x03now\x01\x02\x04\0\x0aresolution\x01\x02\x03\0\x1cwasi:clocks/wall-cloc\
+k@0.2.0\x053\x02\x03\0\x07\x05error\x02\x03\0\x15\x08datetime\x01Br\x02\x03\x02\x01\
+\x19\x04\0\x0cinput-stream\x03\0\0\x02\x03\x02\x01\x1a\x04\0\x0doutput-stream\x03\
+\0\x02\x02\x03\x02\x014\x04\0\x05error\x03\0\x04\x02\x03\x02\x015\x04\0\x08datet\
+ime\x03\0\x06\x01w\x04\0\x08filesize\x03\0\x08\x01m\x08\x07unknown\x0cblock-devi\
+ce\x10character-device\x09directory\x04fifo\x0dsymbolic-link\x0cregular-file\x06\
+socket\x04\0\x0fdescriptor-type\x03\0\x0a\x01n\x06\x04read\x05write\x13file-inte\
+grity-sync\x13data-integrity-sync\x14requested-write-sync\x10mutate-directory\x04\
+\0\x10descriptor-flags\x03\0\x0c\x01n\x01\x0esymlink-follow\x04\0\x0apath-flags\x03\
+\0\x0e\x01n\x04\x06create\x09directory\x09exclusive\x08truncate\x04\0\x0aopen-fl\
+ags\x03\0\x10\x01w\x04\0\x0alink-count\x03\0\x12\x01k\x07\x01r\x06\x04type\x0b\x0a\
+link-count\x13\x04size\x09\x15data-access-timestamp\x14\x1bdata-modification-tim\
+estamp\x14\x17status-change-timestamp\x14\x04\0\x0fdescriptor-stat\x03\0\x15\x01\
+q\x03\x09no-change\0\0\x03now\0\0\x09timestamp\x01\x07\0\x04\0\x0dnew-timestamp\x03\
+\0\x17\x01r\x02\x04type\x0b\x04names\x04\0\x0fdirectory-entry\x03\0\x19\x01m%\x06\
+access\x0bwould-block\x07already\x0ebad-descriptor\x04busy\x08deadlock\x05quota\x05\
+exist\x0efile-too-large\x15illegal-byte-sequence\x0bin-progress\x0binterrupted\x07\
+invalid\x02io\x0cis-directory\x04loop\x0etoo-many-links\x0cmessage-size\x0dname-\
+too-long\x09no-device\x08no-entry\x07no-lock\x13insufficient-memory\x12insuffici\
+ent-space\x0dnot-directory\x09not-empty\x0fnot-recoverable\x0bunsupported\x06no-\
+tty\x0eno-such-device\x08overflow\x0dnot-permitted\x04pipe\x09read-only\x0cinval\
+id-seek\x0etext-file-busy\x0ccross-device\x04\0\x0aerror-code\x03\0\x1b\x01m\x06\
+\x06normal\x0asequential\x06random\x09will-need\x09dont-need\x08no-reuse\x04\0\x06\
+advice\x03\0\x1d\x01r\x02\x05lowerw\x05upperw\x04\0\x13metadata-hash-value\x03\0\
+\x1f\x04\0\x0adescriptor\x03\x01\x04\0\x16directory-entry-stream\x03\x01\x01h!\x01\
+i\x01\x01j\x01$\x01\x1c\x01@\x02\x04self#\x06offset\x09\0%\x04\0\"[method]descri\
+ptor.read-via-stream\x01&\x01i\x03\x01j\x01'\x01\x1c\x01@\x02\x04self#\x06offset\
+\x09\0(\x04\0#[method]descriptor.write-via-stream\x01)\x01@\x01\x04self#\0(\x04\0\
+$[method]descriptor.append-via-stream\x01*\x01j\0\x01\x1c\x01@\x04\x04self#\x06o\
+ffset\x09\x06length\x09\x06advice\x1e\0+\x04\0\x19[method]descriptor.advise\x01,\
+\x01@\x01\x04self#\0+\x04\0\x1c[method]descriptor.sync-data\x01-\x01j\x01\x0d\x01\
+\x1c\x01@\x01\x04self#\0.\x04\0\x1c[method]descriptor.get-flags\x01/\x01j\x01\x0b\
+\x01\x1c\x01@\x01\x04self#\00\x04\0\x1b[method]descriptor.get-type\x011\x01@\x02\
+\x04self#\x04size\x09\0+\x04\0\x1b[method]descriptor.set-size\x012\x01@\x03\x04s\
+elf#\x15data-access-timestamp\x18\x1bdata-modification-timestamp\x18\0+\x04\0\x1c\
+[method]descriptor.set-times\x013\x01p}\x01o\x024\x7f\x01j\x015\x01\x1c\x01@\x03\
+\x04self#\x06length\x09\x06offset\x09\06\x04\0\x17[method]descriptor.read\x017\x01\
+j\x01\x09\x01\x1c\x01@\x03\x04self#\x06buffer4\x06offset\x09\08\x04\0\x18[method\
+]descriptor.write\x019\x01i\"\x01j\x01:\x01\x1c\x01@\x01\x04self#\0;\x04\0![meth\
+od]descriptor.read-directory\x01<\x04\0\x17[method]descriptor.sync\x01-\x01@\x02\
+\x04self#\x04paths\0+\x04\0&[method]descriptor.create-directory-at\x01=\x01j\x01\
+\x16\x01\x1c\x01@\x01\x04self#\0>\x04\0\x17[method]descriptor.stat\x01?\x01@\x03\
+\x04self#\x0apath-flags\x0f\x04paths\0>\x04\0\x1a[method]descriptor.stat-at\x01@\
+\x01@\x05\x04self#\x0apath-flags\x0f\x04paths\x15data-access-timestamp\x18\x1bda\
+ta-modification-timestamp\x18\0+\x04\0\x1f[method]descriptor.set-times-at\x01A\x01\
+@\x05\x04self#\x0eold-path-flags\x0f\x08old-paths\x0enew-descriptor#\x08new-path\
+s\0+\x04\0\x1a[method]descriptor.link-at\x01B\x01i!\x01j\x01\xc3\0\x01\x1c\x01@\x05\
+\x04self#\x0apath-flags\x0f\x04paths\x0aopen-flags\x11\x05flags\x0d\0\xc4\0\x04\0\
+\x1a[method]descriptor.open-at\x01E\x01j\x01s\x01\x1c\x01@\x02\x04self#\x04paths\
+\0\xc6\0\x04\0\x1e[method]descriptor.readlink-at\x01G\x04\0&[method]descriptor.r\
+emove-directory-at\x01=\x01@\x04\x04self#\x08old-paths\x0enew-descriptor#\x08new\
+-paths\0+\x04\0\x1c[method]descriptor.rename-at\x01H\x01@\x03\x04self#\x08old-pa\
+ths\x08new-paths\0+\x04\0\x1d[method]descriptor.symlink-at\x01I\x04\0![method]de\
+scriptor.unlink-file-at\x01=\x01@\x02\x04self#\x05other#\0\x7f\x04\0![method]des\
+criptor.is-same-object\x01J\x01j\x01\x20\x01\x1c\x01@\x01\x04self#\0\xcb\0\x04\0\
+\x20[method]descriptor.metadata-hash\x01L\x01@\x03\x04self#\x0apath-flags\x0f\x04\
+paths\0\xcb\0\x04\0#[method]descriptor.metadata-hash-at\x01M\x01h\"\x01k\x1a\x01\
+j\x01\xcf\0\x01\x1c\x01@\x01\x04self\xce\0\0\xd0\0\x04\03[method]directory-entry\
+-stream.read-directory-entry\x01Q\x01h\x05\x01k\x1c\x01@\x01\x03err\xd2\0\0\xd3\0\
+\x04\0\x15filesystem-error-code\x01T\x03\0\x1bwasi:filesystem/types@0.2.0\x056\x02\
+\x03\0\x16\x0adescriptor\x01B\x07\x02\x03\x02\x017\x04\0\x0adescriptor\x03\0\0\x01\
+i\x01\x01o\x02\x02s\x01p\x03\x01@\0\0\x04\x04\0\x0fget-directories\x01\x05\x03\0\
+\x1ewasi:filesystem/preopens@0.2.0\x058\x01B\x11\x04\0\x07network\x03\x01\x01m\x15\
+\x07unknown\x0daccess-denied\x0dnot-supported\x10invalid-argument\x0dout-of-memo\
+ry\x07timeout\x14concurrency-conflict\x0fnot-in-progress\x0bwould-block\x0dinval\
+id-state\x10new-socket-limit\x14address-not-bindable\x0eaddress-in-use\x12remote\
+-unreachable\x12connection-refused\x10connection-reset\x12connection-aborted\x12\
+datagram-too-large\x11name-unresolvable\x1atemporary-resolver-failure\x1apermane\
+nt-resolver-failure\x04\0\x0aerror-code\x03\0\x01\x01m\x02\x04ipv4\x04ipv6\x04\0\
+\x11ip-address-family\x03\0\x03\x01o\x04}}}}\x04\0\x0cipv4-address\x03\0\x05\x01\
+o\x08{{{{{{{{\x04\0\x0cipv6-address\x03\0\x07\x01q\x02\x04ipv4\x01\x06\0\x04ipv6\
+\x01\x08\0\x04\0\x0aip-address\x03\0\x09\x01r\x02\x04port{\x07address\x06\x04\0\x13\
+ipv4-socket-address\x03\0\x0b\x01r\x04\x04port{\x09flow-infoy\x07address\x08\x08\
+scope-idy\x04\0\x13ipv6-socket-address\x03\0\x0d\x01q\x02\x04ipv4\x01\x0c\0\x04i\
+pv6\x01\x0e\0\x04\0\x11ip-socket-address\x03\0\x0f\x03\0\x1awasi:sockets/network\
+@0.2.0\x059\x02\x03\0\x18\x07network\x01B\x05\x02\x03\x02\x01:\x04\0\x07network\x03\
+\0\0\x01i\x01\x01@\0\0\x02\x04\0\x10instance-network\x01\x03\x03\0#wasi:sockets/\
+instance-network@0.2.0\x05;\x02\x03\0\x18\x0aerror-code\x02\x03\0\x18\x11ip-sock\
+et-address\x02\x03\0\x18\x11ip-address-family\x01BD\x02\x03\x02\x01\x13\x04\0\x08\
+pollable\x03\0\0\x02\x03\x02\x01:\x04\0\x07network\x03\0\x02\x02\x03\x02\x01<\x04\
+\0\x0aerror-code\x03\0\x04\x02\x03\x02\x01=\x04\0\x11ip-socket-address\x03\0\x06\
+\x02\x03\x02\x01>\x04\0\x11ip-address-family\x03\0\x08\x01p}\x01r\x02\x04data\x0a\
+\x0eremote-address\x07\x04\0\x11incoming-datagram\x03\0\x0b\x01k\x07\x01r\x02\x04\
+data\x0a\x0eremote-address\x0d\x04\0\x11outgoing-datagram\x03\0\x0e\x04\0\x0audp\
+-socket\x03\x01\x04\0\x18incoming-datagram-stream\x03\x01\x04\0\x18outgoing-data\
+gram-stream\x03\x01\x01h\x10\x01h\x03\x01j\0\x01\x05\x01@\x03\x04self\x13\x07net\
+work\x14\x0dlocal-address\x07\0\x15\x04\0\x1d[method]udp-socket.start-bind\x01\x16\
+\x01@\x01\x04self\x13\0\x15\x04\0\x1e[method]udp-socket.finish-bind\x01\x17\x01i\
+\x11\x01i\x12\x01o\x02\x18\x19\x01j\x01\x1a\x01\x05\x01@\x02\x04self\x13\x0eremo\
+te-address\x0d\0\x1b\x04\0\x19[method]udp-socket.stream\x01\x1c\x01j\x01\x07\x01\
+\x05\x01@\x01\x04self\x13\0\x1d\x04\0\x20[method]udp-socket.local-address\x01\x1e\
+\x04\0![method]udp-socket.remote-address\x01\x1e\x01@\x01\x04self\x13\0\x09\x04\0\
+![method]udp-socket.address-family\x01\x1f\x01j\x01}\x01\x05\x01@\x01\x04self\x13\
+\0\x20\x04\0$[method]udp-socket.unicast-hop-limit\x01!\x01@\x02\x04self\x13\x05v\
+alue}\0\x15\x04\0([method]udp-socket.set-unicast-hop-limit\x01\"\x01j\x01w\x01\x05\
+\x01@\x01\x04self\x13\0#\x04\0&[method]udp-socket.receive-buffer-size\x01$\x01@\x02\
+\x04self\x13\x05valuew\0\x15\x04\0*[method]udp-socket.set-receive-buffer-size\x01\
+%\x04\0#[method]udp-socket.send-buffer-size\x01$\x04\0'[method]udp-socket.set-se\
+nd-buffer-size\x01%\x01i\x01\x01@\x01\x04self\x13\0&\x04\0\x1c[method]udp-socket\
+.subscribe\x01'\x01h\x11\x01p\x0c\x01j\x01)\x01\x05\x01@\x02\x04self(\x0bmax-res\
+ultsw\0*\x04\0([method]incoming-datagram-stream.receive\x01+\x01@\x01\x04self(\0\
+&\x04\0*[method]incoming-datagram-stream.subscribe\x01,\x01h\x12\x01@\x01\x04sel\
+f-\0#\x04\0+[method]outgoing-datagram-stream.check-send\x01.\x01p\x0f\x01@\x02\x04\
+self-\x09datagrams/\0#\x04\0%[method]outgoing-datagram-stream.send\x010\x01@\x01\
+\x04self-\0&\x04\0*[method]outgoing-datagram-stream.subscribe\x011\x03\0\x16wasi\
+:sockets/udp@0.2.0\x05?\x02\x03\0\x1a\x0audp-socket\x01B\x0c\x02\x03\x02\x01:\x04\
+\0\x07network\x03\0\0\x02\x03\x02\x01<\x04\0\x0aerror-code\x03\0\x02\x02\x03\x02\
+\x01>\x04\0\x11ip-address-family\x03\0\x04\x02\x03\x02\x01@\x04\0\x0audp-socket\x03\
 \0\x06\x01i\x07\x01j\x01\x08\x01\x03\x01@\x01\x0eaddress-family\x05\0\x09\x04\0\x11\
-create-tcp-socket\x01\x0a\x03\0$wasi:sockets/tcp-create-socket@0.2.0\x05B\x02\x03\
-\0\x18\x0aip-address\x01B\x16\x02\x03\x02\x01\x13\x04\0\x08pollable\x03\0\0\x02\x03\
-\x02\x018\x04\0\x07network\x03\0\x02\x02\x03\x02\x01:\x04\0\x0aerror-code\x03\0\x04\
-\x02\x03\x02\x01C\x04\0\x0aip-address\x03\0\x06\x04\0\x16resolve-address-stream\x03\
-\x01\x01h\x08\x01k\x07\x01j\x01\x0a\x01\x05\x01@\x01\x04self\x09\0\x0b\x04\03[me\
-thod]resolve-address-stream.resolve-next-address\x01\x0c\x01i\x01\x01@\x01\x04se\
-lf\x09\0\x0d\x04\0([method]resolve-address-stream.subscribe\x01\x0e\x01h\x03\x01\
-i\x08\x01j\x01\x10\x01\x05\x01@\x02\x07network\x0f\x04names\0\x11\x04\0\x11resol\
-ve-addresses\x01\x12\x03\0!wasi:sockets/ip-name-lookup@0.2.0\x05D\x01B\x05\x01p}\
-\x01@\x01\x03lenw\0\0\x04\0\x10get-random-bytes\x01\x01\x01@\0\0w\x04\0\x0eget-r\
-andom-u64\x01\x02\x03\0\x18wasi:random/random@0.2.0\x05E\x01B\x05\x01p}\x01@\x01\
-\x03lenw\0\0\x04\0\x19get-insecure-random-bytes\x01\x01\x01@\0\0w\x04\0\x17get-i\
-nsecure-random-u64\x01\x02\x03\0\x1awasi:random/insecure@0.2.0\x05F\x01B\x03\x01\
-o\x02ww\x01@\0\0\0\x04\0\x0dinsecure-seed\x01\x01\x03\0\x1fwasi:random/insecure-\
-seed@0.2.0\x05G\x01B\x1c\x01q\x03\x0dno-such-store\0\0\x0daccess-denied\0\0\x05o\
-ther\x01s\0\x04\0\x05error\x03\0\0\x01ps\x01ks\x01r\x02\x04keys\x02\x06cursor\x03\
-\x04\0\x0ckey-response\x03\0\x04\x04\0\x06bucket\x03\x01\x01h\x06\x01p}\x01k\x08\
-\x01j\x01\x09\x01\x01\x01@\x02\x04self\x07\x03keys\0\x0a\x04\0\x12[method]bucket\
-.get\x01\x0b\x01j\0\x01\x01\x01@\x03\x04self\x07\x03keys\x05value\x08\0\x0c\x04\0\
-\x12[method]bucket.set\x01\x0d\x01@\x02\x04self\x07\x03keys\0\x0c\x04\0\x15[meth\
-od]bucket.delete\x01\x0e\x01j\x01\x7f\x01\x01\x01@\x02\x04self\x07\x03keys\0\x0f\
-\x04\0\x15[method]bucket.exists\x01\x10\x01j\x01\x05\x01\x01\x01@\x02\x04self\x07\
-\x06cursor\x03\0\x11\x04\0\x18[method]bucket.list-keys\x01\x12\x01i\x06\x01j\x01\
-\x13\x01\x01\x01@\x01\x0aidentifiers\0\x14\x04\0\x04open\x01\x15\x03\0\x20wasi:k\
-eyvalue/store@0.2.0-draft2\x05H\x02\x03\0\"\x06bucket\x02\x03\0\"\x05error\x01B\x18\
-\x02\x03\x02\x01I\x04\0\x06bucket\x03\0\0\x02\x03\x02\x01J\x04\0\x05error\x03\0\x02\
-\x04\0\x03cas\x03\x01\x01i\x04\x01q\x02\x0bstore-error\x01\x03\0\x0acas-failed\x01\
-\x05\0\x04\0\x09cas-error\x03\0\x06\x01h\x01\x01j\x01\x05\x01\x03\x01@\x02\x06bu\
-cket\x08\x03keys\0\x09\x04\0\x0f[static]cas.new\x01\x0a\x01h\x04\x01p}\x01k\x0c\x01\
-j\x01\x0d\x01\x03\x01@\x01\x04self\x0b\0\x0e\x04\0\x13[method]cas.current\x01\x0f\
-\x01j\x01x\x01\x03\x01@\x03\x06bucket\x08\x03keys\x05deltax\0\x10\x04\0\x09incre\
-ment\x01\x11\x01j\0\x01\x07\x01@\x02\x03cas\x05\x05value\x0c\0\x12\x04\0\x04swap\
-\x01\x13\x03\0\"wasi:keyvalue/atomics@0.2.0-draft2\x05K\x01B\x13\x02\x03\x02\x01\
-I\x04\0\x06bucket\x03\0\0\x02\x03\x02\x01J\x04\0\x05error\x03\0\x02\x01h\x01\x01\
-ps\x01p}\x01o\x02s\x06\x01k\x07\x01p\x08\x01j\x01\x09\x01\x03\x01@\x02\x06bucket\
-\x04\x04keys\x05\0\x0a\x04\0\x08get-many\x01\x0b\x01p\x07\x01j\0\x01\x03\x01@\x02\
-\x06bucket\x04\x0akey-values\x0c\0\x0d\x04\0\x08set-many\x01\x0e\x01@\x02\x06buc\
-ket\x04\x04keys\x05\0\x0d\x04\0\x0bdelete-many\x01\x0f\x03\0\x20wasi:keyvalue/ba\
-tch@0.2.0-draft2\x05L\x01p\x0f\x01j\x01\xcd\0\x01s\x01@\x01\x06packet\x0d\0\xce\0\
-\x04\0\x0eprocess-packet\x01O\x04\0\x15handle-timer-callback\x01O\x01j\x01\x11\x01\
-s\x01j\0\x01s\x01@\x02\x06packet\x0d\x09tx-result\xd0\0\0\xd1\0\x04\0\x16handle-\
-submit-callback\x01R\x04\0.wavs:aggregator/aggregator-world@0.6.0-alpha.7\x04\0\x0b\
-\x16\x01\0\x10aggregator-world\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0d\
-wit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
+create-udp-socket\x01\x0a\x03\0$wasi:sockets/udp-create-socket@0.2.0\x05A\x01BT\x02\
+\x03\x02\x01\x19\x04\0\x0cinput-stream\x03\0\0\x02\x03\x02\x01\x1a\x04\0\x0doutp\
+ut-stream\x03\0\x02\x02\x03\x02\x01\x13\x04\0\x08pollable\x03\0\x04\x02\x03\x02\x01\
+\x18\x04\0\x08duration\x03\0\x06\x02\x03\x02\x01:\x04\0\x07network\x03\0\x08\x02\
+\x03\x02\x01<\x04\0\x0aerror-code\x03\0\x0a\x02\x03\x02\x01=\x04\0\x11ip-socket-\
+address\x03\0\x0c\x02\x03\x02\x01>\x04\0\x11ip-address-family\x03\0\x0e\x01m\x03\
+\x07receive\x04send\x04both\x04\0\x0dshutdown-type\x03\0\x10\x04\0\x0atcp-socket\
+\x03\x01\x01h\x12\x01h\x09\x01j\0\x01\x0b\x01@\x03\x04self\x13\x07network\x14\x0d\
+local-address\x0d\0\x15\x04\0\x1d[method]tcp-socket.start-bind\x01\x16\x01@\x01\x04\
+self\x13\0\x15\x04\0\x1e[method]tcp-socket.finish-bind\x01\x17\x01@\x03\x04self\x13\
+\x07network\x14\x0eremote-address\x0d\0\x15\x04\0\x20[method]tcp-socket.start-co\
+nnect\x01\x18\x01i\x01\x01i\x03\x01o\x02\x19\x1a\x01j\x01\x1b\x01\x0b\x01@\x01\x04\
+self\x13\0\x1c\x04\0![method]tcp-socket.finish-connect\x01\x1d\x04\0\x1f[method]\
+tcp-socket.start-listen\x01\x17\x04\0\x20[method]tcp-socket.finish-listen\x01\x17\
+\x01i\x12\x01o\x03\x1e\x19\x1a\x01j\x01\x1f\x01\x0b\x01@\x01\x04self\x13\0\x20\x04\
+\0\x19[method]tcp-socket.accept\x01!\x01j\x01\x0d\x01\x0b\x01@\x01\x04self\x13\0\
+\"\x04\0\x20[method]tcp-socket.local-address\x01#\x04\0![method]tcp-socket.remot\
+e-address\x01#\x01@\x01\x04self\x13\0\x7f\x04\0\x1f[method]tcp-socket.is-listeni\
+ng\x01$\x01@\x01\x04self\x13\0\x0f\x04\0![method]tcp-socket.address-family\x01%\x01\
+@\x02\x04self\x13\x05valuew\0\x15\x04\0*[method]tcp-socket.set-listen-backlog-si\
+ze\x01&\x01j\x01\x7f\x01\x0b\x01@\x01\x04self\x13\0'\x04\0%[method]tcp-socket.ke\
+ep-alive-enabled\x01(\x01@\x02\x04self\x13\x05value\x7f\0\x15\x04\0)[method]tcp-\
+socket.set-keep-alive-enabled\x01)\x01j\x01\x07\x01\x0b\x01@\x01\x04self\x13\0*\x04\
+\0'[method]tcp-socket.keep-alive-idle-time\x01+\x01@\x02\x04self\x13\x05value\x07\
+\0\x15\x04\0+[method]tcp-socket.set-keep-alive-idle-time\x01,\x04\0&[method]tcp-\
+socket.keep-alive-interval\x01+\x04\0*[method]tcp-socket.set-keep-alive-interval\
+\x01,\x01j\x01y\x01\x0b\x01@\x01\x04self\x13\0-\x04\0#[method]tcp-socket.keep-al\
+ive-count\x01.\x01@\x02\x04self\x13\x05valuey\0\x15\x04\0'[method]tcp-socket.set\
+-keep-alive-count\x01/\x01j\x01}\x01\x0b\x01@\x01\x04self\x13\00\x04\0\x1c[metho\
+d]tcp-socket.hop-limit\x011\x01@\x02\x04self\x13\x05value}\0\x15\x04\0\x20[metho\
+d]tcp-socket.set-hop-limit\x012\x01j\x01w\x01\x0b\x01@\x01\x04self\x13\03\x04\0&\
+[method]tcp-socket.receive-buffer-size\x014\x04\0*[method]tcp-socket.set-receive\
+-buffer-size\x01&\x04\0#[method]tcp-socket.send-buffer-size\x014\x04\0'[method]t\
+cp-socket.set-send-buffer-size\x01&\x01i\x05\x01@\x01\x04self\x13\05\x04\0\x1c[m\
+ethod]tcp-socket.subscribe\x016\x01@\x02\x04self\x13\x0dshutdown-type\x11\0\x15\x04\
+\0\x1b[method]tcp-socket.shutdown\x017\x03\0\x16wasi:sockets/tcp@0.2.0\x05B\x02\x03\
+\0\x1c\x0atcp-socket\x01B\x0c\x02\x03\x02\x01:\x04\0\x07network\x03\0\0\x02\x03\x02\
+\x01<\x04\0\x0aerror-code\x03\0\x02\x02\x03\x02\x01>\x04\0\x11ip-address-family\x03\
+\0\x04\x02\x03\x02\x01C\x04\0\x0atcp-socket\x03\0\x06\x01i\x07\x01j\x01\x08\x01\x03\
+\x01@\x01\x0eaddress-family\x05\0\x09\x04\0\x11create-tcp-socket\x01\x0a\x03\0$w\
+asi:sockets/tcp-create-socket@0.2.0\x05D\x02\x03\0\x18\x0aip-address\x01B\x16\x02\
+\x03\x02\x01\x13\x04\0\x08pollable\x03\0\0\x02\x03\x02\x01:\x04\0\x07network\x03\
+\0\x02\x02\x03\x02\x01<\x04\0\x0aerror-code\x03\0\x04\x02\x03\x02\x01E\x04\0\x0a\
+ip-address\x03\0\x06\x04\0\x16resolve-address-stream\x03\x01\x01h\x08\x01k\x07\x01\
+j\x01\x0a\x01\x05\x01@\x01\x04self\x09\0\x0b\x04\03[method]resolve-address-strea\
+m.resolve-next-address\x01\x0c\x01i\x01\x01@\x01\x04self\x09\0\x0d\x04\0([method\
+]resolve-address-stream.subscribe\x01\x0e\x01h\x03\x01i\x08\x01j\x01\x10\x01\x05\
+\x01@\x02\x07network\x0f\x04names\0\x11\x04\0\x11resolve-addresses\x01\x12\x03\0\
+!wasi:sockets/ip-name-lookup@0.2.0\x05F\x01B\x05\x01p}\x01@\x01\x03lenw\0\0\x04\0\
+\x10get-random-bytes\x01\x01\x01@\0\0w\x04\0\x0eget-random-u64\x01\x02\x03\0\x18\
+wasi:random/random@0.2.0\x05G\x01B\x05\x01p}\x01@\x01\x03lenw\0\0\x04\0\x19get-i\
+nsecure-random-bytes\x01\x01\x01@\0\0w\x04\0\x17get-insecure-random-u64\x01\x02\x03\
+\0\x1awasi:random/insecure@0.2.0\x05H\x01B\x03\x01o\x02ww\x01@\0\0\0\x04\0\x0din\
+secure-seed\x01\x01\x03\0\x1fwasi:random/insecure-seed@0.2.0\x05I\x01B\x1c\x01q\x03\
+\x0dno-such-store\0\0\x0daccess-denied\0\0\x05other\x01s\0\x04\0\x05error\x03\0\0\
+\x01ps\x01ks\x01r\x02\x04keys\x02\x06cursor\x03\x04\0\x0ckey-response\x03\0\x04\x04\
+\0\x06bucket\x03\x01\x01h\x06\x01p}\x01k\x08\x01j\x01\x09\x01\x01\x01@\x02\x04se\
+lf\x07\x03keys\0\x0a\x04\0\x12[method]bucket.get\x01\x0b\x01j\0\x01\x01\x01@\x03\
+\x04self\x07\x03keys\x05value\x08\0\x0c\x04\0\x12[method]bucket.set\x01\x0d\x01@\
+\x02\x04self\x07\x03keys\0\x0c\x04\0\x15[method]bucket.delete\x01\x0e\x01j\x01\x7f\
+\x01\x01\x01@\x02\x04self\x07\x03keys\0\x0f\x04\0\x15[method]bucket.exists\x01\x10\
+\x01j\x01\x05\x01\x01\x01@\x02\x04self\x07\x06cursor\x03\0\x11\x04\0\x18[method]\
+bucket.list-keys\x01\x12\x01i\x06\x01j\x01\x13\x01\x01\x01@\x01\x0aidentifiers\0\
+\x14\x04\0\x04open\x01\x15\x03\0\x20wasi:keyvalue/store@0.2.0-draft2\x05J\x02\x03\
+\0\"\x06bucket\x02\x03\0\"\x05error\x01B\x18\x02\x03\x02\x01K\x04\0\x06bucket\x03\
+\0\0\x02\x03\x02\x01L\x04\0\x05error\x03\0\x02\x04\0\x03cas\x03\x01\x01i\x04\x01\
+q\x02\x0bstore-error\x01\x03\0\x0acas-failed\x01\x05\0\x04\0\x09cas-error\x03\0\x06\
+\x01h\x01\x01j\x01\x05\x01\x03\x01@\x02\x06bucket\x08\x03keys\0\x09\x04\0\x0f[st\
+atic]cas.new\x01\x0a\x01h\x04\x01p}\x01k\x0c\x01j\x01\x0d\x01\x03\x01@\x01\x04se\
+lf\x0b\0\x0e\x04\0\x13[method]cas.current\x01\x0f\x01j\x01x\x01\x03\x01@\x03\x06\
+bucket\x08\x03keys\x05deltax\0\x10\x04\0\x09increment\x01\x11\x01j\0\x01\x07\x01\
+@\x02\x03cas\x05\x05value\x0c\0\x12\x04\0\x04swap\x01\x13\x03\0\"wasi:keyvalue/a\
+tomics@0.2.0-draft2\x05M\x01B\x13\x02\x03\x02\x01K\x04\0\x06bucket\x03\0\0\x02\x03\
+\x02\x01L\x04\0\x05error\x03\0\x02\x01h\x01\x01ps\x01p}\x01o\x02s\x06\x01k\x07\x01\
+p\x08\x01j\x01\x09\x01\x03\x01@\x02\x06bucket\x04\x04keys\x05\0\x0a\x04\0\x08get\
+-many\x01\x0b\x01p\x07\x01j\0\x01\x03\x01@\x02\x06bucket\x04\x0akey-values\x0c\0\
+\x0d\x04\0\x08set-many\x01\x0e\x01@\x02\x06bucket\x04\x04keys\x05\0\x0d\x04\0\x0b\
+delete-many\x01\x0f\x03\0\x20wasi:keyvalue/batch@0.2.0-draft2\x05N\x01p\x0f\x01j\
+\x01\xcf\0\x01s\x01@\x01\x06packet\x0d\0\xd0\0\x04\0\x0eprocess-packet\x01Q\x04\0\
+\x15handle-timer-callback\x01Q\x01j\x01\x11\x01s\x01j\0\x01s\x01@\x02\x06packet\x0d\
+\x09tx-result\xd2\0\0\xd3\0\x04\0\x16handle-submit-callback\x01T\x04\0.wavs:aggr\
+egator/aggregator-world@0.6.0-alpha.8\x04\0\x0b\x16\x01\0\x10aggregator-world\x03\
+\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0dwit-component\x070.227.1\x10wit-\
+bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

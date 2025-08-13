@@ -12,20 +12,12 @@ tasks:
     cmds:
       - sh -c 'jq -r ".addresses.operatorUpdateHandler // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
 
-  get-evm-chain-names-flag:
-    desc: "Get --values chain_names flag with JSON array containing single chain name"
-    vars:
-      CHAIN_NAME:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
-    cmds:
-      - echo "--values chain_names=[\\\"{{.CHAIN_NAME}}\\\"]"
-
-  get-evm-service-handler-flags:
-    desc: "Get --values service handler addresses"
+  get-aggregator-simple-flags:
+    desc: "Get --values flags with chain_name=address format"
     vars:
       CHAIN_NAME:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
     cmds:
-      - echo "--values service_handler_{{.CHAIN_NAME}}={{.SUBMISSION_ADDRESS}}"
+      - echo "--values {{.CHAIN_NAME}}={{.SUBMISSION_ADDRESS}}"

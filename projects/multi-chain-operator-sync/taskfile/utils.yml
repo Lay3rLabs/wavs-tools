@@ -14,28 +14,8 @@ tasks:
       - |
         jq -r '.addresses.operatorSyncHandler' "{{.MIRROR_PATH}}"
 
-  get-evm-chain-names-flag:
-    desc: "Get --values chain_names flag with JSON array of chain names for active chains (excluding source chain)"
-    cmds:
-      - |
-        CHAIN_NAMES="["
-        FIRST_CHAIN=true
-        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
-          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            CHAIN_NAME=$(cd "{{.REPO_ROOT}}" && task backend:get-chain-name-$i)
-            if [ "$FIRST_CHAIN" = true ]; then
-              FIRST_CHAIN=false
-            else
-              CHAIN_NAMES="${CHAIN_NAMES},"
-            fi
-            CHAIN_NAMES="${CHAIN_NAMES}\\\"${CHAIN_NAME}\\\""
-          fi
-        done
-        CHAIN_NAMES="${CHAIN_NAMES}]"
-        echo "--values chain_names=$CHAIN_NAMES"
-
-  get-evm-service-handler-flags:
-    desc: "Get --values service handler addresses for active chains (excluding source chain)"
+  get-aggregator-simple-flags:
+    desc: "Get --values flags with chain_name=address format for active chains (excluding source chain)"
     cmds:
       - |
         CONFIG_FLAGS=""
@@ -43,7 +23,7 @@ tasks:
           if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
             CHAIN_NAME=$(cd "{{.REPO_ROOT}}" && task backend:get-chain-name-$i)
             SUBMISSION_ADDRESS=$(task get-submission-address-$i)
-            CONFIG_FLAGS="$CONFIG_FLAGS --values service_handler_${CHAIN_NAME}=${SUBMISSION_ADDRESS}"
+            CONFIG_FLAGS="$CONFIG_FLAGS --values ${CHAIN_NAME}=${SUBMISSION_ADDRESS}"
           fi
         done
         echo "$CONFIG_FLAGS"

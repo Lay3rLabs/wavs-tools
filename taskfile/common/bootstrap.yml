@@ -257,16 +257,14 @@ tasks:
     requires:
       vars: [AGGREGATOR_PROJECT]
     vars:
-      EVM_CHAIN_NAMES:
-        sh: task get-evm-chain-names-flag | sed 's/"/\\\\\"/g'
-      EVM_SERVICE_HANDLERS:
-        sh: task get-evm-service-handler-flags
+      AGGREGATOR_FLAGS:
+        sh: task get-aggregator-simple-flags
     cmds:
       - |
         case "{{.AGGREGATOR_PROJECT}}" in
           "aggregator-simple")
             # Output the config vars in the expected format
-            echo "{{.EVM_CHAIN_NAMES}} {{.EVM_SERVICE_HANDLERS}}"
+            echo "{{.AGGREGATOR_FLAGS}}"
             ;;
           *)
             echo "Error: Unsupported aggregator project '{{.AGGREGATOR_PROJECT}}'. Only 'aggregator-simple' is supported." >&2
