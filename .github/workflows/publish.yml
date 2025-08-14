@@ -49,6 +49,12 @@ jobs:
             target/
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
 
+      - name: Cache Node modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+
       - name: Install Foundry
         if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: foundry-rs/foundry-toolchain@v1
@@ -60,13 +66,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 21
-
-      - name: Cache Node modules
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        uses: actions/cache@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -95,8 +94,7 @@ jobs:
         run: wkg config --default-registry wa.dev
 
       - name: Setup dependencies
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        run: task setup-ci
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env
