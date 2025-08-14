@@ -28,4 +28,4 @@ wavs-wasi-utils = { workspace = true }
 
 [package.metadata.component]
 package = "component:wavs-drand"
-target = "wavs:worker@0.6.0-alpha.2"
+target = "wavs:operator@0.6.0-alpha.8"

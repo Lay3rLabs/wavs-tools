@@ -11,3 +11,13 @@ tasks:
       vars: [PROJECT]
     cmds:
       - sh -c 'jq -r ".addresses.operatorUpdateHandler // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+
+  get-aggregator-simple-flags:
+    desc: "Get --values flags with chain_name=address format"
+    vars:
+      CHAIN_NAME:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+      SUBMISSION_ADDRESS:
+        sh: task get-submission-address
+    cmds:
+      - echo "--values {{.CHAIN_NAME}}={{.SUBMISSION_ADDRESS}}"

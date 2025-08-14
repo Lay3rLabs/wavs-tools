@@ -21,6 +21,10 @@ tasks:
         sh: task get-service-manager-address
       SUBMISSION_ADDRESS:
         sh: task get-submission-address
+      AGGREGATOR_COMPONENT_DIGEST:
+        sh: task get-component-digest COMPONENT="{{.AGGREGATOR_COMPONENT_NAME}}"
+      AGGREGATOR_COMPONENT_CONFIG:
+        sh: task bootstrap:get-aggregator-config-values AGGREGATOR_PROJECT="{{.AGGREGATOR_PROJECT}}"
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
@@ -34,7 +38,9 @@ tasks:
         # Configure workflow
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id ${WORKFLOW_ID} set-block-interval --chain-name {{.TRIGGER_CHAIN}} --n-blocks {{.BLOCK_INTERVAL}}
           
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}} --address {{.SUBMISSION_ADDRESS}} --chain-name {{.SUBMIT_CHAIN}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} component config {{.AGGREGATOR_COMPONENT_CONFIG}}
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
           

@@ -9,14 +9,16 @@ use alloy_provider::RootProvider;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use anyhow::anyhow;
-use bindings::{export, wavs::worker::output::WasmResponse, Guest, TriggerAction};
+use bindings::{export, wavs::operator::output::WasmResponse, Guest, TriggerAction};
 use wavs_wasi_utils::{decode_event_log_data, evm::new_evm_provider};
 use wstd::runtime::block_on;
 
 use crate::{
     bindings::{
         host::{self, get_evm_chain_config, LogLevel},
-        wavs::worker::input::{TriggerData, TriggerDataBlockInterval, TriggerDataEvmContractEvent},
+        wavs::operator::input::{
+            TriggerData, TriggerDataBlockInterval, TriggerDataEvmContractEvent,
+        },
     },
     wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
     AllocationManager::{AllocationManagerInstance, OperatorSet},
@@ -110,7 +112,7 @@ impl Guest for Component {
                             ordering: None,
                         }))
                     } else {
-                        return Err(format!("Could not decode the event {log:?}"));
+                        Err(format!("Could not decode the event {log:?}"))
                     }
                 })
             }

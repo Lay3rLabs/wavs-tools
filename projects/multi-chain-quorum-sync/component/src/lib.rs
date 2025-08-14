@@ -5,7 +5,7 @@ mod utils;
 
 use crate::{
     bindings::{
-        wavs::worker::input::{TriggerData, TriggerDataEvmContractEvent},
+        wavs::operator::input::{TriggerData, TriggerDataEvmContractEvent},
         WasmResponse,
     },
     IManagerUpdateTypes::UpdateWithId,

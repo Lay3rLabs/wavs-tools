@@ -18,3 +18,13 @@ tasks:
       - >
         jq -r '.transactions[] | select(.contractName == "{{.CONTRACT_NAME}}") | .contractAddress // empty'
         "./contracts/broadcast/{{ .SUBMISSION_DEPLOY_SCRIPT }}/{{.CHAIN_ID}}/run-latest.json"
+
+  get-aggregator-simple-flags:
+    desc: "Get --values flags with chain_name=address format"
+    vars:
+      CHAIN_NAME:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
+      SUBMISSION_ADDRESS:
+        sh: task get-submission-address
+    cmds:
+      - echo "--values {{.CHAIN_NAME}}={{.SUBMISSION_ADDRESS}}"

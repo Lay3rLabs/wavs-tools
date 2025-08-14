@@ -13,3 +13,17 @@ tasks:
     cmds:
       - |
         jq -r '.addresses.operatorSyncHandler' "{{.MIRROR_PATH}}"
+
+  get-aggregator-simple-flags:
+    desc: "Get --values flags with chain_name=address format for active chains (excluding source chain)"
+    cmds:
+      - |
+        CONFIG_FLAGS=""
+        for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
+          if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
+            CHAIN_NAME=$(cd "{{.REPO_ROOT}}" && task backend:get-chain-name-$i)
+            SUBMISSION_ADDRESS=$(task get-submission-address-$i)
+            CONFIG_FLAGS="$CONFIG_FLAGS --values ${CHAIN_NAME}=${SUBMISSION_ADDRESS}"
+          fi
+        done
+        echo "$CONFIG_FLAGS"

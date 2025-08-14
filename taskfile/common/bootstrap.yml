@@ -8,12 +8,22 @@ tasks:
   components-build:
     desc: "Builds the WASI components"
     deps: [components-clean]
+    requires:
+      vars:
+        [
+          PROJECT,
+          COMPONENT_NAME,
+          REPO_ROOT,
+          ROOT_DIR,
+          AGGREGATOR_PROJECT,
+          AGGREGATOR_COMPONENT_NAME,
+        ]
     vars:
       COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
-    requires:
-      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT, ROOT_DIR]
+      AGGREGATOR_COMPONENT_SOURCE_DIR: '{{ joinPath .REPO_ROOT "projects" .AGGREGATOR_PROJECT "component" }}'
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
+      - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.AGGREGATOR_COMPONENT_SOURCE_DIR}}"
 
   components-clean:
     desc: "Deletes the WASI components"
@@ -29,9 +39,10 @@ tasks:
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     requires:
-      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT]
+      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT, AGGREGATOR_COMPONENT_NAME]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload-aggregator PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
     desc: "Deploys the middleware (mock or real based on USES_MOCK setting)"
@@ -229,16 +240,37 @@ tasks:
 
   deploy-service-*:
     vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
       WAVS_INSTANCE: "{{index .MATCH 0}}"
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
       SOURCE_WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.SOURCE_CHAIN_NUMBER}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.FIRST_OPERATOR}}
       SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+
+  get-aggregator-config-values:
+    desc: "Get the aggregators config values"
+    requires:
+      vars: [AGGREGATOR_PROJECT]
+    vars:
+      AGGREGATOR_FLAGS:
+        sh: task get-aggregator-simple-flags
+    cmds:
+      - |
+        case "{{.AGGREGATOR_PROJECT}}" in
+          "aggregator-simple")
+            # Output the config vars in the expected format
+            echo "{{.AGGREGATOR_FLAGS}}"
+            ;;
+          *)
+            echo "Error: Unsupported aggregator project '{{.AGGREGATOR_PROJECT}}'. Only 'aggregator-simple' is supported." >&2
+            exit 1
+            ;;
+        esac
 
   wavs-*:
     vars:
@@ -259,6 +291,6 @@ tasks:
       - |
         for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
           if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
-            task bootstrap:wavs-$OPERATOR
+            task bootstrap:wavs-$OPERATOR FIRST_OPERATOR="{{.FIRST_OPERATOR}}"
           fi
         done

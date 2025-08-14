@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [package.metadata.component]
 package = "component:operator-updater"
-target = "wavs:worker@0.6.0-alpha.2"
+target = "wavs:operator@0.6.0-alpha.8"
 
 [dependencies]
 wavs-wasi-utils = { workspace = true }
@@ -20,7 +20,6 @@ wstd = { workspace = true }
 
 alloy-network = { workspace = true }
 alloy-provider = { workspace = true }
-alloy-rpc-types = { workspace = true }
 alloy-transport-http = { workspace = true }
 alloy-primitives = { workspace = true }
 alloy-sol-macro = { workspace = true }
@@ -32,5 +31,3 @@ wit-bindgen-rt = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-
-wit-bindgen = { workspace = true }

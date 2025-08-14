@@ -17,7 +17,7 @@ use wstd::runtime::block_on;
 use crate::{
     bindings::{
         host::{self, get_evm_chain_config, LogLevel},
-        wavs::worker::input::{TriggerData, TriggerDataBlockInterval},
+        wavs::operator::input::{TriggerData, TriggerDataBlockInterval},
         WasmResponse,
     },
     IWavsServiceManager::IWavsServiceManagerInstance,
