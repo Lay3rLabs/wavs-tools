@@ -7,7 +7,7 @@ tasks:
     vars:
       PROJECTS:
         sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
-    deps:
+    cmds:
       - for: { var: PROJECTS, split: "\n" }
         task: build-component
         vars:
@@ -34,7 +34,6 @@ tasks:
       vars: [PROJECT]
     preconditions:
       - test -d "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
-      - test -f "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml"
     vars:
       COMPONENT_NAME:
         sh: task get-component-name PROJECT="{{.PROJECT}}"
@@ -54,7 +53,6 @@ tasks:
       vars: [PROJECT]
     preconditions:
       - test -d "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
-      - test -f "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml"
     vars:
       COMPONENT_NAME:
         sh: task get-component-name PROJECT="{{.PROJECT}}"
@@ -73,6 +71,11 @@ tasks:
       vars: [PROJECT]
     cmds:
       - >
-        grep "COMPONENT_NAME:" "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml" |
-        sed 's/.*: *"\(.*\)".*/\1/' |
-        tr -d '"'
+        if [ -f "/projects/{{.PROJECT}}/Taskfile.yml" ] &&
+          grep -q 'COMPONENT_NAME:' "/projects/{{.PROJECT}}/Taskfile.yml"; then
+          grep "COMPONENT_NAME:" "/projects/{{.PROJECT}}/Taskfile.yml" |
+          sed 's/.*: *"\(.*\)".*/\1/' |
+          tr -d '"'
+        else
+          echo "{{.PROJECT}}" | tr '-' '_'
+        fi
