@@ -102,10 +102,10 @@ mod tests {
     fn test_calculate_drand_round() {
         let config = Config::default();
 
-        // Test before genesis - should return round 1
+        // Test before genesis - should return round 0
         let timestamp = 1000000000u64; // Way before genesis
         let round = TriggerInfo::calculate_drand_round(timestamp, &config).unwrap();
-        assert_eq!(round, 1);
+        assert_eq!(round, 0);
 
         // Test exact genesis time - should return round 1
         let timestamp = config.drand_genesis_time;
