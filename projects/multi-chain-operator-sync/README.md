@@ -1,13 +1,18 @@
-Start up:
+# Multi-Chain Operator Sync
 
-    `task backend:start CHAINS=N OPERATORS=M`
+## Start up
 
-Intended workflow:
-	- dev: deploy original service manager
-	- dev: create empty service json (no workflows)
-	- register 1 operator to it (post /app + register)
-	- dev: deploy mirror contract on chain 2 (with operators)
-	- dev: deploy any service handlers
-	- dev: build full service json and set service uri
-	- register remaining operators
-	- query that mirror is synced
+```bash
+task backend:start CHAINS=N OPERATORS=M
+```
+
+## Intended Workflow
+
+1. **Dev**: Deploy original service manager
+2. **Dev**: Create empty service json (no workflows)
+3. Register 1 operator to it (post /app + register)
+4. **Dev**: Deploy mirror contract on chain 2 (with operators)
+5. **Dev**: Deploy any service handlers
+6. **Dev**: Build full service json and set service uri
+7. Register remaining operators
+8. Query that mirror is synced
