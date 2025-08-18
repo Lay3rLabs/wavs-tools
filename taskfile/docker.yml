@@ -2,7 +2,7 @@ version: "3"
 
 vars:
   WAVS_DOCKER_IMAGE: 'ghcr.io/lay3rlabs/wavs:8d42990{{if eq .ARCH "arm64"}}-arm64{{end}}'
-  MIDDLEWARE_DOCKER_IMAGE: 'ghcr.io/lay3rlabs/wavs-middleware:d8c1320{{if eq .ARCH "arm64"}}-arm64{{end}}'
+  MIDDLEWARE_DOCKER_IMAGE: 'ghcr.io/lay3rlabs/wavs-middleware:latest{{if eq .ARCH "arm64"}}-arm64{{end}}'
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
