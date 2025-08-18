@@ -44,7 +44,7 @@ vars:
       docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'anvil-' | wc -l | xargs
   ACTIVE_WAVS_COUNT:
     sh: |
-      docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'wavs-' | grep -v 'wavs-aggregator' | wc -l | xargs
+      docker ps --format '{{"{{"}}.Names{{"}}"}}' | grep 'wavs-operator-' | wc -l | xargs
   SUBMIT_DELAY: '{{ternary 1 5 (eq .DEPLOY_ENV "LOCAL")}}'
   # Transfer Ownership Config
   AVS_OWNER: "0x1111111111111111111111111111111111111111"

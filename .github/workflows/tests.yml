@@ -101,9 +101,9 @@ jobs:
         if: steps.cache-docker.outputs.cache-hit != 'true'
         run: |
           # Extract image versions from docker config
-          WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
           FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-          MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
           JAEGER_IMAGE=$(grep 'JAEGER_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
           PROMETHEUS_IMAGE=$(grep 'PROMETHEUS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
 

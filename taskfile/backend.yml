@@ -323,7 +323,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
     env:
-      COMPOSE_PROJECT_NAME: "wavs-{{.WAVS_INSTANCE}}"
+      COMPOSE_PROJECT_NAME: "wavs-operator-{{.WAVS_INSTANCE}}"
       COMPOSE_WAVS_PORT:
         sh: task backend:get-wavs-port-{{.WAVS_INSTANCE}}
       WAVS_SUBMISSION_MNEMONIC:
@@ -359,7 +359,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
     cmds:
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --project-name wavs-{{.WAVS_INSTANCE}} --file docker-compose-wavs-instance.yml down --remove-orphans --volumes
+      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --project-name wavs-operator-{{.WAVS_INSTANCE}} --file docker-compose-wavs-instance.yml down --remove-orphans --volumes
 
   # HELPERS
   get-wavs-port-*:
