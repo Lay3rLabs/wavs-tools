@@ -78,8 +78,7 @@ jobs:
           override: true
 
       - name: Setup dependencies
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        run: task setup-ci
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Check formatting
         uses: actions-rs/cargo@v1
