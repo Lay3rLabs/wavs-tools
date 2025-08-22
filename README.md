@@ -27,7 +27,7 @@ A WASI component that provides deterministic event-based randomness by combining
 * [Docker](https://docs.docker.com/get-started/get-docker/)
 * [Taskfile](https://taskfile.dev/installation/)
 * [JQ](https://jqlang.org/download/)
-* [Node.js](https://nodejs.org/en/download)
+* [Bun](https://bun.sh/docs/installation)
 * [Rust](https://www.rust-lang.org/tools/install)
 * [Cargo Components](https://github.com/bytecodealliance/cargo-component#installation)
 * [wkg](https://crates.io/crates/wkg)

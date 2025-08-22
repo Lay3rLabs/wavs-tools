@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'package-lock.json') }}
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4

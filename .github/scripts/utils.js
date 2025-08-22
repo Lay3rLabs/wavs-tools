@@ -1,33 +1,30 @@
 
-function countFail(report) {
-    if (!report || !report.stats || !report.results) return 0;
-
-    // if we have any failures in stats, just count those
-    if(report.stats.failures) {
-        return(report.stats.failures);
-    } else {
-        // otherwise, it may be in some deeply nested object, before/after hooks, etc.
-        return(countFailInner(report.results));
-    }
+function countFail(xmlString) {
+    // Count failures in JUnit XML by counting <failure> and <error> tags
+    const failureMatches = xmlString.match(/<failure[^>]*>/g) || [];
+    const errorMatches = xmlString.match(/<error[^>]*>/g) || [];
+    
+    return failureMatches.length + errorMatches.length;
 }
 
-// recursively count 'fail' property in nested objects
-function countFailInner(obj) {
-  let count = 0;
-
-  if (obj === null || typeof obj !== 'object') return 0;
-
-  if (obj.fail === true) count += 1;
-
-  for (const key in obj) {
-    if (Object.prototype.hasOwnProperty.call(obj, key)) {
-      count += countFailInner(obj[key]);
+function parseJUnitXML(xmlString) {
+    // Simple JUnit XML parser
+    const testsuiteMatch = xmlString.match(/<testsuite[^>]*>/);
+    if (!testsuiteMatch) {
+        return { tests: 0, failures: 0, errors: 0, skipped: 0, time: 0 };
     }
-  }
-
-  return count;
+    
+    const attributes = testsuiteMatch[0];
+    const tests = parseInt(attributes.match(/tests="(\d+)"/)?.[1] || '0');
+    const failures = parseInt(attributes.match(/failures="(\d+)"/)?.[1] || '0');
+    const errors = parseInt(attributes.match(/errors="(\d+)"/)?.[1] || '0');
+    const skipped = parseInt(attributes.match(/skipped="(\d+)"/)?.[1] || '0');
+    const time = parseFloat(attributes.match(/time="([^"]+)"/)?.[1] || '0');
+    
+    return { tests, failures, errors, skipped, time };
 }
 
 module.exports = {
     countFail,
+    parseJUnitXML,
 };
