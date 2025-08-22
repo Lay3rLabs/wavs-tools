@@ -7,13 +7,20 @@ pub type AnyTxHash = wavs::types::chain::AnyTxHash;
 #[doc(hidden)]
 #[allow(non_snake_case)]
 pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
-    #[cfg(target_arch = "wasm32")] _rt::run_ctors_once();
+    #[cfg(target_arch = "wasm32")]
+    _rt::run_ctors_once();
     let l0 = *arg0.add(0).cast::<*mut u8>();
-    let l1 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l1 = *arg0
+        .add(::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len2 = l1;
     let bytes2 = _rt::Vec::from_raw_parts(l0.cast(), len2, len2);
-    let l3 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l4 = *arg0.add(3 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l3 = *arg0
+        .add(2 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l4 = *arg0
+        .add(3 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let base155 = l3;
     let len155 = l4;
     let mut result155 = _rt::Vec::with_capacity(len155);
@@ -21,11 +28,15 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
         let base = base155.add(i * (136 + 42 * ::core::mem::size_of::<*const u8>()));
         let e155 = {
             let l5 = *base.add(0).cast::<*mut u8>();
-            let l6 = *base.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l6 = *base
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let len7 = l6;
             let bytes7 = _rt::Vec::from_raw_parts(l5.cast(), len7, len7);
             let l8 = i32::from(
-                *base.add(2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(2 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::Trigger as V43;
             let v43 = match l8 {
@@ -58,11 +69,7 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                 raw_bytes: _rt::Vec::from_raw_parts(l9.cast(), len11, len11),
                             },
                             chain_name: _rt::string_lift(bytes14),
-                            event_hash: _rt::Vec::from_raw_parts(
-                                l15.cast(),
-                                len17,
-                                len17,
-                            ),
+                            event_hash: _rt::Vec::from_raw_parts(l15.cast(), len17, len17),
                         }
                     };
                     V43::EvmContractEvent(e43)
@@ -192,9 +199,7 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         let l40 = *base
                                             .add(16 + 4 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        wavs::types::core::Timestamp {
-                                            nanos: l40 as u64,
-                                        }
+                                        wavs::types::core::Timestamp { nanos: l40 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -207,9 +212,7 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         let l42 = *base
                                             .add(32 + 4 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        wavs::types::core::Timestamp {
-                                            nanos: l42 as u64,
-                                        }
+                                        wavs::types::core::Timestamp { nanos: l42 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -225,7 +228,9 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                 }
             };
             let l44 = i32::from(
-                *base.add(48 + 4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::ComponentSource as V68;
             let v68 = match l44 {
@@ -295,11 +300,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                             .add(48 + 9 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len57 = l56;
-                                        let bytes57 = _rt::Vec::from_raw_parts(
-                                            l55.cast(),
-                                            len57,
-                                            len57,
-                                        );
+                                        let bytes57 =
+                                            _rt::Vec::from_raw_parts(l55.cast(), len57, len57);
                                         _rt::string_lift(bytes57)
                                     };
                                     Some(e)
@@ -317,11 +319,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                             .add(48 + 12 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len61 = l60;
-                                        let bytes61 = _rt::Vec::from_raw_parts(
-                                            l59.cast(),
-                                            len61,
-                                            len61,
-                                        );
+                                        let bytes61 =
+                                            _rt::Vec::from_raw_parts(l59.cast(), len61, len61);
                                         _rt::string_lift(bytes61)
                                     };
                                     Some(e)
@@ -350,7 +349,9 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                 }
             };
             let l69 = i32::from(
-                *base.add(48 + 15 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 15 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::AllowedHostPermission as V76;
             let v76 = match l69 {
@@ -367,19 +368,14 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                         let len75 = l71;
                         let mut result75 = _rt::Vec::with_capacity(len75);
                         for i in 0..len75 {
-                            let base = base75
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base75.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e75 = {
                                 let l72 = *base.add(0).cast::<*mut u8>();
                                 let l73 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len74 = l73;
-                                let bytes74 = _rt::Vec::from_raw_parts(
-                                    l72.cast(),
-                                    len74,
-                                    len74,
-                                );
+                                let bytes74 = _rt::Vec::from_raw_parts(l72.cast(), len74, len74);
                                 _rt::string_lift(bytes74)
                             };
                             result75.push(e75);
@@ -399,13 +395,19 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                 }
             };
             let l77 = i32::from(
-                *base.add(48 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l78 = i32::from(
-                *base.add(56 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(56 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l80 = i32::from(
-                *base.add(72 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(72 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l82 = *base
                 .add(88 + 18 * ::core::mem::size_of::<*const u8>())
@@ -470,7 +472,9 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                 ::core::mem::size_of::<*const u8>(),
             );
             let l97 = i32::from(
-                *base.add(88 + 22 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(88 + 22 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::Submit as V154;
             let v154 = match l97 {
@@ -485,11 +489,7 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                             .add(96 + 23 * ::core::mem::size_of::<*const u8>())
                             .cast::<usize>();
                         let len100 = l99;
-                        let bytes100 = _rt::Vec::from_raw_parts(
-                            l98.cast(),
-                            len100,
-                            len100,
-                        );
+                        let bytes100 = _rt::Vec::from_raw_parts(l98.cast(), len100, len100);
                         let l101 = i32::from(
                             *base
                                 .add(96 + 24 * ::core::mem::size_of::<*const u8>())
@@ -506,11 +506,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len104 = l103;
-                                    let bytes104 = _rt::Vec::from_raw_parts(
-                                        l102.cast(),
-                                        len104,
-                                        len104,
-                                    );
+                                    let bytes104 =
+                                        _rt::Vec::from_raw_parts(l102.cast(), len104, len104);
                                     let l105 = *base
                                         .add(96 + 27 * ::core::mem::size_of::<*const u8>())
                                         .cast::<*mut u8>();
@@ -518,11 +515,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         .add(96 + 28 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len107 = l106;
-                                    let bytes107 = _rt::Vec::from_raw_parts(
-                                        l105.cast(),
-                                        len107,
-                                        len107,
-                                    );
+                                    let bytes107 =
+                                        _rt::Vec::from_raw_parts(l105.cast(), len107, len107);
                                     wavs::types::service::ComponentSourceDownload {
                                         url: _rt::string_lift(bytes104),
                                         digest: _rt::string_lift(bytes107),
@@ -539,11 +533,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len110 = l109;
-                                    let bytes110 = _rt::Vec::from_raw_parts(
-                                        l108.cast(),
-                                        len110,
-                                        len110,
-                                    );
+                                    let bytes110 =
+                                        _rt::Vec::from_raw_parts(l108.cast(), len110, len110);
                                     let l111 = i32::from(
                                         *base
                                             .add(96 + 27 * ::core::mem::size_of::<*const u8>())
@@ -561,11 +552,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         .add(96 + 34 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len121 = l120;
-                                    let bytes121 = _rt::Vec::from_raw_parts(
-                                        l119.cast(),
-                                        len121,
-                                        len121,
-                                    );
+                                    let bytes121 =
+                                        _rt::Vec::from_raw_parts(l119.cast(), len121, len121);
                                     wavs::types::service::Registry {
                                         digest: _rt::string_lift(bytes110),
                                         domain: match l111 {
@@ -573,10 +561,18 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                             1 => {
                                                 let e = {
                                                     let l112 = *base
-                                                        .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 28
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l113 = *base
-                                                        .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 29
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len114 = l113;
                                                     let bytes114 = _rt::Vec::from_raw_parts(
@@ -595,10 +591,18 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                             1 => {
                                                 let e = {
                                                     let l116 = *base
-                                                        .add(96 + 31 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 31
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l117 = *base
-                                                        .add(96 + 32 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 32
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len118 = l117;
                                                     let bytes118 = _rt::Vec::from_raw_parts(
@@ -627,11 +631,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len124 = l123;
-                                    let bytes124 = _rt::Vec::from_raw_parts(
-                                        l122.cast(),
-                                        len124,
-                                        len124,
-                                    );
+                                    let bytes124 =
+                                        _rt::Vec::from_raw_parts(l122.cast(), len124, len124);
                                     _rt::string_lift(bytes124)
                                 };
                                 V125::Digest(e125)
@@ -713,19 +714,15 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                         let len147 = l140;
                         let mut result147 = _rt::Vec::with_capacity(len147);
                         for i in 0..len147 {
-                            let base = base147
-                                .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                            let base = base147.add(i * (4 * ::core::mem::size_of::<*const u8>()));
                             let e147 = {
                                 let l141 = *base.add(0).cast::<*mut u8>();
                                 let l142 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len143 = l142;
-                                let bytes143 = _rt::Vec::from_raw_parts(
-                                    l141.cast(),
-                                    len143,
-                                    len143,
-                                );
+                                let bytes143 =
+                                    _rt::Vec::from_raw_parts(l141.cast(), len143, len143);
                                 let l144 = *base
                                     .add(2 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -733,11 +730,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                                     .add(3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len146 = l145;
-                                let bytes146 = _rt::Vec::from_raw_parts(
-                                    l144.cast(),
-                                    len146,
-                                    len146,
-                                );
+                                let bytes146 =
+                                    _rt::Vec::from_raw_parts(l144.cast(), len146, len146);
                                 (_rt::string_lift(bytes143), _rt::string_lift(bytes146))
                             };
                             result147.push(e147);
@@ -757,19 +751,15 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                         let len153 = l149;
                         let mut result153 = _rt::Vec::with_capacity(len153);
                         for i in 0..len153 {
-                            let base = base153
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base153.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e153 = {
                                 let l150 = *base.add(0).cast::<*mut u8>();
                                 let l151 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len152 = l151;
-                                let bytes152 = _rt::Vec::from_raw_parts(
-                                    l150.cast(),
-                                    len152,
-                                    len152,
-                                );
+                                let bytes152 =
+                                    _rt::Vec::from_raw_parts(l150.cast(), len152, len152);
                                 _rt::string_lift(bytes152)
                             };
                             result153.push(e153);
@@ -872,7 +862,9 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
         8,
     );
     let l156 = i32::from(
-        *arg0.add(4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(4 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::types::service::ServiceStatus as V157;
     let v157 = match l156 {
@@ -883,7 +875,9 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
         }
     };
     let l158 = i32::from(
-        *arg0.add(5 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(5 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::types::service::ServiceManager as V165;
     let v165 = match l158 {
@@ -915,21 +909,39 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
             V165::Evm(e165)
         }
     };
-    let l166 = *arg0.add(10 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l167 = *arg0.add(11 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l166 = *arg0
+        .add(10 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l167 = *arg0
+        .add(11 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len168 = l167;
     let bytes168 = _rt::Vec::from_raw_parts(l166.cast(), len168, len168);
-    let l169 = *arg0.add(12 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l170 = *arg0.add(13 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l169 = *arg0
+        .add(12 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l170 = *arg0
+        .add(13 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len171 = l170;
-    let l172 = *arg0.add(14 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l173 = *arg0.add(15 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l172 = *arg0
+        .add(14 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l173 = *arg0
+        .add(15 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len174 = l173;
-    let l175 = *arg0.add(16 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l176 = *arg0.add(17 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l175 = *arg0
+        .add(16 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l176 = *arg0
+        .add(17 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len177 = l176;
     let l178 = i32::from(
-        *arg0.add(18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(18 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::aggregator::aggregator::EnvelopeSignature as V182;
     let v182 = match l178 {
@@ -990,16 +1002,13 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                 ::core::ptr::null_mut()
             };
             for (i, e) in vec192.into_iter().enumerate() {
-                let base = result192
-                    .add(i * (8 + 4 * ::core::mem::size_of::<*const u8>()));
+                let base = result192.add(i * (8 + 4 * ::core::mem::size_of::<*const u8>()));
                 {
                     use wavs::aggregator::aggregator::AggregatorAction as V191;
                     match e {
                         V191::Timer(e) => {
                             *base.add(0).cast::<u8>() = (0i32) as u8;
-                            let wavs::aggregator::aggregator::TimerAction {
-                                delay: delay185,
-                            } = e;
+                            let wavs::aggregator::aggregator::TimerAction { delay: delay185 } = e;
                             let wavs::types::core::Duration { secs: secs186 } = delay185;
                             *base.add(8).cast::<i64>() = _rt::as_i64(secs186);
                         }
@@ -1034,8 +1043,12 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                     }
                 }
             }
-            *ptr184.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len192;
-            *ptr184.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = result192;
+            *ptr184
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>() = len192;
+            *ptr184
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>() = result192;
         }
         Err(e) => {
             *ptr184.add(0).cast::<u8>() = (1i32) as u8;
@@ -1043,9 +1056,12 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
             let ptr193 = vec193.as_ptr().cast::<u8>();
             let len193 = vec193.len();
             ::core::mem::forget(vec193);
-            *ptr184.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len193;
-            *ptr184.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr193
-                .cast_mut();
+            *ptr184
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>() = len193;
+            *ptr184
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>() = ptr193.cast_mut();
         }
     };
     ptr184
@@ -1056,8 +1072,12 @@ pub unsafe fn __post_return_process_packet<T: Guest>(arg0: *mut u8) {
     let l0 = i32::from(*arg0.add(0).cast::<u8>());
     match l0 {
         0 => {
-            let l1 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-            let l2 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l1 = *arg0
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l2 = *arg0
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let base9 = l1;
             let len9 = l2;
             for i in 0..len9 {
@@ -1092,8 +1112,12 @@ pub unsafe fn __post_return_process_packet<T: Guest>(arg0: *mut u8) {
             );
         }
         _ => {
-            let l10 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-            let l11 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l10 = *arg0
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l11 = *arg0
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             _rt::cabi_dealloc(l10, l11, 1);
         }
     }
@@ -1101,13 +1125,20 @@ pub unsafe fn __post_return_process_packet<T: Guest>(arg0: *mut u8) {
 #[doc(hidden)]
 #[allow(non_snake_case)]
 pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
-    #[cfg(target_arch = "wasm32")] _rt::run_ctors_once();
+    #[cfg(target_arch = "wasm32")]
+    _rt::run_ctors_once();
     let l0 = *arg0.add(0).cast::<*mut u8>();
-    let l1 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l1 = *arg0
+        .add(::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len2 = l1;
     let bytes2 = _rt::Vec::from_raw_parts(l0.cast(), len2, len2);
-    let l3 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l4 = *arg0.add(3 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l3 = *arg0
+        .add(2 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l4 = *arg0
+        .add(3 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let base155 = l3;
     let len155 = l4;
     let mut result155 = _rt::Vec::with_capacity(len155);
@@ -1115,11 +1146,15 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
         let base = base155.add(i * (136 + 42 * ::core::mem::size_of::<*const u8>()));
         let e155 = {
             let l5 = *base.add(0).cast::<*mut u8>();
-            let l6 = *base.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l6 = *base
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let len7 = l6;
             let bytes7 = _rt::Vec::from_raw_parts(l5.cast(), len7, len7);
             let l8 = i32::from(
-                *base.add(2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(2 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::Trigger as V43;
             let v43 = match l8 {
@@ -1152,11 +1187,7 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                 raw_bytes: _rt::Vec::from_raw_parts(l9.cast(), len11, len11),
                             },
                             chain_name: _rt::string_lift(bytes14),
-                            event_hash: _rt::Vec::from_raw_parts(
-                                l15.cast(),
-                                len17,
-                                len17,
-                            ),
+                            event_hash: _rt::Vec::from_raw_parts(l15.cast(), len17, len17),
                         }
                     };
                     V43::EvmContractEvent(e43)
@@ -1286,9 +1317,7 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         let l40 = *base
                                             .add(16 + 4 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        wavs::types::core::Timestamp {
-                                            nanos: l40 as u64,
-                                        }
+                                        wavs::types::core::Timestamp { nanos: l40 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -1301,9 +1330,7 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         let l42 = *base
                                             .add(32 + 4 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        wavs::types::core::Timestamp {
-                                            nanos: l42 as u64,
-                                        }
+                                        wavs::types::core::Timestamp { nanos: l42 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -1319,7 +1346,9 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                 }
             };
             let l44 = i32::from(
-                *base.add(48 + 4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::ComponentSource as V68;
             let v68 = match l44 {
@@ -1389,11 +1418,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                             .add(48 + 9 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len57 = l56;
-                                        let bytes57 = _rt::Vec::from_raw_parts(
-                                            l55.cast(),
-                                            len57,
-                                            len57,
-                                        );
+                                        let bytes57 =
+                                            _rt::Vec::from_raw_parts(l55.cast(), len57, len57);
                                         _rt::string_lift(bytes57)
                                     };
                                     Some(e)
@@ -1411,11 +1437,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                             .add(48 + 12 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len61 = l60;
-                                        let bytes61 = _rt::Vec::from_raw_parts(
-                                            l59.cast(),
-                                            len61,
-                                            len61,
-                                        );
+                                        let bytes61 =
+                                            _rt::Vec::from_raw_parts(l59.cast(), len61, len61);
                                         _rt::string_lift(bytes61)
                                     };
                                     Some(e)
@@ -1444,7 +1467,9 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                 }
             };
             let l69 = i32::from(
-                *base.add(48 + 15 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 15 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::AllowedHostPermission as V76;
             let v76 = match l69 {
@@ -1461,19 +1486,14 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                         let len75 = l71;
                         let mut result75 = _rt::Vec::with_capacity(len75);
                         for i in 0..len75 {
-                            let base = base75
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base75.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e75 = {
                                 let l72 = *base.add(0).cast::<*mut u8>();
                                 let l73 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len74 = l73;
-                                let bytes74 = _rt::Vec::from_raw_parts(
-                                    l72.cast(),
-                                    len74,
-                                    len74,
-                                );
+                                let bytes74 = _rt::Vec::from_raw_parts(l72.cast(), len74, len74);
                                 _rt::string_lift(bytes74)
                             };
                             result75.push(e75);
@@ -1493,13 +1513,19 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                 }
             };
             let l77 = i32::from(
-                *base.add(48 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l78 = i32::from(
-                *base.add(56 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(56 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l80 = i32::from(
-                *base.add(72 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(72 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l82 = *base
                 .add(88 + 18 * ::core::mem::size_of::<*const u8>())
@@ -1564,7 +1590,9 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                 ::core::mem::size_of::<*const u8>(),
             );
             let l97 = i32::from(
-                *base.add(88 + 22 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(88 + 22 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::Submit as V154;
             let v154 = match l97 {
@@ -1579,11 +1607,7 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                             .add(96 + 23 * ::core::mem::size_of::<*const u8>())
                             .cast::<usize>();
                         let len100 = l99;
-                        let bytes100 = _rt::Vec::from_raw_parts(
-                            l98.cast(),
-                            len100,
-                            len100,
-                        );
+                        let bytes100 = _rt::Vec::from_raw_parts(l98.cast(), len100, len100);
                         let l101 = i32::from(
                             *base
                                 .add(96 + 24 * ::core::mem::size_of::<*const u8>())
@@ -1600,11 +1624,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len104 = l103;
-                                    let bytes104 = _rt::Vec::from_raw_parts(
-                                        l102.cast(),
-                                        len104,
-                                        len104,
-                                    );
+                                    let bytes104 =
+                                        _rt::Vec::from_raw_parts(l102.cast(), len104, len104);
                                     let l105 = *base
                                         .add(96 + 27 * ::core::mem::size_of::<*const u8>())
                                         .cast::<*mut u8>();
@@ -1612,11 +1633,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         .add(96 + 28 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len107 = l106;
-                                    let bytes107 = _rt::Vec::from_raw_parts(
-                                        l105.cast(),
-                                        len107,
-                                        len107,
-                                    );
+                                    let bytes107 =
+                                        _rt::Vec::from_raw_parts(l105.cast(), len107, len107);
                                     wavs::types::service::ComponentSourceDownload {
                                         url: _rt::string_lift(bytes104),
                                         digest: _rt::string_lift(bytes107),
@@ -1633,11 +1651,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len110 = l109;
-                                    let bytes110 = _rt::Vec::from_raw_parts(
-                                        l108.cast(),
-                                        len110,
-                                        len110,
-                                    );
+                                    let bytes110 =
+                                        _rt::Vec::from_raw_parts(l108.cast(), len110, len110);
                                     let l111 = i32::from(
                                         *base
                                             .add(96 + 27 * ::core::mem::size_of::<*const u8>())
@@ -1655,11 +1670,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         .add(96 + 34 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len121 = l120;
-                                    let bytes121 = _rt::Vec::from_raw_parts(
-                                        l119.cast(),
-                                        len121,
-                                        len121,
-                                    );
+                                    let bytes121 =
+                                        _rt::Vec::from_raw_parts(l119.cast(), len121, len121);
                                     wavs::types::service::Registry {
                                         digest: _rt::string_lift(bytes110),
                                         domain: match l111 {
@@ -1667,10 +1679,18 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                             1 => {
                                                 let e = {
                                                     let l112 = *base
-                                                        .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 28
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l113 = *base
-                                                        .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 29
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len114 = l113;
                                                     let bytes114 = _rt::Vec::from_raw_parts(
@@ -1689,10 +1709,18 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                             1 => {
                                                 let e = {
                                                     let l116 = *base
-                                                        .add(96 + 31 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 31
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l117 = *base
-                                                        .add(96 + 32 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 32
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len118 = l117;
                                                     let bytes118 = _rt::Vec::from_raw_parts(
@@ -1721,11 +1749,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len124 = l123;
-                                    let bytes124 = _rt::Vec::from_raw_parts(
-                                        l122.cast(),
-                                        len124,
-                                        len124,
-                                    );
+                                    let bytes124 =
+                                        _rt::Vec::from_raw_parts(l122.cast(), len124, len124);
                                     _rt::string_lift(bytes124)
                                 };
                                 V125::Digest(e125)
@@ -1807,19 +1832,15 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                         let len147 = l140;
                         let mut result147 = _rt::Vec::with_capacity(len147);
                         for i in 0..len147 {
-                            let base = base147
-                                .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                            let base = base147.add(i * (4 * ::core::mem::size_of::<*const u8>()));
                             let e147 = {
                                 let l141 = *base.add(0).cast::<*mut u8>();
                                 let l142 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len143 = l142;
-                                let bytes143 = _rt::Vec::from_raw_parts(
-                                    l141.cast(),
-                                    len143,
-                                    len143,
-                                );
+                                let bytes143 =
+                                    _rt::Vec::from_raw_parts(l141.cast(), len143, len143);
                                 let l144 = *base
                                     .add(2 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -1827,11 +1848,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                                     .add(3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len146 = l145;
-                                let bytes146 = _rt::Vec::from_raw_parts(
-                                    l144.cast(),
-                                    len146,
-                                    len146,
-                                );
+                                let bytes146 =
+                                    _rt::Vec::from_raw_parts(l144.cast(), len146, len146);
                                 (_rt::string_lift(bytes143), _rt::string_lift(bytes146))
                             };
                             result147.push(e147);
@@ -1851,19 +1869,15 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                         let len153 = l149;
                         let mut result153 = _rt::Vec::with_capacity(len153);
                         for i in 0..len153 {
-                            let base = base153
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base153.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e153 = {
                                 let l150 = *base.add(0).cast::<*mut u8>();
                                 let l151 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len152 = l151;
-                                let bytes152 = _rt::Vec::from_raw_parts(
-                                    l150.cast(),
-                                    len152,
-                                    len152,
-                                );
+                                let bytes152 =
+                                    _rt::Vec::from_raw_parts(l150.cast(), len152, len152);
                                 _rt::string_lift(bytes152)
                             };
                             result153.push(e153);
@@ -1966,7 +1980,9 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
         8,
     );
     let l156 = i32::from(
-        *arg0.add(4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(4 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::types::service::ServiceStatus as V157;
     let v157 = match l156 {
@@ -1977,7 +1993,9 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
         }
     };
     let l158 = i32::from(
-        *arg0.add(5 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(5 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::types::service::ServiceManager as V165;
     let v165 = match l158 {
@@ -2009,21 +2027,39 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
             V165::Evm(e165)
         }
     };
-    let l166 = *arg0.add(10 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l167 = *arg0.add(11 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l166 = *arg0
+        .add(10 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l167 = *arg0
+        .add(11 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len168 = l167;
     let bytes168 = _rt::Vec::from_raw_parts(l166.cast(), len168, len168);
-    let l169 = *arg0.add(12 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l170 = *arg0.add(13 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l169 = *arg0
+        .add(12 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l170 = *arg0
+        .add(13 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len171 = l170;
-    let l172 = *arg0.add(14 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l173 = *arg0.add(15 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l172 = *arg0
+        .add(14 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l173 = *arg0
+        .add(15 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len174 = l173;
-    let l175 = *arg0.add(16 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l176 = *arg0.add(17 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l175 = *arg0
+        .add(16 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l176 = *arg0
+        .add(17 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len177 = l176;
     let l178 = i32::from(
-        *arg0.add(18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(18 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::aggregator::aggregator::EnvelopeSignature as V182;
     let v182 = match l178 {
@@ -2084,16 +2120,13 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                 ::core::ptr::null_mut()
             };
             for (i, e) in vec192.into_iter().enumerate() {
-                let base = result192
-                    .add(i * (8 + 4 * ::core::mem::size_of::<*const u8>()));
+                let base = result192.add(i * (8 + 4 * ::core::mem::size_of::<*const u8>()));
                 {
                     use wavs::aggregator::aggregator::AggregatorAction as V191;
                     match e {
                         V191::Timer(e) => {
                             *base.add(0).cast::<u8>() = (0i32) as u8;
-                            let wavs::aggregator::aggregator::TimerAction {
-                                delay: delay185,
-                            } = e;
+                            let wavs::aggregator::aggregator::TimerAction { delay: delay185 } = e;
                             let wavs::types::core::Duration { secs: secs186 } = delay185;
                             *base.add(8).cast::<i64>() = _rt::as_i64(secs186);
                         }
@@ -2128,8 +2161,12 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                     }
                 }
             }
-            *ptr184.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len192;
-            *ptr184.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = result192;
+            *ptr184
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>() = len192;
+            *ptr184
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>() = result192;
         }
         Err(e) => {
             *ptr184.add(0).cast::<u8>() = (1i32) as u8;
@@ -2137,9 +2174,12 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
             let ptr193 = vec193.as_ptr().cast::<u8>();
             let len193 = vec193.len();
             ::core::mem::forget(vec193);
-            *ptr184.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len193;
-            *ptr184.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr193
-                .cast_mut();
+            *ptr184
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>() = len193;
+            *ptr184
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>() = ptr193.cast_mut();
         }
     };
     ptr184
@@ -2150,8 +2190,12 @@ pub unsafe fn __post_return_handle_timer_callback<T: Guest>(arg0: *mut u8) {
     let l0 = i32::from(*arg0.add(0).cast::<u8>());
     match l0 {
         0 => {
-            let l1 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-            let l2 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l1 = *arg0
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l2 = *arg0
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let base9 = l1;
             let len9 = l2;
             for i in 0..len9 {
@@ -2186,8 +2230,12 @@ pub unsafe fn __post_return_handle_timer_callback<T: Guest>(arg0: *mut u8) {
             );
         }
         _ => {
-            let l10 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-            let l11 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l10 = *arg0
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l11 = *arg0
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             _rt::cabi_dealloc(l10, l11, 1);
         }
     }
@@ -2195,13 +2243,20 @@ pub unsafe fn __post_return_handle_timer_callback<T: Guest>(arg0: *mut u8) {
 #[doc(hidden)]
 #[allow(non_snake_case)]
 pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
-    #[cfg(target_arch = "wasm32")] _rt::run_ctors_once();
+    #[cfg(target_arch = "wasm32")]
+    _rt::run_ctors_once();
     let l0 = *arg0.add(0).cast::<*mut u8>();
-    let l1 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l1 = *arg0
+        .add(::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len2 = l1;
     let bytes2 = _rt::Vec::from_raw_parts(l0.cast(), len2, len2);
-    let l3 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l4 = *arg0.add(3 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l3 = *arg0
+        .add(2 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l4 = *arg0
+        .add(3 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let base155 = l3;
     let len155 = l4;
     let mut result155 = _rt::Vec::with_capacity(len155);
@@ -2209,11 +2264,15 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
         let base = base155.add(i * (136 + 42 * ::core::mem::size_of::<*const u8>()));
         let e155 = {
             let l5 = *base.add(0).cast::<*mut u8>();
-            let l6 = *base.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l6 = *base
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let len7 = l6;
             let bytes7 = _rt::Vec::from_raw_parts(l5.cast(), len7, len7);
             let l8 = i32::from(
-                *base.add(2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(2 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::Trigger as V43;
             let v43 = match l8 {
@@ -2246,11 +2305,7 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                 raw_bytes: _rt::Vec::from_raw_parts(l9.cast(), len11, len11),
                             },
                             chain_name: _rt::string_lift(bytes14),
-                            event_hash: _rt::Vec::from_raw_parts(
-                                l15.cast(),
-                                len17,
-                                len17,
-                            ),
+                            event_hash: _rt::Vec::from_raw_parts(l15.cast(), len17, len17),
                         }
                     };
                     V43::EvmContractEvent(e43)
@@ -2380,9 +2435,7 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         let l40 = *base
                                             .add(16 + 4 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        wavs::types::core::Timestamp {
-                                            nanos: l40 as u64,
-                                        }
+                                        wavs::types::core::Timestamp { nanos: l40 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -2395,9 +2448,7 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         let l42 = *base
                                             .add(32 + 4 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        wavs::types::core::Timestamp {
-                                            nanos: l42 as u64,
-                                        }
+                                        wavs::types::core::Timestamp { nanos: l42 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -2413,7 +2464,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                 }
             };
             let l44 = i32::from(
-                *base.add(48 + 4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 4 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::ComponentSource as V68;
             let v68 = match l44 {
@@ -2483,11 +2536,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                             .add(48 + 9 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len57 = l56;
-                                        let bytes57 = _rt::Vec::from_raw_parts(
-                                            l55.cast(),
-                                            len57,
-                                            len57,
-                                        );
+                                        let bytes57 =
+                                            _rt::Vec::from_raw_parts(l55.cast(), len57, len57);
                                         _rt::string_lift(bytes57)
                                     };
                                     Some(e)
@@ -2505,11 +2555,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                             .add(48 + 12 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len61 = l60;
-                                        let bytes61 = _rt::Vec::from_raw_parts(
-                                            l59.cast(),
-                                            len61,
-                                            len61,
-                                        );
+                                        let bytes61 =
+                                            _rt::Vec::from_raw_parts(l59.cast(), len61, len61);
                                         _rt::string_lift(bytes61)
                                     };
                                     Some(e)
@@ -2538,7 +2585,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                 }
             };
             let l69 = i32::from(
-                *base.add(48 + 15 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 15 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::AllowedHostPermission as V76;
             let v76 = match l69 {
@@ -2555,19 +2604,14 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                         let len75 = l71;
                         let mut result75 = _rt::Vec::with_capacity(len75);
                         for i in 0..len75 {
-                            let base = base75
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base75.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e75 = {
                                 let l72 = *base.add(0).cast::<*mut u8>();
                                 let l73 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len74 = l73;
-                                let bytes74 = _rt::Vec::from_raw_parts(
-                                    l72.cast(),
-                                    len74,
-                                    len74,
-                                );
+                                let bytes74 = _rt::Vec::from_raw_parts(l72.cast(), len74, len74);
                                 _rt::string_lift(bytes74)
                             };
                             result75.push(e75);
@@ -2587,13 +2631,19 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                 }
             };
             let l77 = i32::from(
-                *base.add(48 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(48 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l78 = i32::from(
-                *base.add(56 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(56 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l80 = i32::from(
-                *base.add(72 + 18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(72 + 18 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l82 = *base
                 .add(88 + 18 * ::core::mem::size_of::<*const u8>())
@@ -2658,7 +2708,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                 ::core::mem::size_of::<*const u8>(),
             );
             let l97 = i32::from(
-                *base.add(88 + 22 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *base
+                    .add(88 + 22 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use wavs::types::service::Submit as V154;
             let v154 = match l97 {
@@ -2673,11 +2725,7 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                             .add(96 + 23 * ::core::mem::size_of::<*const u8>())
                             .cast::<usize>();
                         let len100 = l99;
-                        let bytes100 = _rt::Vec::from_raw_parts(
-                            l98.cast(),
-                            len100,
-                            len100,
-                        );
+                        let bytes100 = _rt::Vec::from_raw_parts(l98.cast(), len100, len100);
                         let l101 = i32::from(
                             *base
                                 .add(96 + 24 * ::core::mem::size_of::<*const u8>())
@@ -2694,11 +2742,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len104 = l103;
-                                    let bytes104 = _rt::Vec::from_raw_parts(
-                                        l102.cast(),
-                                        len104,
-                                        len104,
-                                    );
+                                    let bytes104 =
+                                        _rt::Vec::from_raw_parts(l102.cast(), len104, len104);
                                     let l105 = *base
                                         .add(96 + 27 * ::core::mem::size_of::<*const u8>())
                                         .cast::<*mut u8>();
@@ -2706,11 +2751,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         .add(96 + 28 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len107 = l106;
-                                    let bytes107 = _rt::Vec::from_raw_parts(
-                                        l105.cast(),
-                                        len107,
-                                        len107,
-                                    );
+                                    let bytes107 =
+                                        _rt::Vec::from_raw_parts(l105.cast(), len107, len107);
                                     wavs::types::service::ComponentSourceDownload {
                                         url: _rt::string_lift(bytes104),
                                         digest: _rt::string_lift(bytes107),
@@ -2727,11 +2769,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len110 = l109;
-                                    let bytes110 = _rt::Vec::from_raw_parts(
-                                        l108.cast(),
-                                        len110,
-                                        len110,
-                                    );
+                                    let bytes110 =
+                                        _rt::Vec::from_raw_parts(l108.cast(), len110, len110);
                                     let l111 = i32::from(
                                         *base
                                             .add(96 + 27 * ::core::mem::size_of::<*const u8>())
@@ -2749,11 +2788,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         .add(96 + 34 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len121 = l120;
-                                    let bytes121 = _rt::Vec::from_raw_parts(
-                                        l119.cast(),
-                                        len121,
-                                        len121,
-                                    );
+                                    let bytes121 =
+                                        _rt::Vec::from_raw_parts(l119.cast(), len121, len121);
                                     wavs::types::service::Registry {
                                         digest: _rt::string_lift(bytes110),
                                         domain: match l111 {
@@ -2761,10 +2797,18 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                             1 => {
                                                 let e = {
                                                     let l112 = *base
-                                                        .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 28
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l113 = *base
-                                                        .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 29
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len114 = l113;
                                                     let bytes114 = _rt::Vec::from_raw_parts(
@@ -2783,10 +2827,18 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                             1 => {
                                                 let e = {
                                                     let l116 = *base
-                                                        .add(96 + 31 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 31
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l117 = *base
-                                                        .add(96 + 32 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 32
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len118 = l117;
                                                     let bytes118 = _rt::Vec::from_raw_parts(
@@ -2815,11 +2867,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len124 = l123;
-                                    let bytes124 = _rt::Vec::from_raw_parts(
-                                        l122.cast(),
-                                        len124,
-                                        len124,
-                                    );
+                                    let bytes124 =
+                                        _rt::Vec::from_raw_parts(l122.cast(), len124, len124);
                                     _rt::string_lift(bytes124)
                                 };
                                 V125::Digest(e125)
@@ -2901,19 +2950,15 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                         let len147 = l140;
                         let mut result147 = _rt::Vec::with_capacity(len147);
                         for i in 0..len147 {
-                            let base = base147
-                                .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                            let base = base147.add(i * (4 * ::core::mem::size_of::<*const u8>()));
                             let e147 = {
                                 let l141 = *base.add(0).cast::<*mut u8>();
                                 let l142 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len143 = l142;
-                                let bytes143 = _rt::Vec::from_raw_parts(
-                                    l141.cast(),
-                                    len143,
-                                    len143,
-                                );
+                                let bytes143 =
+                                    _rt::Vec::from_raw_parts(l141.cast(), len143, len143);
                                 let l144 = *base
                                     .add(2 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -2921,11 +2966,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                     .add(3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len146 = l145;
-                                let bytes146 = _rt::Vec::from_raw_parts(
-                                    l144.cast(),
-                                    len146,
-                                    len146,
-                                );
+                                let bytes146 =
+                                    _rt::Vec::from_raw_parts(l144.cast(), len146, len146);
                                 (_rt::string_lift(bytes143), _rt::string_lift(bytes146))
                             };
                             result147.push(e147);
@@ -2945,19 +2987,15 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                         let len153 = l149;
                         let mut result153 = _rt::Vec::with_capacity(len153);
                         for i in 0..len153 {
-                            let base = base153
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base153.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e153 = {
                                 let l150 = *base.add(0).cast::<*mut u8>();
                                 let l151 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len152 = l151;
-                                let bytes152 = _rt::Vec::from_raw_parts(
-                                    l150.cast(),
-                                    len152,
-                                    len152,
-                                );
+                                let bytes152 =
+                                    _rt::Vec::from_raw_parts(l150.cast(), len152, len152);
                                 _rt::string_lift(bytes152)
                             };
                             result153.push(e153);
@@ -3060,7 +3098,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
         8,
     );
     let l156 = i32::from(
-        *arg0.add(4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(4 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::types::service::ServiceStatus as V157;
     let v157 = match l156 {
@@ -3071,7 +3111,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
         }
     };
     let l158 = i32::from(
-        *arg0.add(5 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(5 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::types::service::ServiceManager as V165;
     let v165 = match l158 {
@@ -3103,21 +3145,39 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
             V165::Evm(e165)
         }
     };
-    let l166 = *arg0.add(10 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l167 = *arg0.add(11 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l166 = *arg0
+        .add(10 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l167 = *arg0
+        .add(11 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len168 = l167;
     let bytes168 = _rt::Vec::from_raw_parts(l166.cast(), len168, len168);
-    let l169 = *arg0.add(12 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l170 = *arg0.add(13 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l169 = *arg0
+        .add(12 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l170 = *arg0
+        .add(13 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len171 = l170;
-    let l172 = *arg0.add(14 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l173 = *arg0.add(15 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l172 = *arg0
+        .add(14 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l173 = *arg0
+        .add(15 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len174 = l173;
-    let l175 = *arg0.add(16 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-    let l176 = *arg0.add(17 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+    let l175 = *arg0
+        .add(16 * ::core::mem::size_of::<*const u8>())
+        .cast::<*mut u8>();
+    let l176 = *arg0
+        .add(17 * ::core::mem::size_of::<*const u8>())
+        .cast::<usize>();
     let len177 = l176;
     let l178 = i32::from(
-        *arg0.add(18 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(18 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     use wavs::aggregator::aggregator::EnvelopeSignature as V182;
     let v182 = match l178 {
@@ -3139,7 +3199,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
         }
     };
     let l183 = i32::from(
-        *arg0.add(21 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+        *arg0
+            .add(21 * ::core::mem::size_of::<*const u8>())
+            .cast::<u8>(),
     );
     let result195 = T::handle_submit_callback(
         wavs::aggregator::aggregator::Packet {
@@ -3161,7 +3223,9 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
             0 => {
                 let e = {
                     let l184 = i32::from(
-                        *arg0.add(22 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                        *arg0
+                            .add(22 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
                     );
                     use wavs::types::chain::AnyTxHash as V191;
                     let v191 = match l184 {
@@ -3188,11 +3252,8 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                                     .add(24 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len190 = l189;
-                                let bytes190 = _rt::Vec::from_raw_parts(
-                                    l188.cast(),
-                                    len190,
-                                    len190,
-                                );
+                                let bytes190 =
+                                    _rt::Vec::from_raw_parts(l188.cast(), len190, len190);
                                 _rt::string_lift(bytes190)
                             };
                             V191::Cosmos(e191)
@@ -3235,9 +3296,12 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
             let ptr197 = vec197.as_ptr().cast::<u8>();
             let len197 = vec197.len();
             ::core::mem::forget(vec197);
-            *ptr196.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len197;
-            *ptr196.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr197
-                .cast_mut();
+            *ptr196
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>() = len197;
+            *ptr196
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>() = ptr197.cast_mut();
         }
     };
     ptr196
@@ -3249,17 +3313,19 @@ pub unsafe fn __post_return_handle_submit_callback<T: Guest>(arg0: *mut u8) {
     match l0 {
         0 => {}
         _ => {
-            let l1 = *arg0.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
-            let l2 = *arg0.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l1 = *arg0
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<*mut u8>();
+            let l2 = *arg0
+                .add(2 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             _rt::cabi_dealloc(l1, l2, 1);
         }
     }
 }
 pub trait Guest {
     fn process_packet(packet: Packet) -> Result<_rt::Vec<AggregatorAction>, _rt::String>;
-    fn handle_timer_callback(
-        packet: Packet,
-    ) -> Result<_rt::Vec<AggregatorAction>, _rt::String>;
+    fn handle_timer_callback(packet: Packet) -> Result<_rt::Vec<AggregatorAction>, _rt::String>;
     fn handle_submit_callback(
         packet: Packet,
         tx_result: Result<AnyTxHash, _rt::String>,
@@ -3293,9 +3359,8 @@ pub(crate) use __export_world_aggregator_world_cabi;
 #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
 #[cfg_attr(target_pointer_width = "32", repr(align(4)))]
 struct _RetArea([::core::mem::MaybeUninit<u8>; 3 * ::core::mem::size_of::<*const u8>()]);
-static mut _RET_AREA: _RetArea = _RetArea(
-    [::core::mem::MaybeUninit::uninit(); 3 * ::core::mem::size_of::<*const u8>()],
-);
+static mut _RET_AREA: _RetArea =
+    _RetArea([::core::mem::MaybeUninit::uninit(); 3 * ::core::mem::size_of::<*const u8>()]);
 #[rustfmt::skip]
 #[allow(dead_code, clippy::all)]
 pub mod wasi {
@@ -20423,12 +20488,9 @@ pub mod host {
         unsafe {
             #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
             #[cfg_attr(target_pointer_width = "32", repr(align(4)))]
-            struct RetArea(
-                [::core::mem::MaybeUninit<u8>; 9 * ::core::mem::size_of::<*const u8>()],
-            );
+            struct RetArea([::core::mem::MaybeUninit<u8>; 9 * ::core::mem::size_of::<*const u8>()]);
             let mut ret_area = RetArea(
-                [::core::mem::MaybeUninit::uninit(); 9
-                    * ::core::mem::size_of::<*const u8>()],
+                [::core::mem::MaybeUninit::uninit(); 9 * ::core::mem::size_of::<*const u8>()],
             );
             let vec0 = chain_name;
             let ptr0 = vec0.as_ptr().cast::<u8>();
@@ -20481,11 +20543,8 @@ pub mod host {
                                             .add(5 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len10 = l9;
-                                        let bytes10 = _rt::Vec::from_raw_parts(
-                                            l8.cast(),
-                                            len10,
-                                            len10,
-                                        );
+                                        let bytes10 =
+                                            _rt::Vec::from_raw_parts(l8.cast(), len10, len10);
                                         _rt::string_lift(bytes10)
                                     };
                                     Some(e)
@@ -20503,11 +20562,8 @@ pub mod host {
                                             .add(8 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len14 = l13;
-                                        let bytes14 = _rt::Vec::from_raw_parts(
-                                            l12.cast(),
-                                            len14,
-                                            len14,
-                                        );
+                                        let bytes14 =
+                                            _rt::Vec::from_raw_parts(l12.cast(), len14, len14);
                                         _rt::string_lift(bytes14)
                                     };
                                     Some(e)
@@ -20532,8 +20588,7 @@ pub mod host {
                 [::core::mem::MaybeUninit<u8>; 17 * ::core::mem::size_of::<*const u8>()],
             );
             let mut ret_area = RetArea(
-                [::core::mem::MaybeUninit::uninit(); 17
-                    * ::core::mem::size_of::<*const u8>()],
+                [::core::mem::MaybeUninit::uninit(); 17 * ::core::mem::size_of::<*const u8>()],
             );
             let vec0 = chain_name;
             let ptr0 = vec0.as_ptr().cast::<u8>();
@@ -20610,11 +20665,8 @@ pub mod host {
                                             .add(5 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len10 = l9;
-                                        let bytes10 = _rt::Vec::from_raw_parts(
-                                            l8.cast(),
-                                            len10,
-                                            len10,
-                                        );
+                                        let bytes10 =
+                                            _rt::Vec::from_raw_parts(l8.cast(), len10, len10);
                                         _rt::string_lift(bytes10)
                                     };
                                     Some(e)
@@ -20632,11 +20684,8 @@ pub mod host {
                                             .add(8 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len14 = l13;
-                                        let bytes14 = _rt::Vec::from_raw_parts(
-                                            l12.cast(),
-                                            len14,
-                                            len14,
-                                        );
+                                        let bytes14 =
+                                            _rt::Vec::from_raw_parts(l12.cast(), len14, len14);
                                         _rt::string_lift(bytes14)
                                     };
                                     Some(e)
@@ -20654,11 +20703,8 @@ pub mod host {
                                             .add(11 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len18 = l17;
-                                        let bytes18 = _rt::Vec::from_raw_parts(
-                                            l16.cast(),
-                                            len18,
-                                            len18,
-                                        );
+                                        let bytes18 =
+                                            _rt::Vec::from_raw_parts(l16.cast(), len18, len18);
                                         _rt::string_lift(bytes18)
                                     };
                                     Some(e)
@@ -20682,12 +20728,9 @@ pub mod host {
         unsafe {
             #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
             #[cfg_attr(target_pointer_width = "32", repr(align(4)))]
-            struct RetArea(
-                [::core::mem::MaybeUninit<u8>; 3 * ::core::mem::size_of::<*const u8>()],
-            );
+            struct RetArea([::core::mem::MaybeUninit<u8>; 3 * ::core::mem::size_of::<*const u8>()]);
             let mut ret_area = RetArea(
-                [::core::mem::MaybeUninit::uninit(); 3
-                    * ::core::mem::size_of::<*const u8>()],
+                [::core::mem::MaybeUninit::uninit(); 3 * ::core::mem::size_of::<*const u8>()],
             );
             let vec0 = key;
             let ptr0 = vec0.as_ptr().cast::<u8>();
@@ -20763,8 +20806,7 @@ pub mod host {
                 [::core::mem::MaybeUninit<u8>; 12 * ::core::mem::size_of::<*const u8>()],
             );
             let mut ret_area = RetArea(
-                [::core::mem::MaybeUninit::uninit(); 12
-                    * ::core::mem::size_of::<*const u8>()],
+                [::core::mem::MaybeUninit::uninit(); 12 * ::core::mem::size_of::<*const u8>()],
             );
             let ptr0 = ret_area.0.as_mut_ptr().cast::<u8>();
             #[cfg(target_arch = "wasm32")]
@@ -20779,19 +20821,22 @@ pub mod host {
             }
             unsafe { wit_import1(ptr0) };
             let l2 = *ptr0.add(0).cast::<*mut u8>();
-            let l3 = *ptr0.add(::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l3 = *ptr0
+                .add(::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let len4 = l3;
             let bytes4 = _rt::Vec::from_raw_parts(l2.cast(), len4, len4);
             let l5 = *ptr0
                 .add(2 * ::core::mem::size_of::<*const u8>())
                 .cast::<*mut u8>();
-            let l6 = *ptr0.add(3 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
+            let l6 = *ptr0
+                .add(3 * ::core::mem::size_of::<*const u8>())
+                .cast::<usize>();
             let base157 = l5;
             let len157 = l6;
             let mut result157 = _rt::Vec::with_capacity(len157);
             for i in 0..len157 {
-                let base = base157
-                    .add(i * (136 + 42 * ::core::mem::size_of::<*const u8>()));
+                let base = base157.add(i * (136 + 42 * ::core::mem::size_of::<*const u8>()));
                 let e157 = {
                     let l7 = *base.add(0).cast::<*mut u8>();
                     let l8 = *base
@@ -20800,7 +20845,9 @@ pub mod host {
                     let len9 = l8;
                     let bytes9 = _rt::Vec::from_raw_parts(l7.cast(), len9, len9);
                     let l10 = i32::from(
-                        *base.add(2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                        *base
+                            .add(2 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
                     );
                     use super::wavs::types::service::Trigger as V45;
                     let v45 = match l10 {
@@ -20820,11 +20867,7 @@ pub mod host {
                                     .add(8 + 5 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len16 = l15;
-                                let bytes16 = _rt::Vec::from_raw_parts(
-                                    l14.cast(),
-                                    len16,
-                                    len16,
-                                );
+                                let bytes16 = _rt::Vec::from_raw_parts(l14.cast(), len16, len16);
                                 let l17 = *base
                                     .add(8 + 6 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -20841,11 +20884,7 @@ pub mod host {
                                         ),
                                     },
                                     chain_name: _rt::string_lift(bytes16),
-                                    event_hash: _rt::Vec::from_raw_parts(
-                                        l17.cast(),
-                                        len19,
-                                        len19,
-                                    ),
+                                    event_hash: _rt::Vec::from_raw_parts(l17.cast(), len19, len19),
                                 }
                             };
                             V45::EvmContractEvent(e45)
@@ -20859,11 +20898,7 @@ pub mod host {
                                     .add(8 + 3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len22 = l21;
-                                let bytes22 = _rt::Vec::from_raw_parts(
-                                    l20.cast(),
-                                    len22,
-                                    len22,
-                                );
+                                let bytes22 = _rt::Vec::from_raw_parts(l20.cast(), len22, len22);
                                 let l23 = *base
                                     .add(8 + 4 * ::core::mem::size_of::<*const u8>())
                                     .cast::<i32>();
@@ -20874,11 +20909,7 @@ pub mod host {
                                     .add(8 + 6 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len26 = l25;
-                                let bytes26 = _rt::Vec::from_raw_parts(
-                                    l24.cast(),
-                                    len26,
-                                    len26,
-                                );
+                                let bytes26 = _rt::Vec::from_raw_parts(l24.cast(), len26, len26);
                                 let l27 = *base
                                     .add(8 + 7 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -20886,11 +20917,7 @@ pub mod host {
                                     .add(8 + 8 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len29 = l28;
-                                let bytes29 = _rt::Vec::from_raw_parts(
-                                    l27.cast(),
-                                    len29,
-                                    len29,
-                                );
+                                let bytes29 = _rt::Vec::from_raw_parts(l27.cast(), len29, len29);
                                 super::wavs::types::service::TriggerCosmosContractEvent {
                                     address: super::wavs::types::chain::CosmosAddress {
                                         bech32_addr: _rt::string_lift(bytes22),
@@ -20911,11 +20938,7 @@ pub mod host {
                                     .add(8 + 3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len32 = l31;
-                                let bytes32 = _rt::Vec::from_raw_parts(
-                                    l30.cast(),
-                                    len32,
-                                    len32,
-                                );
+                                let bytes32 = _rt::Vec::from_raw_parts(l30.cast(), len32, len32);
                                 let l33 = *base
                                     .add(8 + 4 * ::core::mem::size_of::<*const u8>())
                                     .cast::<i32>();
@@ -20937,7 +20960,10 @@ pub mod host {
                                         1 => {
                                             let e = {
                                                 let l35 = *base
-                                                    .add(24 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        24 + 4 * ::core::mem::size_of::<*const u8>(
+                                                        ),
+                                                    )
                                                     .cast::<i64>();
                                                 l35 as u64
                                             };
@@ -20950,7 +20976,10 @@ pub mod host {
                                         1 => {
                                             let e = {
                                                 let l37 = *base
-                                                    .add(40 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        40 + 4 * ::core::mem::size_of::<*const u8>(
+                                                        ),
+                                                    )
                                                     .cast::<i64>();
                                                 l37 as u64
                                             };
@@ -20971,11 +21000,7 @@ pub mod host {
                                     .add(8 + 3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len40 = l39;
-                                let bytes40 = _rt::Vec::from_raw_parts(
-                                    l38.cast(),
-                                    len40,
-                                    len40,
-                                );
+                                let bytes40 = _rt::Vec::from_raw_parts(l38.cast(), len40, len40);
                                 let l41 = i32::from(
                                     *base
                                         .add(8 + 4 * ::core::mem::size_of::<*const u8>())
@@ -20993,7 +21018,10 @@ pub mod host {
                                         1 => {
                                             let e = {
                                                 let l42 = *base
-                                                    .add(16 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        16 + 4 * ::core::mem::size_of::<*const u8>(
+                                                        ),
+                                                    )
                                                     .cast::<i64>();
                                                 super::wavs::types::core::Timestamp {
                                                     nanos: l42 as u64,
@@ -21008,7 +21036,10 @@ pub mod host {
                                         1 => {
                                             let e = {
                                                 let l44 = *base
-                                                    .add(32 + 4 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        32 + 4 * ::core::mem::size_of::<*const u8>(
+                                                        ),
+                                                    )
                                                     .cast::<i64>();
                                                 super::wavs::types::core::Timestamp {
                                                     nanos: l44 as u64,
@@ -21043,11 +21074,7 @@ pub mod host {
                                     .add(48 + 6 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len49 = l48;
-                                let bytes49 = _rt::Vec::from_raw_parts(
-                                    l47.cast(),
-                                    len49,
-                                    len49,
-                                );
+                                let bytes49 = _rt::Vec::from_raw_parts(l47.cast(), len49, len49);
                                 let l50 = *base
                                     .add(48 + 7 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -21055,11 +21082,7 @@ pub mod host {
                                     .add(48 + 8 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len52 = l51;
-                                let bytes52 = _rt::Vec::from_raw_parts(
-                                    l50.cast(),
-                                    len52,
-                                    len52,
-                                );
+                                let bytes52 = _rt::Vec::from_raw_parts(l50.cast(), len52, len52);
                                 super::wavs::types::service::ComponentSourceDownload {
                                     url: _rt::string_lift(bytes49),
                                     digest: _rt::string_lift(bytes52),
@@ -21076,11 +21099,7 @@ pub mod host {
                                     .add(48 + 6 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len55 = l54;
-                                let bytes55 = _rt::Vec::from_raw_parts(
-                                    l53.cast(),
-                                    len55,
-                                    len55,
-                                );
+                                let bytes55 = _rt::Vec::from_raw_parts(l53.cast(), len55, len55);
                                 let l56 = i32::from(
                                     *base
                                         .add(48 + 7 * ::core::mem::size_of::<*const u8>())
@@ -21098,11 +21117,7 @@ pub mod host {
                                     .add(48 + 14 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len66 = l65;
-                                let bytes66 = _rt::Vec::from_raw_parts(
-                                    l64.cast(),
-                                    len66,
-                                    len66,
-                                );
+                                let bytes66 = _rt::Vec::from_raw_parts(l64.cast(), len66, len66);
                                 super::wavs::types::service::Registry {
                                     digest: _rt::string_lift(bytes55),
                                     domain: match l56 {
@@ -21110,10 +21125,16 @@ pub mod host {
                                         1 => {
                                             let e = {
                                                 let l57 = *base
-                                                    .add(48 + 8 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        48 + 8 * ::core::mem::size_of::<*const u8>(
+                                                        ),
+                                                    )
                                                     .cast::<*mut u8>();
                                                 let l58 = *base
-                                                    .add(48 + 9 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        48 + 9 * ::core::mem::size_of::<*const u8>(
+                                                        ),
+                                                    )
                                                     .cast::<usize>();
                                                 let len59 = l58;
                                                 let bytes59 = _rt::Vec::from_raw_parts(
@@ -21132,10 +21153,16 @@ pub mod host {
                                         1 => {
                                             let e = {
                                                 let l61 = *base
-                                                    .add(48 + 11 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        48 + 11
+                                                            * ::core::mem::size_of::<*const u8>(),
+                                                    )
                                                     .cast::<*mut u8>();
                                                 let l62 = *base
-                                                    .add(48 + 12 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        48 + 12
+                                                            * ::core::mem::size_of::<*const u8>(),
+                                                    )
                                                     .cast::<usize>();
                                                 let len63 = l62;
                                                 let bytes63 = _rt::Vec::from_raw_parts(
@@ -21164,11 +21191,7 @@ pub mod host {
                                     .add(48 + 6 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len69 = l68;
-                                let bytes69 = _rt::Vec::from_raw_parts(
-                                    l67.cast(),
-                                    len69,
-                                    len69,
-                                );
+                                let bytes69 = _rt::Vec::from_raw_parts(l67.cast(), len69, len69);
                                 _rt::string_lift(bytes69)
                             };
                             V70::Digest(e70)
@@ -21194,19 +21217,16 @@ pub mod host {
                                 let len77 = l73;
                                 let mut result77 = _rt::Vec::with_capacity(len77);
                                 for i in 0..len77 {
-                                    let base = base77
-                                        .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                    let base =
+                                        base77.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                                     let e77 = {
                                         let l74 = *base.add(0).cast::<*mut u8>();
                                         let l75 = *base
                                             .add(::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len76 = l75;
-                                        let bytes76 = _rt::Vec::from_raw_parts(
-                                            l74.cast(),
-                                            len76,
-                                            len76,
-                                        );
+                                        let bytes76 =
+                                            _rt::Vec::from_raw_parts(l74.cast(), len76, len76);
                                         _rt::string_lift(bytes76)
                                     };
                                     result77.push(e77);
@@ -21250,19 +21270,14 @@ pub mod host {
                     let len92 = l85;
                     let mut result92 = _rt::Vec::with_capacity(len92);
                     for i in 0..len92 {
-                        let base = base92
-                            .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                        let base = base92.add(i * (4 * ::core::mem::size_of::<*const u8>()));
                         let e92 = {
                             let l86 = *base.add(0).cast::<*mut u8>();
                             let l87 = *base
                                 .add(::core::mem::size_of::<*const u8>())
                                 .cast::<usize>();
                             let len88 = l87;
-                            let bytes88 = _rt::Vec::from_raw_parts(
-                                l86.cast(),
-                                len88,
-                                len88,
-                            );
+                            let bytes88 = _rt::Vec::from_raw_parts(l86.cast(), len88, len88);
                             let l89 = *base
                                 .add(2 * ::core::mem::size_of::<*const u8>())
                                 .cast::<*mut u8>();
@@ -21270,11 +21285,7 @@ pub mod host {
                                 .add(3 * ::core::mem::size_of::<*const u8>())
                                 .cast::<usize>();
                             let len91 = l90;
-                            let bytes91 = _rt::Vec::from_raw_parts(
-                                l89.cast(),
-                                len91,
-                                len91,
-                            );
+                            let bytes91 = _rt::Vec::from_raw_parts(l89.cast(), len91, len91);
                             (_rt::string_lift(bytes88), _rt::string_lift(bytes91))
                         };
                         result92.push(e92);
@@ -21294,19 +21305,14 @@ pub mod host {
                     let len98 = l94;
                     let mut result98 = _rt::Vec::with_capacity(len98);
                     for i in 0..len98 {
-                        let base = base98
-                            .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                        let base = base98.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                         let e98 = {
                             let l95 = *base.add(0).cast::<*mut u8>();
                             let l96 = *base
                                 .add(::core::mem::size_of::<*const u8>())
                                 .cast::<usize>();
                             let len97 = l96;
-                            let bytes97 = _rt::Vec::from_raw_parts(
-                                l95.cast(),
-                                len97,
-                                len97,
-                            );
+                            let bytes97 = _rt::Vec::from_raw_parts(l95.cast(), len97, len97);
                             _rt::string_lift(bytes97)
                         };
                         result98.push(e98);
@@ -21334,11 +21340,8 @@ pub mod host {
                                     .add(96 + 23 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len102 = l101;
-                                let bytes102 = _rt::Vec::from_raw_parts(
-                                    l100.cast(),
-                                    len102,
-                                    len102,
-                                );
+                                let bytes102 =
+                                    _rt::Vec::from_raw_parts(l100.cast(), len102, len102);
                                 let l103 = i32::from(
                                     *base
                                         .add(96 + 24 * ::core::mem::size_of::<*const u8>())
@@ -21395,12 +21398,18 @@ pub mod host {
                                             );
                                             let l113 = i32::from(
                                                 *base
-                                                    .add(96 + 27 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        96 + 27
+                                                            * ::core::mem::size_of::<*const u8>(),
+                                                    )
                                                     .cast::<u8>(),
                                             );
                                             let l117 = i32::from(
                                                 *base
-                                                    .add(96 + 30 * ::core::mem::size_of::<*const u8>())
+                                                    .add(
+                                                        96 + 30
+                                                            * ::core::mem::size_of::<*const u8>(),
+                                                    )
                                                     .cast::<u8>(),
                                             );
                                             let l121 = *base
@@ -21422,10 +21431,22 @@ pub mod host {
                                                     1 => {
                                                         let e = {
                                                             let l114 = *base
-                                                                .add(96 + 28 * ::core::mem::size_of::<*const u8>())
+                                                                .add(
+                                                                    96 + 28
+                                                                        * ::core::mem::size_of::<
+                                                                            *const u8,
+                                                                        >(
+                                                                        ),
+                                                                )
                                                                 .cast::<*mut u8>();
                                                             let l115 = *base
-                                                                .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                                .add(
+                                                                    96 + 29
+                                                                        * ::core::mem::size_of::<
+                                                                            *const u8,
+                                                                        >(
+                                                                        ),
+                                                                )
                                                                 .cast::<usize>();
                                                             let len116 = l115;
                                                             let bytes116 = _rt::Vec::from_raw_parts(
@@ -21444,10 +21465,22 @@ pub mod host {
                                                     1 => {
                                                         let e = {
                                                             let l118 = *base
-                                                                .add(96 + 31 * ::core::mem::size_of::<*const u8>())
+                                                                .add(
+                                                                    96 + 31
+                                                                        * ::core::mem::size_of::<
+                                                                            *const u8,
+                                                                        >(
+                                                                        ),
+                                                                )
                                                                 .cast::<*mut u8>();
                                                             let l119 = *base
-                                                                .add(96 + 32 * ::core::mem::size_of::<*const u8>())
+                                                                .add(
+                                                                    96 + 32
+                                                                        * ::core::mem::size_of::<
+                                                                            *const u8,
+                                                                        >(
+                                                                        ),
+                                                                )
                                                                 .cast::<usize>();
                                                             let len120 = l119;
                                                             let bytes120 = _rt::Vec::from_raw_parts(
@@ -21506,8 +21539,9 @@ pub mod host {
                                             let len134 = l130;
                                             let mut result134 = _rt::Vec::with_capacity(len134);
                                             for i in 0..len134 {
-                                                let base = base134
-                                                    .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                                let base = base134.add(
+                                                    i * (2 * ::core::mem::size_of::<*const u8>()),
+                                                );
                                                 let e134 = {
                                                     let l131 = *base.add(0).cast::<*mut u8>();
                                                     let l132 = *base
@@ -21562,19 +21596,16 @@ pub mod host {
                                 let len149 = l142;
                                 let mut result149 = _rt::Vec::with_capacity(len149);
                                 for i in 0..len149 {
-                                    let base = base149
-                                        .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                                    let base =
+                                        base149.add(i * (4 * ::core::mem::size_of::<*const u8>()));
                                     let e149 = {
                                         let l143 = *base.add(0).cast::<*mut u8>();
                                         let l144 = *base
                                             .add(::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len145 = l144;
-                                        let bytes145 = _rt::Vec::from_raw_parts(
-                                            l143.cast(),
-                                            len145,
-                                            len145,
-                                        );
+                                        let bytes145 =
+                                            _rt::Vec::from_raw_parts(l143.cast(), len145, len145);
                                         let l146 = *base
                                             .add(2 * ::core::mem::size_of::<*const u8>())
                                             .cast::<*mut u8>();
@@ -21582,11 +21613,8 @@ pub mod host {
                                             .add(3 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len148 = l147;
-                                        let bytes148 = _rt::Vec::from_raw_parts(
-                                            l146.cast(),
-                                            len148,
-                                            len148,
-                                        );
+                                        let bytes148 =
+                                            _rt::Vec::from_raw_parts(l146.cast(), len148, len148);
                                         (_rt::string_lift(bytes145), _rt::string_lift(bytes148))
                                     };
                                     result149.push(e149);
@@ -21606,19 +21634,16 @@ pub mod host {
                                 let len155 = l151;
                                 let mut result155 = _rt::Vec::with_capacity(len155);
                                 for i in 0..len155 {
-                                    let base = base155
-                                        .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                                    let base =
+                                        base155.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                                     let e155 = {
                                         let l152 = *base.add(0).cast::<*mut u8>();
                                         let l153 = *base
                                             .add(::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len154 = l153;
-                                        let bytes154 = _rt::Vec::from_raw_parts(
-                                            l152.cast(),
-                                            len154,
-                                            len154,
-                                        );
+                                        let bytes154 =
+                                            _rt::Vec::from_raw_parts(l152.cast(), len154, len154);
                                         _rt::string_lift(bytes154)
                                     };
                                     result155.push(e155);
@@ -21641,7 +21666,11 @@ pub mod host {
                                             1 => {
                                                 let e = {
                                                     let l138 = *base
-                                                        .add(112 + 38 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            112 + 38
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<i64>();
                                                     l138 as u64
                                                 };
@@ -21654,7 +21683,11 @@ pub mod host {
                                             1 => {
                                                 let e = {
                                                     let l140 = *base
-                                                        .add(128 + 38 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            128 + 38
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<i64>();
                                                     l140 as u64
                                                 };
@@ -21721,7 +21754,9 @@ pub mod host {
                 8,
             );
             let l158 = i32::from(
-                *ptr0.add(4 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(4 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use super::wavs::types::service::ServiceStatus as V159;
             let v159 = match l158 {
@@ -21732,7 +21767,9 @@ pub mod host {
                 }
             };
             let l160 = i32::from(
-                *ptr0.add(5 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(5 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use super::wavs::types::service::ServiceManager as V167;
             let v167 = match l160 {
@@ -21746,11 +21783,7 @@ pub mod host {
                             .add(7 * ::core::mem::size_of::<*const u8>())
                             .cast::<usize>();
                         let len163 = l162;
-                        let bytes163 = _rt::Vec::from_raw_parts(
-                            l161.cast(),
-                            len163,
-                            len163,
-                        );
+                        let bytes163 = _rt::Vec::from_raw_parts(l161.cast(), len163, len163);
                         let l164 = *ptr0
                             .add(8 * ::core::mem::size_of::<*const u8>())
                             .cast::<*mut u8>();
@@ -21761,11 +21794,7 @@ pub mod host {
                         super::wavs::types::service::EvmManager {
                             chain_name: _rt::string_lift(bytes163),
                             address: super::wavs::types::chain::EvmAddress {
-                                raw_bytes: _rt::Vec::from_raw_parts(
-                                    l164.cast(),
-                                    len166,
-                                    len166,
-                                ),
+                                raw_bytes: _rt::Vec::from_raw_parts(l164.cast(), len166, len166),
                             },
                         }
                     };
@@ -21798,13 +21827,11 @@ pub mod host {
         unsafe {
             #[repr(align(8))]
             struct RetArea(
-                [::core::mem::MaybeUninit<
-                    u8,
-                >; 136 + 42 * ::core::mem::size_of::<*const u8>()],
+                [::core::mem::MaybeUninit<u8>; 136 + 42 * ::core::mem::size_of::<*const u8>()],
             );
             let mut ret_area = RetArea(
-                [::core::mem::MaybeUninit::uninit(); 136
-                    + 42 * ::core::mem::size_of::<*const u8>()],
+                [::core::mem::MaybeUninit::uninit();
+                    136 + 42 * ::core::mem::size_of::<*const u8>()],
             );
             let ptr0 = ret_area.0.as_mut_ptr().cast::<u8>();
             #[cfg(target_arch = "wasm32")]
@@ -21972,9 +21999,7 @@ pub mod host {
                                         let l34 = *ptr0
                                             .add(16 + 2 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        super::wavs::types::core::Timestamp {
-                                            nanos: l34 as u64,
-                                        }
+                                        super::wavs::types::core::Timestamp { nanos: l34 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -21987,9 +22012,7 @@ pub mod host {
                                         let l36 = *ptr0
                                             .add(32 + 2 * ::core::mem::size_of::<*const u8>())
                                             .cast::<i64>();
-                                        super::wavs::types::core::Timestamp {
-                                            nanos: l36 as u64,
-                                        }
+                                        super::wavs::types::core::Timestamp { nanos: l36 as u64 }
                                     };
                                     Some(e)
                                 }
@@ -22005,7 +22028,9 @@ pub mod host {
                 }
             };
             let l38 = i32::from(
-                *ptr0.add(48 + 2 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(48 + 2 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use super::wavs::types::service::ComponentSource as V62;
             let v62 = match l38 {
@@ -22075,11 +22100,8 @@ pub mod host {
                                             .add(48 + 7 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len51 = l50;
-                                        let bytes51 = _rt::Vec::from_raw_parts(
-                                            l49.cast(),
-                                            len51,
-                                            len51,
-                                        );
+                                        let bytes51 =
+                                            _rt::Vec::from_raw_parts(l49.cast(), len51, len51);
                                         _rt::string_lift(bytes51)
                                     };
                                     Some(e)
@@ -22097,11 +22119,8 @@ pub mod host {
                                             .add(48 + 10 * ::core::mem::size_of::<*const u8>())
                                             .cast::<usize>();
                                         let len55 = l54;
-                                        let bytes55 = _rt::Vec::from_raw_parts(
-                                            l53.cast(),
-                                            len55,
-                                            len55,
-                                        );
+                                        let bytes55 =
+                                            _rt::Vec::from_raw_parts(l53.cast(), len55, len55);
                                         _rt::string_lift(bytes55)
                                     };
                                     Some(e)
@@ -22130,7 +22149,9 @@ pub mod host {
                 }
             };
             let l63 = i32::from(
-                *ptr0.add(48 + 13 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(48 + 13 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use super::wavs::types::service::AllowedHostPermission as V70;
             let v70 = match l63 {
@@ -22147,19 +22168,14 @@ pub mod host {
                         let len69 = l65;
                         let mut result69 = _rt::Vec::with_capacity(len69);
                         for i in 0..len69 {
-                            let base = base69
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base69.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e69 = {
                                 let l66 = *base.add(0).cast::<*mut u8>();
                                 let l67 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len68 = l67;
-                                let bytes68 = _rt::Vec::from_raw_parts(
-                                    l66.cast(),
-                                    len68,
-                                    len68,
-                                );
+                                let bytes68 = _rt::Vec::from_raw_parts(l66.cast(), len68, len68);
                                 _rt::string_lift(bytes68)
                             };
                             result69.push(e69);
@@ -22179,13 +22195,19 @@ pub mod host {
                 }
             };
             let l71 = i32::from(
-                *ptr0.add(48 + 16 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(48 + 16 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l72 = i32::from(
-                *ptr0.add(56 + 16 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(56 + 16 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l74 = i32::from(
-                *ptr0.add(72 + 16 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(72 + 16 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             let l76 = *ptr0
                 .add(88 + 16 * ::core::mem::size_of::<*const u8>())
@@ -22250,7 +22272,9 @@ pub mod host {
                 ::core::mem::size_of::<*const u8>(),
             );
             let l91 = i32::from(
-                *ptr0.add(88 + 20 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                *ptr0
+                    .add(88 + 20 * ::core::mem::size_of::<*const u8>())
+                    .cast::<u8>(),
             );
             use super::wavs::types::service::Submit as V148;
             let v148 = match l91 {
@@ -22282,11 +22306,8 @@ pub mod host {
                                         .add(96 + 24 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len98 = l97;
-                                    let bytes98 = _rt::Vec::from_raw_parts(
-                                        l96.cast(),
-                                        len98,
-                                        len98,
-                                    );
+                                    let bytes98 =
+                                        _rt::Vec::from_raw_parts(l96.cast(), len98, len98);
                                     let l99 = *ptr0
                                         .add(96 + 25 * ::core::mem::size_of::<*const u8>())
                                         .cast::<*mut u8>();
@@ -22294,11 +22315,8 @@ pub mod host {
                                         .add(96 + 26 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len101 = l100;
-                                    let bytes101 = _rt::Vec::from_raw_parts(
-                                        l99.cast(),
-                                        len101,
-                                        len101,
-                                    );
+                                    let bytes101 =
+                                        _rt::Vec::from_raw_parts(l99.cast(), len101, len101);
                                     super::wavs::types::service::ComponentSourceDownload {
                                         url: _rt::string_lift(bytes98),
                                         digest: _rt::string_lift(bytes101),
@@ -22315,11 +22333,8 @@ pub mod host {
                                         .add(96 + 24 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len104 = l103;
-                                    let bytes104 = _rt::Vec::from_raw_parts(
-                                        l102.cast(),
-                                        len104,
-                                        len104,
-                                    );
+                                    let bytes104 =
+                                        _rt::Vec::from_raw_parts(l102.cast(), len104, len104);
                                     let l105 = i32::from(
                                         *ptr0
                                             .add(96 + 25 * ::core::mem::size_of::<*const u8>())
@@ -22337,11 +22352,8 @@ pub mod host {
                                         .add(96 + 32 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len115 = l114;
-                                    let bytes115 = _rt::Vec::from_raw_parts(
-                                        l113.cast(),
-                                        len115,
-                                        len115,
-                                    );
+                                    let bytes115 =
+                                        _rt::Vec::from_raw_parts(l113.cast(), len115, len115);
                                     super::wavs::types::service::Registry {
                                         digest: _rt::string_lift(bytes104),
                                         domain: match l105 {
@@ -22349,10 +22361,18 @@ pub mod host {
                                             1 => {
                                                 let e = {
                                                     let l106 = *ptr0
-                                                        .add(96 + 26 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 26
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l107 = *ptr0
-                                                        .add(96 + 27 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 27
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len108 = l107;
                                                     let bytes108 = _rt::Vec::from_raw_parts(
@@ -22371,10 +22391,18 @@ pub mod host {
                                             1 => {
                                                 let e = {
                                                     let l110 = *ptr0
-                                                        .add(96 + 29 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 29
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<*mut u8>();
                                                     let l111 = *ptr0
-                                                        .add(96 + 30 * ::core::mem::size_of::<*const u8>())
+                                                        .add(
+                                                            96 + 30
+                                                                * ::core::mem::size_of::<*const u8>(
+                                                                ),
+                                                        )
                                                         .cast::<usize>();
                                                     let len112 = l111;
                                                     let bytes112 = _rt::Vec::from_raw_parts(
@@ -22403,11 +22431,8 @@ pub mod host {
                                         .add(96 + 24 * ::core::mem::size_of::<*const u8>())
                                         .cast::<usize>();
                                     let len118 = l117;
-                                    let bytes118 = _rt::Vec::from_raw_parts(
-                                        l116.cast(),
-                                        len118,
-                                        len118,
-                                    );
+                                    let bytes118 =
+                                        _rt::Vec::from_raw_parts(l116.cast(), len118, len118);
                                     _rt::string_lift(bytes118)
                                 };
                                 V119::Digest(e119)
@@ -22489,19 +22514,15 @@ pub mod host {
                         let len141 = l134;
                         let mut result141 = _rt::Vec::with_capacity(len141);
                         for i in 0..len141 {
-                            let base = base141
-                                .add(i * (4 * ::core::mem::size_of::<*const u8>()));
+                            let base = base141.add(i * (4 * ::core::mem::size_of::<*const u8>()));
                             let e141 = {
                                 let l135 = *base.add(0).cast::<*mut u8>();
                                 let l136 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len137 = l136;
-                                let bytes137 = _rt::Vec::from_raw_parts(
-                                    l135.cast(),
-                                    len137,
-                                    len137,
-                                );
+                                let bytes137 =
+                                    _rt::Vec::from_raw_parts(l135.cast(), len137, len137);
                                 let l138 = *base
                                     .add(2 * ::core::mem::size_of::<*const u8>())
                                     .cast::<*mut u8>();
@@ -22509,11 +22530,8 @@ pub mod host {
                                     .add(3 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len140 = l139;
-                                let bytes140 = _rt::Vec::from_raw_parts(
-                                    l138.cast(),
-                                    len140,
-                                    len140,
-                                );
+                                let bytes140 =
+                                    _rt::Vec::from_raw_parts(l138.cast(), len140, len140);
                                 (_rt::string_lift(bytes137), _rt::string_lift(bytes140))
                             };
                             result141.push(e141);
@@ -22533,19 +22551,15 @@ pub mod host {
                         let len147 = l143;
                         let mut result147 = _rt::Vec::with_capacity(len147);
                         for i in 0..len147 {
-                            let base = base147
-                                .add(i * (2 * ::core::mem::size_of::<*const u8>()));
+                            let base = base147.add(i * (2 * ::core::mem::size_of::<*const u8>()));
                             let e147 = {
                                 let l144 = *base.add(0).cast::<*mut u8>();
                                 let l145 = *base
                                     .add(::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
                                 let len146 = l145;
-                                let bytes146 = _rt::Vec::from_raw_parts(
-                                    l144.cast(),
-                                    len146,
-                                    len146,
-                                );
+                                let bytes146 =
+                                    _rt::Vec::from_raw_parts(l144.cast(), len146, len146);
                                 _rt::string_lift(bytes146)
                             };
                             result147.push(e147);
@@ -22881,9 +22895,7 @@ macro_rules! __export_aggregator_world_impl {
 #[doc(inline)]
 pub(crate) use __export_aggregator_world_impl as export;
 #[cfg(target_arch = "wasm32")]
-#[unsafe(
-    link_section = "component-type:wit-bindgen:0.41.0:wavs:aggregator@0.6.0-alpha.8:aggregator-world:encoded world"
-)]
+#[unsafe(link_section = "component-type:wit-bindgen:0.41.0:wavs:aggregator@0.6.0-alpha.8:aggregator-world:encoded world")]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
 pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 20129] = *b"\
