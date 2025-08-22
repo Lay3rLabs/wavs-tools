@@ -48,7 +48,6 @@ jobs:
           version: stable
 
       - name: Install Bun
-        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
