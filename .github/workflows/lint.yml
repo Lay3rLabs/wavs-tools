@@ -63,7 +63,6 @@ jobs:
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
       - name: Install Task
-        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: arduino/setup-task@v2
         with:
           version: 3.x
