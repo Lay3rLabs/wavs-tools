@@ -8,7 +8,7 @@ on:
 jobs:
   tests:
     name: "Run Tests"
-    runs-on: linux-8-core
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
