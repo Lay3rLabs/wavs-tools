@@ -1,7 +1,7 @@
 {
     "scripts": {
-        "test": "bun test src --reporter=junit --reporter-outfile=.test-reports/junit.xml",
-        "test:coverage": "bun test src --coverage --coverage-reporter=lcov --coverage-dir=.test-reports/coverage",
+        "test": "mkdir -p .test-reports && bun test src --reporter=junit --reporter-outfile=.test-reports/junit.xml",
+        "test:coverage": "mkdir -p .test-reports/coverage && bun test src --coverage --coverage-reporter=lcov --coverage-dir=.test-reports/coverage",
         "test:watch": "bun test src --watch",
         "test:clean": "rm -rf .test-reports coverage"
     },

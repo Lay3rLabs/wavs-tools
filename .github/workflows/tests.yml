@@ -72,13 +72,8 @@ jobs:
           path: |
             ~/.bun/install/cache
             ~/.bun/install/global
+            node_modules
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
-
-      - name: Cache Test Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: tests/node_modules
-          key: ${{ runner.os }}-tests-bun-${{ hashFiles('tests/bun.lock') }}
 
       - name: Cache Docker images
         id: cache-docker
