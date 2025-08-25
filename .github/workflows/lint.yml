@@ -29,7 +29,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'package-lock.json') }}
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -47,20 +47,21 @@ jobs:
         with:
           version: stable
 
-      - name: Install Node.js
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        uses: actions/setup-node@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 21
+          bun-version: latest
 
-      - name: Cache Node modules
+      - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
+          path: |
+            ~/.bun/install/cache
+            ~/.bun/install/global
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
       - name: Install Task
-        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: arduino/setup-task@v2
         with:
           version: 3.x
@@ -75,8 +76,7 @@ jobs:
           override: true
 
       - name: Setup dependencies
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        run: task setup-ci
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Check formatting
         uses: actions-rs/cargo@v1

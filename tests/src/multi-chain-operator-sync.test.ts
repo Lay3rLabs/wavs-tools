@@ -1,15 +1,14 @@
+import { describe, beforeAll, afterAll, test } from "bun:test";
 import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
-import { TIMEOUTS } from "./helpers/constants";
+import { TEST_TIMEOUT } from "./helpers/constants";
 
 const PROJECT_NAME = "multi-chain-operator-sync";
 
 describe(PROJECT_NAME.toUpperCase(), function () {
   let backendManager: BackendManager;
 
-  before(async function () {
-    this.timeout(TIMEOUTS.SETUP);
-
+  beforeAll(async () => {
     backendManager = new BackendManager({ nChains: 2, nOperators: 2 });
     await backendManager.start();
     backendManager.assertRunning();
@@ -19,19 +18,17 @@ describe(PROJECT_NAME.toUpperCase(), function () {
     });
   });
 
-  after(async function () {
-    this.timeout(TIMEOUTS.TEARDOWN);
+  afterAll(async () => {
     await backendManager.stop();
   });
 
   describe("All tests", function () {
-    it("should complete without error", async function () {
-      this.timeout(TIMEOUTS.TEST);
+    test("should complete without error", async () => {
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {
         cwd: projectPath(PROJECT_NAME),
       });
-    });
+    }, TEST_TIMEOUT);
   });
 });
