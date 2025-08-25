@@ -8,7 +8,7 @@ on:
 jobs:
   tests:
     name: "Run Tests"
-    runs-on: linux-8-core
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       issues: write
@@ -47,7 +47,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'package-lock.json') }}
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -66,17 +66,14 @@ jobs:
             target/
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
 
-      - name: Cache Node modules
+      - name: Cache Bun dependencies
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: ${{ runner.os }}-node-${{ hashFiles('package-lock.json') }}
-
-      - name: Cache Test Node modules
-        uses: actions/cache@v4
-        with:
-          path: tests/node_modules
-          key: ${{ runner.os }}-tests-node-${{ hashFiles('tests/package-lock.json') }}
+          path: |
+            ~/.bun/install/cache
+            ~/.bun/install/global
+            node_modules
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
       - name: Cache Docker images
         id: cache-docker
@@ -131,10 +128,10 @@ jobs:
         with:
           version: stable
 
-      - name: Install Node.js
-        uses: actions/setup-node@v4
+      - name: Install Bun
+        uses: oven-sh/setup-bun@v2
         with:
-          node-version: 21
+          bun-version: latest
 
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
@@ -170,9 +167,9 @@ jobs:
         run: cp .env.example .env
 
       # Tests
-      - name: Run tests and generate report
+      - name: Run tests with coverage
         id: tests
-        run: npm run test:report
+        run: bun run test
         working-directory: tests
         continue-on-error: true
 
@@ -189,7 +186,7 @@ jobs:
           elif [ "${{ github.event_name }}" = "pull_request" ]; then
             if [ "${{ github.event.pull_request.draft }}" = "false" ]; then
               # Non-draft PR: only comment if there are test failures
-              if [ -f tests/.test-reports/merged-report.json ]; then
+              if [ -f tests/.test-reports/junit.xml ]; then
                 failures=$(node ./.github/scripts/collect-failures.js)
                 if [ "$failures" -gt "0" ]; then
                   SHOULD_COMMENT="true"
@@ -216,7 +213,7 @@ jobs:
       - name: Check test results and fail if needed
         if: always()
         run: |
-          if [ -f tests/.test-reports/merged-report.json ]; then
+          if [ -f tests/.test-reports/junit.xml ]; then
             failures=$(node ./.github/scripts/collect-failures.js)
             if [ "$failures" -gt "0" ]; then
               echo "Tests failed: $failures failure(s) found"

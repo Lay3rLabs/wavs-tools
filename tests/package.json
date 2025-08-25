@@ -1,21 +1,13 @@
 {
     "scripts": {
-        "test": "cd .. && mocha tests/src/**/*.test.ts --require tsx --reporter mochawesome --reporter-options reportDir=tests/.test-reports,reportFilename=test-report,json=true,overwrite=true",
-        "test:report": "npm run test; npm run merge-test-reports",
-        "test:report:open": "npm run test:report; opener .test-reports/merged-report.html",
-        "test:clean": "rm -rf .test-reports",
-        "merge-test-reports": "mochawesome-merge .test-reports/test-report*.json -o .test-reports/merged-report.json && marge .test-reports/merged-report.json --reportDir .test-reports --inline"
+        "test": "mkdir -p .test-reports && bun test src --reporter=junit --reporter-outfile=.test-reports/junit.xml",
+        "test:coverage": "mkdir -p .test-reports/coverage && bun test src --coverage --coverage-reporter=lcov --coverage-dir=.test-reports/coverage",
+        "test:watch": "bun test src --watch",
+        "test:clean": "rm -rf .test-reports coverage"
     },
     "devDependencies": {
-        "@types/chai": "^5.2.2",
-        "@types/mocha": "^10.0.10",
+        "@types/bun": "^1.2.20",
         "@types/node": "^24.0.3",
-        "chai": "^5.2.0",
-        "mocha": "^11.5.0",
-        "mochawesome": "^7.1.3",
-        "mochawesome-merge": "^5.0.0",
-        "opener": "^1.5.2",
-        "tsx": "^4.19.4",
         "typescript": "^5.8.3",
         "wait-port": "^1.1.0"
     }

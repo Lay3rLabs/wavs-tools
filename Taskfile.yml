@@ -41,8 +41,8 @@ tasks:
   setup:
     desc: "Initialize project dependencies and build ABI files"
     cmds:
-      - npm install
-      - cd tests && npm install
+      - bun install
+      - cd tests && bun install
       - task: cli:build-abi
 
   setup-ci:
@@ -50,8 +50,8 @@ tasks:
     vars:
       BUILD_ABI: "{{.BUILD_ABI | default true}}"
     cmds:
-      - npm ci
-      - cd tests && npm ci
+      - bun install --frozen-lockfile
+      - cd tests && bun install --frozen-lockfile
       - task: cli:build-abi-ci
         vars:
           BUILD_ABI: "{{.BUILD_ABI}}"
@@ -60,13 +60,13 @@ tasks:
     desc: "Run test suite and generate report"
     dir: tests
     cmds:
-      - npm run test:report
+      - bun run test:report
 
   test:report:
     desc: "Open test report in browser"
     dir: tests
     cmds:
-      - npm run test:report:open
+      - bun run test:report:open
 
   lint:
     desc: "Run code formatting and linting checks"
