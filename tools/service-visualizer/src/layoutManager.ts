@@ -3,13 +3,13 @@ import { Node, Edge, Position } from 'reactflow';
 
 const nodeDimensions: Record<string, { width: number; height: number }> = {
   service: { width: 200, height: 80 },
-  workflow: { width: 180, height: 60 },
-  trigger: { width: 160, height: 50 },
-  component: { width: 200, height: 70 },
-  aggregator: { width: 160, height: 60 },
-  chain: { width: 220, height: 100 },
+  workflow: { width: 250, height: 90 },
+  trigger: { width: 400, height: 100 },
+  component: { width: 250, height: 90 },
+  aggregator: { width: 380, height: 70 },
+  chain: { width: 380, height: 100 },
   bridge: { width: 140, height: 50 },
-  contract: { width: 140, height: 50 },
+  contract: { width: 380, height: 60 },
   default: { width: 172, height: 36 }
 };
 

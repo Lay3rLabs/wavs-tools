@@ -73,12 +73,12 @@ export function ContractNode({ data }: any) {
       borderRadius: '4px',
       padding: '8px',
       fontSize: '12px',
-      minWidth: '120px'
+      minWidth: '180px'
     }}>
       <Handle type="target" position={Position.Top} />
       <div style={{ fontWeight: 'bold' }}>{data.label}</div>
-      <div style={{ fontSize: '10px', marginTop: '5px' }}>
-        {data.address.slice(0, 8)}...
+      <div style={{ fontSize: '10px', marginTop: '5px', wordBreak: 'break-all' }}>
+        {data.address}
       </div>
       <Handle type="source" position={Position.Bottom} />
     </div>
@@ -92,12 +92,20 @@ export function WorkflowNode({ data }: any) {
       color: 'white',
       padding: '10px',
       borderRadius: '6px',
-      minWidth: '150px'
+      minWidth: '250px'
     }}>
       <Handle type="target" position={Position.Top} />
-      <div>{data.label}</div>
+      <div style={{ fontWeight: 'bold' }}>{data.label}</div>
+      {data.version && (
+        <div style={{ fontSize: '10px', marginTop: '3px' }}>
+          Version: {data.version}
+        </div>
+      )}
       <div style={{ fontSize: '10px', marginTop: '5px' }}>
-        Chain: {data.trigger}
+        Chain: {data.chain}
+      </div>
+      <div style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
+        ID: {data.workflowId}...
       </div>
       <Handle type="source" position={Position.Bottom} />
     </div>
@@ -111,12 +119,30 @@ export function TriggerNode({ data }: any) {
       color: 'white',
       padding: '8px',
       borderRadius: '4px',
-      fontSize: '12px'
+      fontSize: '12px',
+      minWidth: '380px'
     }}>
-      <div>{data.label}</div>
-      <div style={{ fontSize: '10px', marginTop: '5px' }}>
-        {data.blocks} blocks
-      </div>
+      <div style={{ fontWeight: 'bold' }}>{data.label}</div>
+      {data.chain && (
+        <div style={{ fontSize: '10px', marginTop: '5px' }}>
+          Chain: {data.chain}
+        </div>
+      )}
+      {data.blocks && (
+        <div style={{ fontSize: '10px', marginTop: '3px' }}>
+          Every {data.blocks} blocks
+        </div>
+      )}
+      {data.address && (
+        <div style={{ fontSize: '9px', marginTop: '5px', wordBreak: 'break-all' }}>
+          Contract: {data.address}
+        </div>
+      )}
+      {data.eventHash && (
+        <div style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all', opacity: 0.8 }}>
+          Event: {data.eventHash}
+        </div>
+      )}
       <Handle type="source" position={Position.Right} />
     </div>
   );
@@ -129,15 +155,18 @@ export function ComponentNode({ data }: any) {
       color: 'white',
       padding: '10px',
       borderRadius: '6px',
-      minWidth: '180px'
+      minWidth: '250px'
     }}>
       <Handle type="target" position={Position.Top} />
-      <div style={{ fontWeight: 'bold' }}>{data.label}</div>
-      <div style={{ fontSize: '10px', marginTop: '5px' }}>
-        v{data.version}
+      <div style={{ fontWeight: 'bold' }}>Component</div>
+      <div style={{ fontSize: '11px', marginTop: '5px' }}>
+        {data.label}
       </div>
-      <div style={{ fontSize: '9px', marginTop: '3px' }}>
-        {data.domain}
+      <div style={{ fontSize: '10px', marginTop: '3px' }}>
+        Version: {data.version}
+      </div>
+      <div style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
+        Registry: {data.domain}
       </div>
     </div>
   );
@@ -150,15 +179,15 @@ export function AggregatorNode({ data }: any) {
       color: 'white',
       padding: '8px',
       borderRadius: '4px',
-      minWidth: '140px'
+      minWidth: '200px'
     }}>
       <Handle type="target" position={Position.Left} />
       <div>{data.label}</div>
       <div style={{ fontSize: '10px', marginTop: '5px' }}>
         {data.chain}
       </div>
-      <div style={{ fontSize: '9px', marginTop: '3px' }}>
-        {data.address.slice(0, 10)}...
+      <div style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
+        {data.address}
       </div>
     </div>
   );

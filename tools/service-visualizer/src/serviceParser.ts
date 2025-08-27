@@ -26,9 +26,10 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       type: 'workflow',
       position: { x: 200 + index * 400, y: yOffset },
       data: {
-        label: `Workflow`,
-        trigger: workflow.trigger.block_interval?.chain_name || workflow.trigger.evm_contract_event?.chain_name || 'Unknown',
-        package: workflow.component.source.Registry?.registry.package || 'Unknown'
+        label: workflow.component.source.Registry?.registry.package || 'Unknown Component',
+        version: workflow.component.source.Registry?.registry.version,
+        workflowId: workflowId.slice(0, 8),
+        chain: workflow.trigger.block_interval?.chain_name || workflow.trigger.evm_contract_event?.chain_name || 'Unknown'
       }
     });
 
@@ -48,7 +49,8 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
         type: 'trigger',
         position: { x: 50 + index * 400, y: yOffset + 150 },
         data: {
-          label: `Chain: ${trigger.block_interval.chain_name}`,
+          label: `Block Interval Trigger`,
+          chain: trigger.block_interval.chain_name,
           blocks: trigger.block_interval.n_blocks
         }
       });
@@ -66,8 +68,10 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
         type: 'trigger',
         position: { x: 50 + index * 400, y: yOffset + 150 },
         data: {
-          label: `Event: ${trigger.evm_contract_event.chain_name}`,
-          blocks: trigger.evm_contract_event.address.slice(0, 10) + '...'
+          label: `Event Trigger`,
+          chain: trigger.evm_contract_event.chain_name,
+          address: trigger.evm_contract_event.address,
+          eventHash: trigger.evm_contract_event.event_hash
         }
       });
 
@@ -110,7 +114,8 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
           data: {
             label: `Submit Contract`,
             chain: contract.chain_name,
-            address: contract.address
+            address: contract.address,
+            fullAddress: true
           }
         });
 
