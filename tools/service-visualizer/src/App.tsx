@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -42,6 +42,30 @@ function App() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [jsonInput, setJsonInput] = useState('');
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
+  const [selectionMode, setSelectionMode] = useState(false);
+
+  // Handle Alt key for temporary selection mode
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey) {
+        setSelectionMode(true);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (!e.altKey) {
+        setSelectionMode(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, []);
 
   const onConnect = useCallback(
     (params: Connection | Edge) => setEdges((eds) => addEdge(params, eds)),
@@ -84,6 +108,15 @@ function App() {
     <div className="app">
       <div className="controls">
         <div style={{ marginBottom: '10px' }}>
+          <label style={{ marginRight: '20px' }}>
+            <input 
+              type="checkbox" 
+              checked={selectionMode}
+              onChange={(e) => setSelectionMode(e.target.checked)}
+              style={{ marginRight: '5px' }}
+            />
+            Text Selection Mode (or hold Alt key)
+          </label>
           <label>
             Layout Direction:
             <select 
@@ -120,6 +153,9 @@ function App() {
           onConnect={onConnect}
           nodeTypes={nodeTypes}
           fitView
+          nodesDraggable={!selectionMode}
+          elementsSelectable={true}
+          panOnDrag={selectionMode ? false : true}
         >
           <Controls />
           <MiniMap />

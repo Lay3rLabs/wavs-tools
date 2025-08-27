@@ -11,10 +11,11 @@ export function ServiceNode({ data }: any) {
       fontWeight: 'bold',
       minWidth: '150px',
       textAlign: 'center'
-    }}>
+    }}
+>
       <Handle type="target" position={Position.Top} />
-      <div>{data.label}</div>
-      <div style={{ fontSize: '10px', marginTop: '5px' }}>
+      <div className="selectable-text">{data.label}</div>
+      <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         Status: {data.status}
       </div>
       <Handle type="source" position={Position.Bottom} />
@@ -93,18 +94,19 @@ export function WorkflowNode({ data }: any) {
       padding: '10px',
       borderRadius: '6px',
       minWidth: '250px'
-    }}>
+    }}
+>
       <Handle type="target" position={Position.Top} />
-      <div style={{ fontWeight: 'bold' }}>{data.label}</div>
+      <div className="selectable-text" style={{ fontWeight: 'bold' }}>{data.label}</div>
       {data.version && (
-        <div style={{ fontSize: '10px', marginTop: '3px' }}>
+        <div className="selectable-text" style={{ fontSize: '10px', marginTop: '3px' }}>
           Version: {data.version}
         </div>
       )}
-      <div style={{ fontSize: '10px', marginTop: '5px' }}>
+      <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         Chain: {data.chain}
       </div>
-      <div style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
+      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
         ID: {data.workflowId}...
       </div>
       <Handle type="source" position={Position.Bottom} />
@@ -121,26 +123,27 @@ export function TriggerNode({ data }: any) {
       borderRadius: '4px',
       fontSize: '12px',
       minWidth: '380px'
-    }}>
-      <div style={{ fontWeight: 'bold' }}>{data.label}</div>
+    }}
+>
+      <div className="selectable-text" style={{ fontWeight: 'bold' }}>{data.label}</div>
       {data.chain && (
-        <div style={{ fontSize: '10px', marginTop: '5px' }}>
+        <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
           Chain: {data.chain}
         </div>
       )}
       {data.blocks && (
-        <div style={{ fontSize: '10px', marginTop: '3px' }}>
+        <div className="selectable-text" style={{ fontSize: '10px', marginTop: '3px' }}>
           Every {data.blocks} blocks
         </div>
       )}
       {data.address && (
-        <div style={{ fontSize: '9px', marginTop: '5px', wordBreak: 'break-all' }}>
-          Contract: {data.address}
+        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '5px', wordBreak: 'break-all' }}>
+          Contract: <span style={{ userSelect: 'all' }}>{data.address}</span>
         </div>
       )}
       {data.eventHash && (
-        <div style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all', opacity: 0.8 }}>
-          Event: {data.eventHash}
+        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all', opacity: 0.8 }}>
+          Event: <span style={{ userSelect: 'all' }}>{data.eventHash}</span>
         </div>
       )}
       <Handle type="source" position={Position.Right} />
@@ -156,16 +159,17 @@ export function ComponentNode({ data }: any) {
       padding: '10px',
       borderRadius: '6px',
       minWidth: '250px'
-    }}>
+    }}
+>
       <Handle type="target" position={Position.Top} />
-      <div style={{ fontWeight: 'bold' }}>Component</div>
-      <div style={{ fontSize: '11px', marginTop: '5px' }}>
+      <div className="selectable-text" style={{ fontWeight: 'bold' }}>Component</div>
+      <div className="selectable-text" style={{ fontSize: '11px', marginTop: '5px' }}>
         {data.label}
       </div>
-      <div style={{ fontSize: '10px', marginTop: '3px' }}>
+      <div className="selectable-text" style={{ fontSize: '10px', marginTop: '3px' }}>
         Version: {data.version}
       </div>
-      <div style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
+      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
         Registry: {data.domain}
       </div>
     </div>
@@ -180,14 +184,15 @@ export function AggregatorNode({ data }: any) {
       padding: '8px',
       borderRadius: '4px',
       minWidth: '200px'
-    }}>
+    }}
+>
       <Handle type="target" position={Position.Left} />
-      <div>{data.label}</div>
-      <div style={{ fontSize: '10px', marginTop: '5px' }}>
+      <div className="selectable-text">{data.label}</div>
+      <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         {data.chain}
       </div>
-      <div style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
-        {data.address}
+      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
+        <span style={{ userSelect: 'all' }}>{data.address}</span>
       </div>
     </div>
   );

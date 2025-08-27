@@ -29,3 +29,35 @@ body {
   flex: 1;
   background: #fafafa;
 }
+
+/* Allow text selection in ReactFlow nodes */
+.react-flow__node {
+  pointer-events: all !important;
+}
+
+.react-flow__node-service,
+.react-flow__node-workflow,
+.react-flow__node-trigger,
+.react-flow__node-component,
+.react-flow__node-aggregator,
+.react-flow__node-chain,
+.react-flow__node-bridge,
+.react-flow__node-contract {
+  pointer-events: all !important;
+}
+
+.selectable-text {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  cursor: text !important;
+  pointer-events: all !important;
+}
+
+/* Keep handles draggable */
+.react-flow__handle {
+  cursor: grab !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}
