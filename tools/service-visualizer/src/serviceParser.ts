@@ -28,7 +28,7 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       data: {
         label: workflow.component.source.Registry?.registry.package || 'Unknown Component',
         version: workflow.component.source.Registry?.registry.version,
-        workflowId: workflowId.slice(0, 8),
+        workflowId: workflowId,
         chain: workflow.trigger.block_interval?.chain_name || workflow.trigger.evm_contract_event?.chain_name || 'Unknown'
       }
     });

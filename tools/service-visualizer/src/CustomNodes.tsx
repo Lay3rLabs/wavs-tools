@@ -106,8 +106,8 @@ export function WorkflowNode({ data }: any) {
       <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         Chain: {data.chain}
       </div>
-      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
-        ID: {data.workflowId}...
+      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8, wordBreak: 'break-all' }}>
+        ID: {data.workflowId}
       </div>
       <Handle type="source" position={Position.Bottom} />
     </div>

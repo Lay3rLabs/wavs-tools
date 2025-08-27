@@ -43,6 +43,7 @@ function App() {
   const [jsonInput, setJsonInput] = useState('');
   const [layoutDirection, setLayoutDirection] = useState<'TB' | 'LR'>('TB');
   const [selectionMode, setSelectionMode] = useState(false);
+  const [compactMode, setCompactMode] = useState(true);
 
   // Handle Alt key for temporary selection mode
   useEffect(() => {
@@ -80,7 +81,7 @@ function App() {
       if ('workflows' in config) {
         // It's a service config
         const { nodes: parsedNodes, edges: parsedEdges } = parseServiceToFlow(config as ServiceConfig);
-        const layouted = getLayoutedElements(parsedNodes, parsedEdges, layoutDirection);
+        const layouted = getLayoutedElements(parsedNodes, parsedEdges, layoutDirection, compactMode);
         setNodes(layouted.nodes);
         setEdges(layouted.edges);
       } else if ('chains' in config && 'bridges' in config) {
@@ -95,14 +96,14 @@ function App() {
       console.error('Error parsing JSON:', error);
       alert('Invalid JSON format. Please check your input.');
     }
-  }, [jsonInput, layoutDirection, setNodes, setEdges]);
+  }, [jsonInput, layoutDirection, compactMode, setNodes, setEdges]);
 
 
   const handleAutoLayout = useCallback(() => {
-    const layouted = getLayoutedElements(nodes, edges, layoutDirection);
+    const layouted = getLayoutedElements(nodes, edges, layoutDirection, compactMode);
     setNodes(layouted.nodes);
     setEdges(layouted.edges);
-  }, [nodes, edges, layoutDirection, setNodes, setEdges]);
+  }, [nodes, edges, layoutDirection, compactMode, setNodes, setEdges]);
 
   return (
     <div className="app">
@@ -116,6 +117,15 @@ function App() {
               style={{ marginRight: '5px' }}
             />
             Text Selection Mode (or hold Alt key)
+          </label>
+          <label style={{ marginRight: '20px' }}>
+            <input 
+              type="checkbox" 
+              checked={compactMode}
+              onChange={(e) => setCompactMode(e.target.checked)}
+              style={{ marginRight: '5px' }}
+            />
+            Compact Layout
           </label>
           <label>
             Layout Direction:

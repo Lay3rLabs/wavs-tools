@@ -2,21 +2,22 @@ import dagre from 'dagre';
 import { Node, Edge, Position } from 'reactflow';
 
 const nodeDimensions: Record<string, { width: number; height: number }> = {
-  service: { width: 200, height: 80 },
-  workflow: { width: 250, height: 90 },
-  trigger: { width: 400, height: 100 },
-  component: { width: 250, height: 90 },
-  aggregator: { width: 380, height: 70 },
-  chain: { width: 380, height: 100 },
-  bridge: { width: 140, height: 50 },
-  contract: { width: 380, height: 60 },
-  default: { width: 172, height: 36 }
+  service: { width: 180, height: 60 },
+  workflow: { width: 220, height: 80 },
+  trigger: { width: 350, height: 90 },
+  component: { width: 220, height: 80 },
+  aggregator: { width: 350, height: 60 },
+  chain: { width: 350, height: 90 },
+  bridge: { width: 120, height: 40 },
+  contract: { width: 350, height: 50 },
+  default: { width: 150, height: 30 }
 };
 
 export function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
-  direction: 'TB' | 'LR' = 'TB'
+  direction: 'TB' | 'LR' = 'TB',
+  compact: boolean = true
 ) {
   if (!nodes.length) return { nodes, edges };
   
@@ -26,10 +27,13 @@ export function getLayoutedElements(
   const isHorizontal = direction === 'LR';
   dagreGraph.setGraph({ 
     rankdir: direction, 
-    nodesep: 150, 
-    ranksep: 150,
-    marginx: 50,
-    marginy: 50
+    nodesep: compact ? 10 : 100,  // horizontal spacing between nodes (reduced from 30)
+    ranksep: compact ? 20 : 120,  // vertical spacing between ranks (reduced from 50)
+    marginx: compact ? 5 : 40,    // margin around the whole graph (reduced from 10)
+    marginy: compact ? 5 : 40,    // reduced from 10
+    edgesep: compact ? 5 : 20,    // spacing between edges
+    acyclicer: 'greedy',
+    ranker: 'tight-tree'          // use tighter ranking algorithm
   });
 
   // Set nodes with proper dimensions
