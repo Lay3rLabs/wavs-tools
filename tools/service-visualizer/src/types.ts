@@ -1,5 +1,5 @@
 export interface ServiceConfig {
-  id: string;
+  id?: string;
   name: string;
   workflows: Record<string, Workflow>;
   status: string;
@@ -19,7 +19,12 @@ export interface Workflow {
       start_block?: number | null;
       end_block?: number | null;
     };
-  };
+    evm_contract_event?: {
+      address: string;
+      chain_name: string;
+      event_hash: string;
+    };
+  } | any;
   component: {
     source: {
       Registry?: {
@@ -43,6 +48,13 @@ export interface Workflow {
   submit?: {
     aggregator?: {
       url: string;
+      component?: any;
+      evm_contracts?: Array<{
+        chain_name: string;
+        address: string;
+        max_gas?: number;
+      }>;
+      cosmos_contracts?: any;
     };
   };
   aggregators?: Array<{

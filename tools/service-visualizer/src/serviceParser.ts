@@ -27,7 +27,7 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       position: { x: 200 + index * 400, y: yOffset },
       data: {
         label: `Workflow`,
-        trigger: workflow.trigger.block_interval?.chain_name || 'Unknown',
+        trigger: workflow.trigger.block_interval?.chain_name || workflow.trigger.evm_contract_event?.chain_name || 'Unknown',
         package: workflow.component.source.Registry?.registry.package || 'Unknown'
       }
     });
@@ -39,15 +39,17 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       animated: true
     });
 
-    if (workflow.trigger.block_interval) {
+    // Handle different trigger types
+    const trigger = workflow.trigger as any;
+    if (trigger?.block_interval) {
       const triggerNodeId = `trigger-${workflowId}`;
       nodes.push({
         id: triggerNodeId,
         type: 'trigger',
         position: { x: 50 + index * 400, y: yOffset + 150 },
         data: {
-          label: `Chain: ${workflow.trigger.block_interval.chain_name}`,
-          blocks: workflow.trigger.block_interval.n_blocks
+          label: `Chain: ${trigger.block_interval.chain_name}`,
+          blocks: trigger.block_interval.n_blocks
         }
       });
 
@@ -55,7 +57,25 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
         id: `${triggerNodeId}-${workflowNodeId}`,
         source: triggerNodeId,
         target: workflowNodeId,
-        label: `Every ${workflow.trigger.block_interval.n_blocks} blocks`
+        label: `Every ${trigger.block_interval.n_blocks} blocks`
+      });
+    } else if (trigger?.evm_contract_event) {
+      const triggerNodeId = `trigger-${workflowId}`;
+      nodes.push({
+        id: triggerNodeId,
+        type: 'trigger',
+        position: { x: 50 + index * 400, y: yOffset + 150 },
+        data: {
+          label: `Event: ${trigger.evm_contract_event.chain_name}`,
+          blocks: trigger.evm_contract_event.address.slice(0, 10) + '...'
+        }
+      });
+
+      edges.push({
+        id: `${triggerNodeId}-${workflowNodeId}`,
+        source: triggerNodeId,
+        target: workflowNodeId,
+        label: 'Contract Event'
       });
     }
 
@@ -79,17 +99,18 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       });
     }
 
-    workflow.aggregators?.forEach((agg, aggIndex) => {
-      if (agg.evm) {
-        const aggNodeId = `aggregator-${workflowId}-${aggIndex}`;
+    // Handle submit aggregator contracts
+    if (workflow.submit?.aggregator?.evm_contracts) {
+      workflow.submit.aggregator.evm_contracts.forEach((contract, contractIndex) => {
+        const aggNodeId = `aggregator-${workflowId}-${contractIndex}`;
         nodes.push({
           id: aggNodeId,
           type: 'aggregator',
-          position: { x: 350 + index * 400, y: yOffset + 150 },
+          position: { x: 350 + index * 400 + contractIndex * 50, y: yOffset + 150 },
           data: {
-            label: `Aggregator`,
-            chain: agg.evm.chain_name,
-            address: agg.evm.address
+            label: `Submit Contract`,
+            chain: contract.chain_name,
+            address: contract.address
           }
         });
 
@@ -99,8 +120,8 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
           target: aggNodeId,
           label: 'Submit to'
         });
-      }
-    });
+      });
+    }
   });
 
   return { nodes, edges };
