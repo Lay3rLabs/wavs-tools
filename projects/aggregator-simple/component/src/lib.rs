@@ -220,10 +220,10 @@ impl Guest for Component {
                     vec![]
                 }
             }
-            "timeout" => {
-                // submit only on timeout
+            "timer" => {
+                // submit only when timer fires
                 if batch_state.timer_started.is_none() {
-                    // first packet in batch, start timer
+                    // first packet in batch, set timer
                     batch_state.timer_started = Some(Component::current_timestamp());
                     vec![AggregatorAction::Timer(TimerAction {
                         delay: Duration {
@@ -231,7 +231,25 @@ impl Guest for Component {
                         },
                     })]
                 } else {
-                    // timer already running, just wait
+                    // timer already set, just accumulate packets
+                    vec![]
+                }
+            }
+            "batch_full_or_timer" => {
+                // submit when batch is full OR when timer fires
+                if batch_count >= batch_size {
+                    // batch is full, submit immediately
+                    Component::create_submit_action()?
+                } else if batch_state.timer_started.is_none() {
+                    // first packet, set timer for batch submission
+                    batch_state.timer_started = Some(Component::current_timestamp());
+                    vec![AggregatorAction::Timer(TimerAction {
+                        delay: Duration {
+                            secs: batch_timeout_secs,
+                        },
+                    })]
+                } else {
+                    // timer already set, waiting for batch to fill or timer to fire
                     vec![]
                 }
             }
