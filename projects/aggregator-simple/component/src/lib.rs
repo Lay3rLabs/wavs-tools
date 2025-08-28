@@ -36,6 +36,8 @@ struct StoredPacket {
 struct BatchState {
     packets: Vec<StoredPacket>,
     timer_started: Option<u64>,
+    retry_count: u32,
+    last_error: Option<String>,
 }
 
 impl Component {
@@ -101,6 +103,8 @@ impl Component {
             Ok(None) => Ok(BatchState {
                 packets: Vec::new(),
                 timer_started: None,
+                retry_count: 0,
+                last_error: None,
             }),
             Err(e) => Err(format!("Failed to load batch: {e:?}")),
         }
@@ -254,7 +258,7 @@ impl Guest for Component {
                 }
             }
             _ => {
-                return Err(format!("Unknown trigger mode: {}", trigger_mode));
+                return Err(format!("Unknown trigger mode: {trigger_mode}"));
             }
         };
 
@@ -265,11 +269,15 @@ impl Guest for Component {
 
     fn handle_timer_callback(_packet: Packet) -> Result<Vec<AggregatorAction>, String> {
         let bucket = Component::get_bucket()?;
-        let batch_state = Component::load_batch_state(&bucket)?;
+        let mut batch_state = Component::load_batch_state(&bucket)?;
 
         if batch_state.packets.is_empty() {
             return Ok(vec![]);
         }
+
+        // Reset timer_started so a new timer can be set if needed
+        batch_state.timer_started = None;
+        Component::save_batch_state(&bucket, &batch_state)?;
 
         Component::create_submit_action()
     }
@@ -279,14 +287,33 @@ impl Guest for Component {
         tx_result: Result<AnyTxHash, String>,
     ) -> Result<(), String> {
         let bucket = Component::get_bucket()?;
+        let mut batch_state = Component::load_batch_state(&bucket)?;
 
         match tx_result {
             Ok(_) => {
+                // success - clear the batch
                 Component::clear_batch(&bucket)?;
                 Ok(())
             }
             Err(e) => {
-                eprintln!("Submit failed: {e}");
+                // failure - increment retry count and save error
+                let max_retries = Component::get_config_u32("max_retries", 3);
+                batch_state.retry_count += 1;
+                batch_state.last_error = Some(e.clone());
+
+                if batch_state.retry_count >= max_retries {
+                    // max retries reached - clear batch to avoid being stuck
+                    eprintln!(
+                        "Max retries ({max_retries}) reached for batch submission. Last error: {e}"
+                    );
+                    Component::clear_batch(&bucket)?;
+                } else {
+                    eprintln!(
+                        "Submit failed (retry {}/{}): {}",
+                        batch_state.retry_count, max_retries, e
+                    );
+                    Component::save_batch_state(&bucket, &batch_state)?;
+                }
                 Ok(())
             }
         }
