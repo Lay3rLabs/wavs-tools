@@ -26,7 +26,8 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       type: 'workflow',
       position: { x: 200 + index * 400, y: yOffset },
       data: {
-        label: workflow.component.source.Registry?.registry.package || 'Unknown Component',
+        label: workflow.component.source.Registry?.registry.package || 
+                (workflow.component.source.Digest ? `Digest: ${workflow.component.source.Digest.slice(0, 12)}...` : 'Unknown Component'),
         version: workflow.component.source.Registry?.registry.version,
         workflowId: workflowId,
         chain: workflow.trigger.block_interval?.chain_name || workflow.trigger.evm_contract_event?.chain_name || 'Unknown'
@@ -83,8 +84,9 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       });
     }
 
+    // Show component details
+    const componentNodeId = `component-${workflowId}`;
     if (workflow.component.source.Registry) {
-      const componentNodeId = `component-${workflowId}`;
       nodes.push({
         id: componentNodeId,
         type: 'component',
@@ -92,7 +94,24 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
         data: {
           label: workflow.component.source.Registry.registry.package,
           version: workflow.component.source.Registry.registry.version,
-          domain: workflow.component.source.Registry.registry.domain
+          domain: workflow.component.source.Registry.registry.domain,
+          digest: workflow.component.source.Registry.registry.digest
+        }
+      });
+
+      edges.push({
+        id: `${workflowNodeId}-${componentNodeId}`,
+        source: workflowNodeId,
+        target: componentNodeId
+      });
+    } else if (workflow.component.source.Digest) {
+      nodes.push({
+        id: componentNodeId,
+        type: 'component',
+        position: { x: 200 + index * 400, y: yOffset + 300 },
+        data: {
+          label: 'Digest Component',
+          digest: workflow.component.source.Digest
         }
       });
 
@@ -103,29 +122,59 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       });
     }
 
-    // Handle submit aggregator contracts
-    if (workflow.submit?.aggregator?.evm_contracts) {
-      workflow.submit.aggregator.evm_contracts.forEach((contract, contractIndex) => {
-        const aggNodeId = `aggregator-${workflowId}-${contractIndex}`;
-        nodes.push({
-          id: aggNodeId,
-          type: 'aggregator',
-          position: { x: 350 + index * 400 + contractIndex * 50, y: yOffset + 150 },
-          data: {
-            label: `Submit Contract`,
-            chain: contract.chain_name,
-            address: contract.address,
-            fullAddress: true
-          }
-        });
+    // Handle submit aggregator contracts and aggregator component
+    if (workflow.submit?.aggregator) {
+      const agg = workflow.submit.aggregator;
+      
+      // Check for aggregator component config which shows destination chains
+      if (agg.component?.config) {
+        Object.entries(agg.component.config).forEach(([chainName, address], idx) => {
+          const aggNodeId = `aggregator-${workflowId}-dest-${idx}`;
+          nodes.push({
+            id: aggNodeId,
+            type: 'aggregator',
+            position: { x: 350 + index * 400 + idx * 50, y: yOffset + 150 },
+            data: {
+              label: `Destination: ${chainName}`,
+              chain: chainName,
+              address: address as string,
+              fullAddress: true
+            }
+          });
 
-        edges.push({
-          id: `${workflowNodeId}-${aggNodeId}`,
-          source: workflowNodeId,
-          target: aggNodeId,
-          label: 'Submit to'
+          edges.push({
+            id: `${workflowNodeId}-${aggNodeId}`,
+            source: workflowNodeId,
+            target: aggNodeId,
+            label: 'Submit to'
+          });
         });
-      });
+      }
+      
+      // Also show direct evm_contracts if present
+      if (agg.evm_contracts) {
+        agg.evm_contracts.forEach((contract, contractIndex) => {
+          const aggNodeId = `aggregator-${workflowId}-${contractIndex}`;
+          nodes.push({
+            id: aggNodeId,
+            type: 'aggregator',
+            position: { x: 350 + index * 400 + contractIndex * 50, y: yOffset + 150 },
+            data: {
+              label: `Submit: ${contract.chain_name}`,
+              chain: contract.chain_name,
+              address: contract.address,
+              fullAddress: true
+            }
+          });
+
+          edges.push({
+            id: `${workflowNodeId}-${aggNodeId}`,
+            source: workflowNodeId,
+            target: aggNodeId,
+            label: 'Submit to'
+          });
+        });
+      }
     }
   });
 

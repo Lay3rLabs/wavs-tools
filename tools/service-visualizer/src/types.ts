@@ -35,6 +35,7 @@ export interface Workflow {
           package: string;
         };
       };
+      Digest?: string;
     };
     permissions?: {
       allowed_http_hosts?: string;

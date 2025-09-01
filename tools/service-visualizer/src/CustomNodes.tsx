@@ -166,12 +166,21 @@ export function ComponentNode({ data }: any) {
       <div className="selectable-text" style={{ fontSize: '11px', marginTop: '5px' }}>
         {data.label}
       </div>
-      <div className="selectable-text" style={{ fontSize: '10px', marginTop: '3px' }}>
-        Version: {data.version}
-      </div>
-      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
-        Registry: {data.domain}
-      </div>
+      {data.version && (
+        <div className="selectable-text" style={{ fontSize: '10px', marginTop: '3px' }}>
+          Version: {data.version}
+        </div>
+      )}
+      {data.domain && (
+        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8 }}>
+          Registry: {data.domain}
+        </div>
+      )}
+      {data.digest && (
+        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
+          Digest: <span style={{ userSelect: 'all' }}>{data.digest}</span>
+        </div>
+      )}
     </div>
   );
 }
