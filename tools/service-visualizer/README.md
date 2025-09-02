@@ -1,26 +1,76 @@
 # Service Visualizer
 
-A React-based visualization tool for service.json configurations. It creates interactive node graphs using ReactFlow and dagre for automatic layout, making it easier to understand complex service architectures.
+Interactive visualization tool for service.json configurations using ReactFlow and dagre.
 
-Install dependencies using bun:
-```bash
-bun install
-```
-
-Start the development server:
-```bash
-bun run dev
-```
-
-The application will start on `http://localhost:5173` (or another port if 5173 is occupied).
+Makes complex service architectures easier to understand by creating an interactive node graph showing:
+- Service workflows and their relationships
+- Triggers (block intervals, contract events)
+- Components with full configurations
+- Aggregator components and destination chains
+- Service handlers with deduplication
 
 ## Usage
 
-1. Open the application in your browser
-2. Paste your `service.json` content into the text area
-3. Click "Load JSON" to visualize the service configuration
-4. Use the controls to:
-   - Toggle text selection mode (or hold Alt key)
-   - Enable/disable compact layout
-   - Change layout direction
-   - Auto-layout to reorganize nodes
+From the main project root:
+```bash
+task visualizer:dev
+```
+
+Or directly in this directory:
+```bash
+bun install
+bun run dev
+```
+
+Then paste your service.json and click "Load JSON".
+
+## Example
+
+```json
+{
+  "id": "multi-chain-operator-sync",
+  "name": "Multi-Chain Operator Sync Service",
+  "status": "active",
+  "workflows": {
+    "avalanche_sync": {
+      "trigger": {
+        "block_interval": {
+          "chain_name": "avalanche",
+          "n_blocks": 100
+        }
+      },
+      "component": {
+        "source": {
+          "Registry": {
+            "registry": {
+              "domain": "layerhq.xyz",
+              "package": "operator-sync",
+              "version": "1.2.0",
+              "digest": "0xabc123def456..."
+            }
+          }
+        },
+        "config": {
+          "sync_depth": 1000,
+          "batch_size": 50
+        },
+        "permissions": ["read_state", "write_state"],
+        "env_keys": ["RPC_URL", "SYNC_KEY"]
+      },
+      "submit": {
+        "aggregator": {
+          "component": {
+            "source": {
+              "Digest": "0x789aggregator..."
+            },
+            "config": {
+              "local1": "0x1234567890abcdef",
+              "local2": "0x2345678901bcdef0"
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
