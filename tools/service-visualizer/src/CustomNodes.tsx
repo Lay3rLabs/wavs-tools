@@ -234,11 +234,19 @@ export function AggregatorNode({ data }: any) {
     }}
 >
       <Handle type="target" position={Position.Top} />
-      <div className="selectable-text">{data.label}</div>
+      <div className="selectable-text" style={{ fontWeight: 'bold' }}>{data.label}</div>
+      {data.isDestination && data.workflowCount > 1 && (
+        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px' }}>
+          ({data.workflowCount} workflows)
+        </div>
+      )}
       <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
-        {data.chain}
+        Chain: {data.chain}
       </div>
-      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
+      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px' }}>
+        Handler Contract:
+      </div>
+      <div className="selectable-text" style={{ fontSize: '9px', wordBreak: 'break-all' }}>
         <span style={{ userSelect: 'all' }}>{data.address}</span>
       </div>
       <Handle type="source" position={Position.Bottom} />

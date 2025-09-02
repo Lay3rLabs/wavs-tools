@@ -220,7 +220,7 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       type: 'aggregator',
       position: { x: 100 + destIndex * 400, y: yOffset + 600 },
       data: {
-        label: `Destination: ${dest.chain}`,
+        label: `Service Handler`,
         chain: dest.chain,
         address: dest.address,
         fullAddress: true,
