@@ -24,4 +24,5 @@ abi/
 .project-output/
 .DS_Store
 .task/
+dist/
 Cargo-component.lock

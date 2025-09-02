@@ -1,0 +1,63 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.controls {
+  padding: 20px;
+  background: #f0f0f0;
+  border-bottom: 1px solid #ddd;
+}
+
+.flow-container {
+  flex: 1;
+  background: #fafafa;
+}
+
+/* Allow text selection in ReactFlow nodes */
+.react-flow__node {
+  pointer-events: all !important;
+}
+
+.react-flow__node-service,
+.react-flow__node-workflow,
+.react-flow__node-trigger,
+.react-flow__node-component,
+.react-flow__node-aggregator,
+.react-flow__node-chain,
+.react-flow__node-bridge,
+.react-flow__node-contract {
+  pointer-events: all !important;
+}
+
+.selectable-text {
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  -moz-user-select: text !important;
+  -ms-user-select: text !important;
+  cursor: text !important;
+  pointer-events: all !important;
+}
+
+/* Keep handles draggable */
+.react-flow__handle {
+  cursor: grab !important;
+  user-select: none !important;
+  -webkit-user-select: none !important;
+}

@@ -13,6 +13,7 @@ includes:
   publish:
     taskfile: ./taskfile/publish.yml
     flatten: true
+  visualizer: ./taskfile/visualizer.yml
 
 tasks:
   default:
