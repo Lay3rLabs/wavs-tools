@@ -106,6 +106,11 @@ export function WorkflowNode({ data }: any) {
       <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         Chain: {data.chain}
       </div>
+      {data.digest && (
+        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
+          Digest: <span style={{ userSelect: 'all' }}>{data.digest}</span>
+        </div>
+      )}
       <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8, wordBreak: 'break-all' }}>
         ID: {data.workflowId}
       </div>
