@@ -1,4 +1,3 @@
-import React from 'react';
 import { Handle, Position } from 'reactflow';
 
 export function ServiceNode({ data }: any) {

@@ -1,0 +1,39 @@
+version: '3'
+
+tasks:
+  install:
+    desc: Install visualizer dependencies
+    dir: tools/service-visualizer
+    cmds:
+      - bun install
+
+  dev:
+    desc: Start visualizer development server
+    dir: tools/service-visualizer
+    deps: [install]
+    cmds:
+      - bun run dev
+
+  build:
+    desc: Build visualizer for production
+    dir: tools/service-visualizer
+    deps: [install]
+    cmds:
+      - bun run build
+
+  preview:
+    desc: Preview visualizer production build
+    dir: tools/service-visualizer
+    deps: [build]
+    cmds:
+      - bun run preview
+
+  clean:
+    desc: Clean visualizer build artifacts
+    dir: tools/service-visualizer
+    cmds:
+      - rm -rf dist node_modules bun.lockb
+
+  default:
+    desc: Start visualizer development server
+    deps: [dev]
