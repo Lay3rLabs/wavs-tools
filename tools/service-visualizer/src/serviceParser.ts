@@ -47,10 +47,7 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
       type: 'workflow',
       position: { x: 200 + index * 400, y: yOffset },
       data: {
-        label: workflow.component.source.Registry?.registry.package || 
-                (workflow.component.source.Digest ? 'Digest Component' : 'Unknown Component'),
-        digest: workflow.component.source.Digest,
-        version: workflow.component.source.Registry?.registry.version,
+        label: `Workflow: ${workflowId}`,
         workflowId: workflowId,
         chain: workflow.trigger.block_interval?.chain_name || workflow.trigger.evm_contract_event?.chain_name || 'Unknown'
       }

@@ -92,26 +92,13 @@ export function WorkflowNode({ data }: any) {
       color: 'white',
       padding: '10px',
       borderRadius: '6px',
-      minWidth: '250px'
+      minWidth: '200px'
     }}
 >
       <Handle type="target" position={Position.Top} />
       <div className="selectable-text" style={{ fontWeight: 'bold' }}>{data.label}</div>
-      {data.version && (
-        <div className="selectable-text" style={{ fontSize: '10px', marginTop: '3px' }}>
-          Version: {data.version}
-        </div>
-      )}
       <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         Chain: {data.chain}
-      </div>
-      {data.digest && (
-        <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
-          Digest: <span style={{ userSelect: 'all' }}>{data.digest}</span>
-        </div>
-      )}
-      <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', opacity: 0.8, wordBreak: 'break-all' }}>
-        ID: {data.workflowId}
       </div>
       <Handle type="source" position={Position.Bottom} />
     </div>
