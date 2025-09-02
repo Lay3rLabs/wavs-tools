@@ -133,33 +133,65 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
     if (workflow.submit?.aggregator) {
       const agg = workflow.submit.aggregator;
       
-      // Check for aggregator component config which shows destination chains
-      if (agg.component?.config) {
-        Object.entries(agg.component.config).forEach(([chainName, address], idx) => {
-          const aggNodeId = `aggregator-${workflowId}-dest-${idx}`;
-          nodes.push({
-            id: aggNodeId,
-            type: 'aggregator',
-            position: { x: 350 + index * 400 + idx * 50, y: yOffset + 150 },
-            data: {
-              label: `Destination: ${chainName}`,
-              chain: chainName,
-              address: address as string,
-              fullAddress: true
-            }
-          });
-
-          edges.push({
-            id: `${workflowNodeId}-${aggNodeId}`,
-            source: workflowNodeId,
-            target: aggNodeId,
-            label: 'Submit to'
-          });
+      // Create aggregator node if there's a component
+      if (agg.component) {
+        const aggComponentNodeId = `aggregator-component-${workflowId}`;
+        nodes.push({
+          id: aggComponentNodeId,
+          type: 'component',
+          position: { x: 200 + index * 400, y: yOffset + 450 },
+          data: {
+            label: 'Aggregator Component',
+            digest: agg.component.source?.Digest || agg.component.source?.Registry?.registry.digest,
+            config: agg.component.config,
+            permissions: agg.component.permissions,
+            isAggregator: true
+          }
         });
+
+        // Create edge from workflow to aggregator component
+        edges.push({
+          id: `${workflowNodeId}-${aggComponentNodeId}`,
+          source: workflowNodeId,
+          target: aggComponentNodeId,
+          label: 'Aggregator',
+          style: { stroke: '#9c27b0', strokeWidth: 2 },
+          animated: true
+        });
+        
+        // Check for aggregator component config which shows destination chains
+        if (agg.component.config && Object.keys(agg.component.config).length > 0) {
+          Object.entries(agg.component.config).forEach(([chainName, address], idx) => {
+            const destNodeId = `destination-${workflowId}-${chainName}`;
+            nodes.push({
+              id: destNodeId,
+              type: 'aggregator',
+              position: { x: 200 + index * 400, y: yOffset + 600 },
+              data: {
+                label: `Destination: ${chainName}`,
+                chain: chainName,
+                address: address as string,
+                fullAddress: true,
+                isDestination: true
+              }
+            });
+
+            // Create edge from aggregator component to destination
+            edges.push({
+              id: `${aggComponentNodeId}-${destNodeId}`,
+              source: aggComponentNodeId,
+              target: destNodeId,
+              label: `To ${chainName}`,
+              style: { stroke: '#4caf50', strokeWidth: 3 },
+              animated: true,
+              type: 'default'
+            });
+          });
+        }
       }
       
-      // Also show direct evm_contracts if present
-      if (agg.evm_contracts) {
+      // Also show direct evm_contracts if present (without aggregator component)
+      else if (agg.evm_contracts) {
         agg.evm_contracts.forEach((contract, contractIndex) => {
           const aggNodeId = `aggregator-${workflowId}-${contractIndex}`;
           nodes.push({

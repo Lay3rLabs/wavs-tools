@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, memo } from 'react';
 import ReactFlow, {
   MiniMap,
   Controls,
@@ -26,18 +26,20 @@ import {
 } from './CustomNodes';
 import { ServiceConfig, BridgeConfig } from './types';
 
-const nodeTypes = {
-  service: ServiceNode,
-  chain: ChainNode,
-  bridge: BridgeNode,
-  contract: ContractNode,
-  workflow: WorkflowNode,
-  trigger: TriggerNode,
-  component: ComponentNode,
-  aggregator: AggregatorNode
-};
-
 function App() {
+  const nodeTypes = useMemo(
+    () => ({
+      service: ServiceNode,
+      chain: ChainNode,
+      bridge: BridgeNode,
+      contract: ContractNode,
+      workflow: WorkflowNode,
+      trigger: TriggerNode,
+      component: ComponentNode,
+      aggregator: AggregatorNode
+    }),
+    []
+  );
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [jsonInput, setJsonInput] = useState('');

@@ -159,7 +159,7 @@ export function TriggerNode({ data }: any) {
 export function ComponentNode({ data }: any) {
   return (
     <div style={{
-      background: '#4caf50',
+      background: data.isAggregator ? '#9c27b0' : '#4caf50',
       color: 'white',
       padding: '10px',
       borderRadius: '6px',
@@ -217,6 +217,7 @@ export function ComponentNode({ data }: any) {
           ))}
         </div>
       )}
+      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 }
@@ -224,14 +225,15 @@ export function ComponentNode({ data }: any) {
 export function AggregatorNode({ data }: any) {
   return (
     <div style={{
-      background: '#f44336',
+      background: data.isDestination ? '#2e7d32' : '#f44336',
       color: 'white',
       padding: '8px',
       borderRadius: '4px',
-      minWidth: '200px'
+      minWidth: '200px',
+      border: data.isDestination ? '2px solid #4caf50' : 'none'
     }}
 >
-      <Handle type="target" position={Position.Left} />
+      <Handle type="target" position={Position.Top} />
       <div className="selectable-text">{data.label}</div>
       <div className="selectable-text" style={{ fontSize: '10px', marginTop: '5px' }}>
         {data.chain}
@@ -239,6 +241,7 @@ export function AggregatorNode({ data }: any) {
       <div className="selectable-text" style={{ fontSize: '9px', marginTop: '3px', wordBreak: 'break-all' }}>
         <span style={{ userSelect: 'all' }}>{data.address}</span>
       </div>
+      <Handle type="source" position={Position.Bottom} />
     </div>
   );
 }
