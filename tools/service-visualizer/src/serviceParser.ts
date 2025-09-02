@@ -5,7 +5,7 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
   const nodes: Node[] = [];
   const edges: Edge[] = [];
   
-  const serviceNodeId = `service-${service.id}`;
+  const serviceNodeId = `service-${service.id || 'main'}`;
   nodes.push({
     id: serviceNodeId,
     type: 'service',
@@ -13,7 +13,28 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
     data: { 
       label: service.name,
       status: service.status,
-      id: service.id
+      id: service.id || 'main'
+    }
+  });
+
+  // Collect all unique destinations across all workflows
+  const destinationMap = new Map<string, { chain: string; address: string; workflows: string[] }>();
+  const aggregatorComponents = new Map<string, string>(); // workflowId -> aggComponentNodeId
+  
+  Object.entries(service.workflows).forEach(([workflowId, workflow]) => {
+    if (workflow.submit?.aggregator?.component?.config) {
+      Object.entries(workflow.submit.aggregator.component.config).forEach(([chainName, address]) => {
+        const key = `${chainName}-${address}`;
+        if (!destinationMap.has(key)) {
+          destinationMap.set(key, {
+            chain: chainName,
+            address: address as string,
+            workflows: [workflowId]
+          });
+        } else {
+          destinationMap.get(key)!.workflows.push(workflowId);
+        }
+      });
     }
   });
 
@@ -159,35 +180,8 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
           animated: true
         });
         
-        // Check for aggregator component config which shows destination chains
-        if (agg.component.config && Object.keys(agg.component.config).length > 0) {
-          Object.entries(agg.component.config).forEach(([chainName, address], idx) => {
-            const destNodeId = `destination-${workflowId}-${chainName}`;
-            nodes.push({
-              id: destNodeId,
-              type: 'aggregator',
-              position: { x: 200 + index * 400, y: yOffset + 600 },
-              data: {
-                label: `Destination: ${chainName}`,
-                chain: chainName,
-                address: address as string,
-                fullAddress: true,
-                isDestination: true
-              }
-            });
-
-            // Create edge from aggregator component to destination
-            edges.push({
-              id: `${aggComponentNodeId}-${destNodeId}`,
-              source: aggComponentNodeId,
-              target: destNodeId,
-              label: `To ${chainName}`,
-              style: { stroke: '#4caf50', strokeWidth: 3 },
-              animated: true,
-              type: 'default'
-            });
-          });
-        }
+        // Store aggregator component for later destination connections
+        aggregatorComponents.set(workflowId, aggComponentNodeId);
       }
       
       // Also show direct evm_contracts if present (without aggregator component)
@@ -215,6 +209,43 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
         });
       }
     }
+  });
+
+  // Create unique destination nodes and connect them to their aggregator components
+  let destIndex = 0;
+  destinationMap.forEach((dest, key) => {
+    const destNodeId = `destination-${key}`;
+    nodes.push({
+      id: destNodeId,
+      type: 'aggregator',
+      position: { x: 100 + destIndex * 400, y: yOffset + 600 },
+      data: {
+        label: `Destination: ${dest.chain}`,
+        chain: dest.chain,
+        address: dest.address,
+        fullAddress: true,
+        isDestination: true,
+        workflowCount: dest.workflows.length,
+        workflows: dest.workflows
+      }
+    });
+
+    // Create edges from each aggregator component to this destination
+    dest.workflows.forEach(workflowId => {
+      const aggComponentNodeId = aggregatorComponents.get(workflowId);
+      if (aggComponentNodeId) {
+        edges.push({
+          id: `${aggComponentNodeId}-${destNodeId}`,
+          source: aggComponentNodeId,
+          target: destNodeId,
+          label: dest.workflows.length > 1 ? `To ${dest.chain} (${dest.workflows.length} workflows)` : `To ${dest.chain}`,
+          style: { stroke: '#4caf50', strokeWidth: 2 },
+          animated: true
+        });
+      }
+    });
+    
+    destIndex++;
   });
 
   return { nodes, edges };
