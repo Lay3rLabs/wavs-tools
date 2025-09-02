@@ -96,7 +96,10 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
           label: workflow.component.source.Registry.registry.package,
           version: workflow.component.source.Registry.registry.version,
           domain: workflow.component.source.Registry.registry.domain,
-          digest: workflow.component.source.Registry.registry.digest
+          digest: workflow.component.source.Registry.registry.digest,
+          config: workflow.component.config,
+          permissions: workflow.component.permissions,
+          envKeys: workflow.component.env_keys
         }
       });
 
@@ -112,7 +115,10 @@ export function parseServiceToFlow(service: ServiceConfig): { nodes: Node[]; edg
         position: { x: 200 + index * 400, y: yOffset + 300 },
         data: {
           label: 'Digest Component',
-          digest: workflow.component.source.Digest
+          digest: workflow.component.source.Digest,
+          config: workflow.component.config,
+          permissions: workflow.component.permissions,
+          envKeys: workflow.component.env_keys
         }
       });
 

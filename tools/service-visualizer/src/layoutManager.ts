@@ -3,9 +3,9 @@ import { Node, Edge, Position } from 'reactflow';
 
 const nodeDimensions: Record<string, { width: number; height: number }> = {
   service: { width: 180, height: 60 },
-  workflow: { width: 220, height: 80 },
+  workflow: { width: 380, height: 120 },
   trigger: { width: 350, height: 90 },
-  component: { width: 220, height: 80 },
+  component: { width: 400, height: 200 },
   aggregator: { width: 350, height: 60 },
   chain: { width: 350, height: 90 },
   bridge: { width: 120, height: 40 },

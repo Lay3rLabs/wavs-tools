@@ -186,6 +186,37 @@ export function ComponentNode({ data }: any) {
           Digest: <span style={{ userSelect: 'all' }}>{data.digest}</span>
         </div>
       )}
+      {data.config && Object.keys(data.config).length > 0 && (
+        <div style={{ marginTop: '5px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '5px' }}>
+          <div className="selectable-text" style={{ fontSize: '9px', fontWeight: 'bold' }}>Config:</div>
+          {Object.entries(data.config).map(([key, value]) => (
+            <div key={key} className="selectable-text" style={{ fontSize: '8px', marginTop: '2px', wordBreak: 'break-all' }}>
+              {key}: <span style={{ userSelect: 'all' }}>{String(value)}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {data.permissions && (
+        <div style={{ marginTop: '5px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '5px' }}>
+          <div className="selectable-text" style={{ fontSize: '9px', fontWeight: 'bold' }}>Permissions:</div>
+          <div className="selectable-text" style={{ fontSize: '8px', marginTop: '2px' }}>
+            HTTP: {data.permissions.allowed_http_hosts || 'none'}
+          </div>
+          <div className="selectable-text" style={{ fontSize: '8px', marginTop: '2px' }}>
+            FileSystem: {data.permissions.file_system ? 'Yes' : 'No'}
+          </div>
+        </div>
+      )}
+      {data.envKeys && data.envKeys.length > 0 && (
+        <div style={{ marginTop: '5px', borderTop: '1px solid rgba(255,255,255,0.3)', paddingTop: '5px' }}>
+          <div className="selectable-text" style={{ fontSize: '9px', fontWeight: 'bold' }}>Env Keys:</div>
+          {data.envKeys.map((key: string) => (
+            <div key={key} className="selectable-text" style={{ fontSize: '8px', marginTop: '2px' }}>
+              {key}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
