@@ -19,3 +19,7 @@ alloy-primitives = { workspace = true }
 wit-bindgen-rt = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
+wavs-wasi-utils = { workspace = true }
+alloy-provider = { workspace = true }
+alloy-network = { workspace = true }
+wstd = { workspace = true }
