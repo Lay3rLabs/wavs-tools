@@ -62,6 +62,7 @@ impl Guest for Component {
         Err("No timers used".to_string())
     }
 
+    // TODO: oh this is from the submit of the aggregator, not the original tx...
     fn handle_submit_callback(
         _packet: Packet,
         tx_result: Result<AnyTxHash, String>,
