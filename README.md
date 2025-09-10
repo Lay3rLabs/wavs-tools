@@ -93,17 +93,13 @@ There are many sub-steps to deploying and developing a tool. For convenience, ju
 
 ```bash
 # For any of the available projects:
-cd projects/operator-updater
-task bootstrap
+(cd projects/operator-updater && task bootstrap)
 
-cd projects/multi-chain-operator-sync
-task bootstrap
+(cd projects/multi-chain-operator-sync && task bootstrap)
 
-cd projects/multi-chain-quorum-sync
-task bootstrap
+(cd projects/multi-chain-quorum-sync && task bootstrap)
 
-cd projects/wavs-drand
-task bootstrap
+(cd projects/wavs-drand && task bootstrap)
 ```
 
 ## Testing

@@ -4,7 +4,7 @@
     "": {
       "name": "wavs-tools",
       "dependencies": {
-        "@wavs/solidity": "^0.5.0-beta.6",
+        "@wavs/solidity": "0.6.0-alpha.1",
       },
     },
   },
@@ -29,7 +29,7 @@
 
     "@types/http-cache-semantics": ["@types/http-cache-semantics@4.0.4", "", {}, "sha512-1m0bIFVc7eJWyve9S0RnuRgcQqF/Xd5QsUZAZeQFr1Q3/p9JWoQQEqmVy+DPTNpGXwhgIetAoYF8JSc33q29QA=="],
 
-    "@wavs/solidity": ["@wavs/solidity@0.5.0-beta.6", "", { "dependencies": { "solhint": "^6.0.0" } }, "sha512-92NMo79bVkmCnSoor5xEJ66tEPe0FKwxsW7HC6DP3TeLmpT92qKTQ5FQX1Xe/An7aSoyztQg9CznWtrvyrhRHw=="],
+    "@wavs/solidity": ["@wavs/solidity@0.6.0-alpha.1", "", { "dependencies": { "solhint": "^6.0.0" } }, "sha512-v2LH01rOoeBOwJf10/EV4c8selP+bTt+7Pl7apWtp0toWqmAeooLMVMKYiKdYnh5jYRFShWnOg+wJMLOhbbZXQ=="],
 
     "ajv": ["ajv@6.12.6", "", { "dependencies": { "fast-deep-equal": "^3.1.1", "fast-json-stable-stringify": "^2.0.0", "json-schema-traverse": "^0.4.1", "uri-js": "^4.2.2" } }, "sha512-j3fVLgvTo527anyYyJOGTYJbG+vnnQYvE0m5mmkc1TK+nxAppkCLMIL0aZ4dblVCNoGShhm+kzE4ZUykBoMg4g=="],
 
