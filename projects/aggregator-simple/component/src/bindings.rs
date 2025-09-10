@@ -989,7 +989,8 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
     let l191 = *arg0.add(21 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
     let l192 = *arg0.add(22 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
     let len193 = l192;
-    let result194 = T::process_packet(wavs::aggregator::aggregator::Packet {
+    let l194 = *arg0.add(8 + 22 * ::core::mem::size_of::<*const u8>()).cast::<i64>();
+    let result195 = T::process_packet(wavs::aggregator::aggregator::Packet {
         service: wavs::types::service::Service {
             name: _rt::string_lift(bytes2),
             workflows: result160,
@@ -1031,74 +1032,71 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
             },
         },
         origin_tx_hash: _rt::Vec::from_raw_parts(l191.cast(), len193, len193),
+        origin_block: l194 as u64,
     });
-    _rt::cabi_dealloc(
-        arg0,
-        23 * ::core::mem::size_of::<*const u8>(),
-        ::core::mem::size_of::<*const u8>(),
-    );
-    let ptr195 = (&raw mut _RET_AREA.0).cast::<u8>();
-    match result194 {
+    _rt::cabi_dealloc(arg0, 16 + 22 * ::core::mem::size_of::<*const u8>(), 8);
+    let ptr196 = (&raw mut _RET_AREA.0).cast::<u8>();
+    match result195 {
         Ok(e) => {
-            *ptr195.add(0).cast::<u8>() = (0i32) as u8;
-            let vec203 = e;
-            let len203 = vec203.len();
-            let layout203 = _rt::alloc::Layout::from_size_align_unchecked(
-                vec203.len() * (24 + 4 * ::core::mem::size_of::<*const u8>()),
+            *ptr196.add(0).cast::<u8>() = (0i32) as u8;
+            let vec204 = e;
+            let len204 = vec204.len();
+            let layout204 = _rt::alloc::Layout::from_size_align_unchecked(
+                vec204.len() * (24 + 4 * ::core::mem::size_of::<*const u8>()),
                 8,
             );
-            let result203 = if layout203.size() != 0 {
-                let ptr = _rt::alloc::alloc(layout203).cast::<u8>();
+            let result204 = if layout204.size() != 0 {
+                let ptr = _rt::alloc::alloc(layout204).cast::<u8>();
                 if ptr.is_null() {
-                    _rt::alloc::handle_alloc_error(layout203);
+                    _rt::alloc::handle_alloc_error(layout204);
                 }
                 ptr
             } else {
                 ::core::ptr::null_mut()
             };
-            for (i, e) in vec203.into_iter().enumerate() {
-                let base = result203
+            for (i, e) in vec204.into_iter().enumerate() {
+                let base = result204
                     .add(i * (24 + 4 * ::core::mem::size_of::<*const u8>()));
                 {
-                    use wavs::aggregator::aggregator::AggregatorAction as V202;
+                    use wavs::aggregator::aggregator::AggregatorAction as V203;
                     match e {
-                        V202::Timer(e) => {
+                        V203::Timer(e) => {
                             *base.add(0).cast::<u8>() = (0i32) as u8;
                             let wavs::aggregator::aggregator::TimerAction {
-                                delay: delay196,
+                                delay: delay197,
                             } = e;
-                            let wavs::types::core::Duration { secs: secs197 } = delay196;
-                            *base.add(8).cast::<i64>() = _rt::as_i64(secs197);
+                            let wavs::types::core::Duration { secs: secs198 } = delay197;
+                            *base.add(8).cast::<i64>() = _rt::as_i64(secs198);
                         }
-                        V202::Submit(e) => {
+                        V203::Submit(e) => {
                             *base.add(0).cast::<u8>() = (1i32) as u8;
                             let wavs::aggregator::aggregator::SubmitAction {
-                                chain: chain198,
-                                contract_address: contract_address198,
-                                gas_price: gas_price198,
+                                chain: chain199,
+                                contract_address: contract_address199,
+                                gas_price: gas_price199,
                             } = e;
-                            let vec199 = (chain198.into_bytes()).into_boxed_slice();
-                            let ptr199 = vec199.as_ptr().cast::<u8>();
-                            let len199 = vec199.len();
-                            ::core::mem::forget(vec199);
+                            let vec200 = (chain199.into_bytes()).into_boxed_slice();
+                            let ptr200 = vec200.as_ptr().cast::<u8>();
+                            let len200 = vec200.len();
+                            ::core::mem::forget(vec200);
                             *base
                                 .add(8 + 1 * ::core::mem::size_of::<*const u8>())
-                                .cast::<usize>() = len199;
-                            *base.add(8).cast::<*mut u8>() = ptr199.cast_mut();
+                                .cast::<usize>() = len200;
+                            *base.add(8).cast::<*mut u8>() = ptr200.cast_mut();
                             let wavs::types::chain::EvmAddress {
-                                raw_bytes: raw_bytes200,
-                            } = contract_address198;
-                            let vec201 = (raw_bytes200).into_boxed_slice();
-                            let ptr201 = vec201.as_ptr().cast::<u8>();
-                            let len201 = vec201.len();
-                            ::core::mem::forget(vec201);
+                                raw_bytes: raw_bytes201,
+                            } = contract_address199;
+                            let vec202 = (raw_bytes201).into_boxed_slice();
+                            let ptr202 = vec202.as_ptr().cast::<u8>();
+                            let len202 = vec202.len();
+                            ::core::mem::forget(vec202);
                             *base
                                 .add(8 + 3 * ::core::mem::size_of::<*const u8>())
-                                .cast::<usize>() = len201;
+                                .cast::<usize>() = len202;
                             *base
                                 .add(8 + 2 * ::core::mem::size_of::<*const u8>())
-                                .cast::<*mut u8>() = ptr201.cast_mut();
-                            match gas_price198 {
+                                .cast::<*mut u8>() = ptr202.cast_mut();
+                            match gas_price199 {
                                 Some(e) => {
                                     *base
                                         .add(8 + 4 * ::core::mem::size_of::<*const u8>())
@@ -1117,21 +1115,21 @@ pub unsafe fn _export_process_packet_cabi<T: Guest>(arg0: *mut u8) -> *mut u8 {
                     }
                 }
             }
-            *ptr195.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len203;
-            *ptr195.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = result203;
+            *ptr196.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len204;
+            *ptr196.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = result204;
         }
         Err(e) => {
-            *ptr195.add(0).cast::<u8>() = (1i32) as u8;
-            let vec204 = (e.into_bytes()).into_boxed_slice();
-            let ptr204 = vec204.as_ptr().cast::<u8>();
-            let len204 = vec204.len();
-            ::core::mem::forget(vec204);
-            *ptr195.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len204;
-            *ptr195.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr204
+            *ptr196.add(0).cast::<u8>() = (1i32) as u8;
+            let vec205 = (e.into_bytes()).into_boxed_slice();
+            let ptr205 = vec205.as_ptr().cast::<u8>();
+            let len205 = vec205.len();
+            ::core::mem::forget(vec205);
+            *ptr196.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len205;
+            *ptr196.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr205
                 .cast_mut();
         }
     };
-    ptr195
+    ptr196
 }
 #[doc(hidden)]
 #[allow(non_snake_case)]
@@ -2166,7 +2164,8 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
     let l191 = *arg0.add(21 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
     let l192 = *arg0.add(22 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
     let len193 = l192;
-    let result194 = T::handle_timer_callback(wavs::aggregator::aggregator::Packet {
+    let l194 = *arg0.add(8 + 22 * ::core::mem::size_of::<*const u8>()).cast::<i64>();
+    let result195 = T::handle_timer_callback(wavs::aggregator::aggregator::Packet {
         service: wavs::types::service::Service {
             name: _rt::string_lift(bytes2),
             workflows: result160,
@@ -2208,74 +2207,71 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
             },
         },
         origin_tx_hash: _rt::Vec::from_raw_parts(l191.cast(), len193, len193),
+        origin_block: l194 as u64,
     });
-    _rt::cabi_dealloc(
-        arg0,
-        23 * ::core::mem::size_of::<*const u8>(),
-        ::core::mem::size_of::<*const u8>(),
-    );
-    let ptr195 = (&raw mut _RET_AREA.0).cast::<u8>();
-    match result194 {
+    _rt::cabi_dealloc(arg0, 16 + 22 * ::core::mem::size_of::<*const u8>(), 8);
+    let ptr196 = (&raw mut _RET_AREA.0).cast::<u8>();
+    match result195 {
         Ok(e) => {
-            *ptr195.add(0).cast::<u8>() = (0i32) as u8;
-            let vec203 = e;
-            let len203 = vec203.len();
-            let layout203 = _rt::alloc::Layout::from_size_align_unchecked(
-                vec203.len() * (24 + 4 * ::core::mem::size_of::<*const u8>()),
+            *ptr196.add(0).cast::<u8>() = (0i32) as u8;
+            let vec204 = e;
+            let len204 = vec204.len();
+            let layout204 = _rt::alloc::Layout::from_size_align_unchecked(
+                vec204.len() * (24 + 4 * ::core::mem::size_of::<*const u8>()),
                 8,
             );
-            let result203 = if layout203.size() != 0 {
-                let ptr = _rt::alloc::alloc(layout203).cast::<u8>();
+            let result204 = if layout204.size() != 0 {
+                let ptr = _rt::alloc::alloc(layout204).cast::<u8>();
                 if ptr.is_null() {
-                    _rt::alloc::handle_alloc_error(layout203);
+                    _rt::alloc::handle_alloc_error(layout204);
                 }
                 ptr
             } else {
                 ::core::ptr::null_mut()
             };
-            for (i, e) in vec203.into_iter().enumerate() {
-                let base = result203
+            for (i, e) in vec204.into_iter().enumerate() {
+                let base = result204
                     .add(i * (24 + 4 * ::core::mem::size_of::<*const u8>()));
                 {
-                    use wavs::aggregator::aggregator::AggregatorAction as V202;
+                    use wavs::aggregator::aggregator::AggregatorAction as V203;
                     match e {
-                        V202::Timer(e) => {
+                        V203::Timer(e) => {
                             *base.add(0).cast::<u8>() = (0i32) as u8;
                             let wavs::aggregator::aggregator::TimerAction {
-                                delay: delay196,
+                                delay: delay197,
                             } = e;
-                            let wavs::types::core::Duration { secs: secs197 } = delay196;
-                            *base.add(8).cast::<i64>() = _rt::as_i64(secs197);
+                            let wavs::types::core::Duration { secs: secs198 } = delay197;
+                            *base.add(8).cast::<i64>() = _rt::as_i64(secs198);
                         }
-                        V202::Submit(e) => {
+                        V203::Submit(e) => {
                             *base.add(0).cast::<u8>() = (1i32) as u8;
                             let wavs::aggregator::aggregator::SubmitAction {
-                                chain: chain198,
-                                contract_address: contract_address198,
-                                gas_price: gas_price198,
+                                chain: chain199,
+                                contract_address: contract_address199,
+                                gas_price: gas_price199,
                             } = e;
-                            let vec199 = (chain198.into_bytes()).into_boxed_slice();
-                            let ptr199 = vec199.as_ptr().cast::<u8>();
-                            let len199 = vec199.len();
-                            ::core::mem::forget(vec199);
+                            let vec200 = (chain199.into_bytes()).into_boxed_slice();
+                            let ptr200 = vec200.as_ptr().cast::<u8>();
+                            let len200 = vec200.len();
+                            ::core::mem::forget(vec200);
                             *base
                                 .add(8 + 1 * ::core::mem::size_of::<*const u8>())
-                                .cast::<usize>() = len199;
-                            *base.add(8).cast::<*mut u8>() = ptr199.cast_mut();
+                                .cast::<usize>() = len200;
+                            *base.add(8).cast::<*mut u8>() = ptr200.cast_mut();
                             let wavs::types::chain::EvmAddress {
-                                raw_bytes: raw_bytes200,
-                            } = contract_address198;
-                            let vec201 = (raw_bytes200).into_boxed_slice();
-                            let ptr201 = vec201.as_ptr().cast::<u8>();
-                            let len201 = vec201.len();
-                            ::core::mem::forget(vec201);
+                                raw_bytes: raw_bytes201,
+                            } = contract_address199;
+                            let vec202 = (raw_bytes201).into_boxed_slice();
+                            let ptr202 = vec202.as_ptr().cast::<u8>();
+                            let len202 = vec202.len();
+                            ::core::mem::forget(vec202);
                             *base
                                 .add(8 + 3 * ::core::mem::size_of::<*const u8>())
-                                .cast::<usize>() = len201;
+                                .cast::<usize>() = len202;
                             *base
                                 .add(8 + 2 * ::core::mem::size_of::<*const u8>())
-                                .cast::<*mut u8>() = ptr201.cast_mut();
-                            match gas_price198 {
+                                .cast::<*mut u8>() = ptr202.cast_mut();
+                            match gas_price199 {
                                 Some(e) => {
                                     *base
                                         .add(8 + 4 * ::core::mem::size_of::<*const u8>())
@@ -2294,21 +2290,21 @@ pub unsafe fn _export_handle_timer_callback_cabi<T: Guest>(arg0: *mut u8) -> *mu
                     }
                 }
             }
-            *ptr195.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len203;
-            *ptr195.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = result203;
+            *ptr196.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len204;
+            *ptr196.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = result204;
         }
         Err(e) => {
-            *ptr195.add(0).cast::<u8>() = (1i32) as u8;
-            let vec204 = (e.into_bytes()).into_boxed_slice();
-            let ptr204 = vec204.as_ptr().cast::<u8>();
-            let len204 = vec204.len();
-            ::core::mem::forget(vec204);
-            *ptr195.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len204;
-            *ptr195.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr204
+            *ptr196.add(0).cast::<u8>() = (1i32) as u8;
+            let vec205 = (e.into_bytes()).into_boxed_slice();
+            let ptr205 = vec205.as_ptr().cast::<u8>();
+            let len205 = vec205.len();
+            ::core::mem::forget(vec205);
+            *ptr196.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len205;
+            *ptr196.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr205
                 .cast_mut();
         }
     };
-    ptr195
+    ptr196
 }
 #[doc(hidden)]
 #[allow(non_snake_case)]
@@ -3343,10 +3339,11 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
     let l191 = *arg0.add(21 * ::core::mem::size_of::<*const u8>()).cast::<*mut u8>();
     let l192 = *arg0.add(22 * ::core::mem::size_of::<*const u8>()).cast::<usize>();
     let len193 = l192;
-    let l194 = i32::from(
-        *arg0.add(23 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+    let l194 = *arg0.add(8 + 22 * ::core::mem::size_of::<*const u8>()).cast::<i64>();
+    let l195 = i32::from(
+        *arg0.add(16 + 22 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
     );
-    let result206 = T::handle_submit_callback(
+    let result207 = T::handle_submit_callback(
         wavs::aggregator::aggregator::Packet {
             service: wavs::types::service::Service {
                 name: _rt::string_lift(bytes2),
@@ -3389,91 +3386,90 @@ pub unsafe fn _export_handle_submit_callback_cabi<T: Guest>(arg0: *mut u8) -> *m
                 },
             },
             origin_tx_hash: _rt::Vec::from_raw_parts(l191.cast(), len193, len193),
+            origin_block: l194 as u64,
         },
-        match l194 {
+        match l195 {
             0 => {
                 let e = {
-                    let l195 = i32::from(
-                        *arg0.add(24 * ::core::mem::size_of::<*const u8>()).cast::<u8>(),
+                    let l196 = i32::from(
+                        *arg0
+                            .add(16 + 23 * ::core::mem::size_of::<*const u8>())
+                            .cast::<u8>(),
                     );
-                    use wavs::types::chain::AnyTxHash as V202;
-                    let v202 = match l195 {
+                    use wavs::types::chain::AnyTxHash as V203;
+                    let v203 = match l196 {
                         0 => {
-                            let e202 = {
-                                let l196 = *arg0
-                                    .add(25 * ::core::mem::size_of::<*const u8>())
-                                    .cast::<*mut u8>();
+                            let e203 = {
                                 let l197 = *arg0
-                                    .add(26 * ::core::mem::size_of::<*const u8>())
+                                    .add(16 + 24 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l198 = *arg0
+                                    .add(16 + 25 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
-                                let len198 = l197;
-                                _rt::Vec::from_raw_parts(l196.cast(), len198, len198)
+                                let len199 = l198;
+                                _rt::Vec::from_raw_parts(l197.cast(), len199, len199)
                             };
-                            V202::Evm(e202)
+                            V203::Evm(e203)
                         }
                         n => {
                             debug_assert_eq!(n, 1, "invalid enum discriminant");
-                            let e202 = {
-                                let l199 = *arg0
-                                    .add(25 * ::core::mem::size_of::<*const u8>())
-                                    .cast::<*mut u8>();
+                            let e203 = {
                                 let l200 = *arg0
-                                    .add(26 * ::core::mem::size_of::<*const u8>())
+                                    .add(16 + 24 * ::core::mem::size_of::<*const u8>())
+                                    .cast::<*mut u8>();
+                                let l201 = *arg0
+                                    .add(16 + 25 * ::core::mem::size_of::<*const u8>())
                                     .cast::<usize>();
-                                let len201 = l200;
-                                let bytes201 = _rt::Vec::from_raw_parts(
-                                    l199.cast(),
-                                    len201,
-                                    len201,
+                                let len202 = l201;
+                                let bytes202 = _rt::Vec::from_raw_parts(
+                                    l200.cast(),
+                                    len202,
+                                    len202,
                                 );
-                                _rt::string_lift(bytes201)
+                                _rt::string_lift(bytes202)
                             };
-                            V202::Cosmos(e202)
+                            V203::Cosmos(e203)
                         }
                     };
-                    v202
+                    v203
                 };
                 Ok(e)
             }
             1 => {
                 let e = {
-                    let l203 = *arg0
-                        .add(24 * ::core::mem::size_of::<*const u8>())
-                        .cast::<*mut u8>();
                     let l204 = *arg0
-                        .add(25 * ::core::mem::size_of::<*const u8>())
+                        .add(16 + 23 * ::core::mem::size_of::<*const u8>())
+                        .cast::<*mut u8>();
+                    let l205 = *arg0
+                        .add(16 + 24 * ::core::mem::size_of::<*const u8>())
                         .cast::<usize>();
-                    let len205 = l204;
-                    let bytes205 = _rt::Vec::from_raw_parts(l203.cast(), len205, len205);
-                    _rt::string_lift(bytes205)
+                    let len206 = l205;
+                    let bytes206 = _rt::Vec::from_raw_parts(l204.cast(), len206, len206);
+                    _rt::string_lift(bytes206)
                 };
                 Err(e)
             }
             _ => _rt::invalid_enum_discriminant(),
         },
     );
-    _rt::cabi_dealloc(
-        arg0,
-        27 * ::core::mem::size_of::<*const u8>(),
-        ::core::mem::size_of::<*const u8>(),
-    );
-    let ptr207 = (&raw mut _RET_AREA.0).cast::<u8>();
-    match result206 {
+    _rt::cabi_dealloc(arg0, 16 + 26 * ::core::mem::size_of::<*const u8>(), 8);
+    let ptr208 = (&raw mut _RET_AREA.0).cast::<u8>();
+    match result207 {
         Ok(_) => {
-            *ptr207.add(0).cast::<u8>() = (0i32) as u8;
+            *ptr208.add(0).cast::<u8>() = (0i32) as u8;
         }
         Err(e) => {
-            *ptr207.add(0).cast::<u8>() = (1i32) as u8;
-            let vec208 = (e.into_bytes()).into_boxed_slice();
-            let ptr208 = vec208.as_ptr().cast::<u8>();
-            let len208 = vec208.len();
-            ::core::mem::forget(vec208);
-            *ptr207.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len208;
-            *ptr207.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr208
+            *ptr208.add(0).cast::<u8>() = (1i32) as u8;
+            let vec209 = (e.into_bytes()).into_boxed_slice();
+            let ptr209 = vec209.as_ptr().cast::<u8>();
+            let len209 = vec209.len();
+            ::core::mem::forget(vec209);
+            *ptr208.add(2 * ::core::mem::size_of::<*const u8>()).cast::<usize>() = len209;
+            *ptr208.add(::core::mem::size_of::<*const u8>()).cast::<*mut u8>() = ptr209
                 .cast_mut();
         }
     };
-    ptr207
+    ptr208
 }
 #[doc(hidden)]
 #[allow(non_snake_case)]
@@ -3540,14 +3536,6 @@ pub mod wasi {
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
             #[allow(unused_unsafe, clippy::all)]
-            /// Get the POSIX-style environment variables.
-            ///
-            /// Each environment variable is provided as a pair of string variable names
-            /// and string value.
-            ///
-            /// Morally, these are a value import, but until value imports are available
-            /// in the component model, this import function should return the same
-            /// values each time it is called.
             pub fn get_environment() -> _rt::Vec<(_rt::String, _rt::String)> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -3612,7 +3600,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Get the POSIX-style arguments to the program.
             pub fn get_arguments() -> _rt::Vec<_rt::String> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -3669,8 +3656,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Return a path that programs should use as their initial current working
-            /// directory, interpreting `.` as shorthand for this.
             pub fn initial_cwd() -> Option<_rt::String> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -3729,7 +3714,6 @@ pub mod wasi {
             #[doc(hidden)]
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             #[allow(unused_unsafe, clippy::all)]
-            /// Exit the current instance and any linked instances.
             pub fn exit(status: Result<(), ()>) -> () {
                 unsafe {
                     let result0 = match status {
@@ -3834,18 +3818,12 @@ pub mod wasi {
                 }
             }
         }
-        /// Terminal input.
-        ///
-        /// In the future, this may include functions for disabling echoing,
-        /// disabling input buffering so that keyboard events are sent through
-        /// immediately, querying supported features, and so on.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod terminal_input {
             #[used]
             #[doc(hidden)]
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
-            /// The input side of a terminal.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct TerminalInput {
@@ -3884,18 +3862,12 @@ pub mod wasi {
                 }
             }
         }
-        /// Terminal output.
-        ///
-        /// In the future, this may include functions for querying the terminal
-        /// size, being notified of terminal size changes, querying supported
-        /// features, and so on.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod terminal_output {
             #[used]
             #[doc(hidden)]
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
-            /// The output side of a terminal.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct TerminalOutput {
@@ -3934,8 +3906,6 @@ pub mod wasi {
                 }
             }
         }
-        /// An interface providing an optional `terminal-input` for stdin as a
-        /// link-time authority.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod terminal_stdin {
             #[used]
@@ -3944,8 +3914,6 @@ pub mod wasi {
             use super::super::super::_rt;
             pub type TerminalInput = super::super::super::wasi::cli::terminal_input::TerminalInput;
             #[allow(unused_unsafe, clippy::all)]
-            /// If stdin is connected to a terminal, return a `terminal-input` handle
-            /// allowing further interaction with it.
             pub fn get_terminal_stdin() -> Option<TerminalInput> {
                 unsafe {
                     #[repr(align(4))]
@@ -3983,8 +3951,6 @@ pub mod wasi {
                 }
             }
         }
-        /// An interface providing an optional `terminal-output` for stdout as a
-        /// link-time authority.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod terminal_stdout {
             #[used]
@@ -3993,8 +3959,6 @@ pub mod wasi {
             use super::super::super::_rt;
             pub type TerminalOutput = super::super::super::wasi::cli::terminal_output::TerminalOutput;
             #[allow(unused_unsafe, clippy::all)]
-            /// If stdout is connected to a terminal, return a `terminal-output` handle
-            /// allowing further interaction with it.
             pub fn get_terminal_stdout() -> Option<TerminalOutput> {
                 unsafe {
                     #[repr(align(4))]
@@ -4032,8 +3996,6 @@ pub mod wasi {
                 }
             }
         }
-        /// An interface providing an optional `terminal-output` for stderr as a
-        /// link-time authority.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod terminal_stderr {
             #[used]
@@ -4042,8 +4004,6 @@ pub mod wasi {
             use super::super::super::_rt;
             pub type TerminalOutput = super::super::super::wasi::cli::terminal_output::TerminalOutput;
             #[allow(unused_unsafe, clippy::all)]
-            /// If stderr is connected to a terminal, return a `terminal-output` handle
-            /// allowing further interaction with it.
             pub fn get_terminal_stderr() -> Option<TerminalOutput> {
                 unsafe {
                     #[repr(align(4))]
@@ -6674,9 +6634,6 @@ pub mod wasi {
         }
     }
     pub mod http {
-        /// This interface defines all of the types and methods for implementing
-        /// HTTP Requests and Responses, both incoming and outgoing, as well as
-        /// their headers, trailers, and bodies.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod types {
             #[used]
@@ -6688,7 +6645,6 @@ pub mod wasi {
             pub type OutputStream = super::super::super::wasi::io::streams::OutputStream;
             pub type IoError = super::super::super::wasi::io::error::Error;
             pub type Pollable = super::super::super::wasi::io::poll::Pollable;
-            /// This type corresponds to HTTP standard Methods.
             #[derive(Clone)]
             pub enum Method {
                 Get,
@@ -6723,7 +6679,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// This type corresponds to HTTP standard Related Schemes.
             #[derive(Clone)]
             pub enum Scheme {
                 Http,
@@ -6744,7 +6699,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Defines the case payload type for `DNS-error` above:
             #[derive(Clone)]
             pub struct DnsErrorPayload {
                 pub rcode: Option<_rt::String>,
@@ -6761,7 +6715,6 @@ pub mod wasi {
                         .finish()
                 }
             }
-            /// Defines the case payload type for `TLS-alert-received` above:
             #[derive(Clone)]
             pub struct TlsAlertReceivedPayload {
                 pub alert_id: Option<u8>,
@@ -6778,7 +6731,6 @@ pub mod wasi {
                         .finish()
                 }
             }
-            /// Defines the case payload type for `HTTP-response-{header,trailer}-size` above:
             #[derive(Clone)]
             pub struct FieldSizePayload {
                 pub field_name: Option<_rt::String>,
@@ -6795,8 +6747,6 @@ pub mod wasi {
                         .finish()
                 }
             }
-            /// These cases are inspired by the IANA HTTP Proxy Error Types:
-            /// https://www.iana.org/assignments/http-proxy-status/http-proxy-status.xhtml#table-http-proxy-error-types
             #[derive(Clone)]
             pub enum ErrorCode {
                 DnsTimeout,
@@ -6837,11 +6787,6 @@ pub mod wasi {
                 HttpProtocolError,
                 LoopDetected,
                 ConfigurationError,
-                /// This is a catch-all error for anything that doesn't fit cleanly into a
-                /// more specific case. It also includes an optional string for an
-                /// unstructured description of the error. Users should not depend on the
-                /// string for diagnosing errors, as it's not required to be consistent
-                /// between implementations.
                 InternalError(Option<_rt::String>),
             }
             impl ::core::fmt::Debug for ErrorCode {
@@ -7006,19 +6951,10 @@ pub mod wasi {
                 }
             }
             impl std::error::Error for ErrorCode {}
-            /// This type enumerates the different kinds of errors that may occur when
-            /// setting or appending to a `fields` resource.
             #[derive(Clone, Copy)]
             pub enum HeaderError {
-                /// This error indicates that a `field-key` or `field-value` was
-                /// syntactically invalid when used with an operation that sets headers in a
-                /// `fields`.
                 InvalidSyntax,
-                /// This error indicates that a forbidden `field-key` was used when trying
-                /// to set a header in a `fields`.
                 Forbidden,
-                /// This error indicates that the operation on the `fields` was not
-                /// permitted because the fields are immutable.
                 Immutable,
             }
             impl ::core::fmt::Debug for HeaderError {
@@ -7048,22 +6984,8 @@ pub mod wasi {
                 }
             }
             impl std::error::Error for HeaderError {}
-            /// Field keys are always strings.
             pub type FieldKey = _rt::String;
-            /// Field values should always be ASCII strings. However, in
-            /// reality, HTTP implementations often have to interpret malformed values,
-            /// so they are provided as a list of bytes.
             pub type FieldValue = _rt::Vec<u8>;
-            /// This following block defines the `fields` resource which corresponds to
-            /// HTTP standard Fields. Fields are a common representation used for both
-            /// Headers and Trailers.
-            ///
-            /// A `fields` may be mutable or immutable. A `fields` created using the
-            /// constructor, `from-list`, or `clone` will be mutable, but a `fields`
-            /// resource given by other means (including, but not limited to,
-            /// `incoming-request.headers`, `outgoing-request.headers`) might be be
-            /// immutable. In an immutable fields, the `set`, `append`, and `delete`
-            /// operations will fail with `header-error.immutable`.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct Fields {
@@ -7101,11 +7023,8 @@ pub mod wasi {
                     }
                 }
             }
-            /// Headers is an alias for Fields.
             pub type Headers = Fields;
-            /// Trailers is an alias for Fields.
             pub type Trailers = Fields;
-            /// Represents an incoming HTTP Request.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct IncomingRequest {
@@ -7143,7 +7062,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents an outgoing HTTP Request.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct OutgoingRequest {
@@ -7181,12 +7099,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Parameters for making an HTTP Request. Each of these parameters is
-            /// currently an optional timeout applicable to the transport layer of the
-            /// HTTP protocol.
-            ///
-            /// These timeouts are separate from any the user may use to bound a
-            /// blocking call to `wasi:io/poll.poll`.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct RequestOptions {
@@ -7224,11 +7136,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents the ability to send an HTTP Response.
-            ///
-            /// This resource is used by the `wasi:http/incoming-handler` interface to
-            /// allow a Response to be sent corresponding to the Request provided as the
-            /// other argument to `incoming-handler.handle`.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct ResponseOutparam {
@@ -7266,9 +7173,7 @@ pub mod wasi {
                     }
                 }
             }
-            /// This type corresponds to the HTTP standard Status Code.
             pub type StatusCode = u16;
-            /// Represents an incoming HTTP Response.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct IncomingResponse {
@@ -7306,14 +7211,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents an incoming HTTP Request or Response's Body.
-            ///
-            /// A body has both its contents - a stream of bytes - and a (possibly
-            /// empty) set of trailers, indicating that the full contents of the
-            /// body have been received. This resource represents the contents as
-            /// an `input-stream` and the delivery of trailers as a `future-trailers`,
-            /// and ensures that the user of this interface may only be consuming either
-            /// the body contents or waiting on trailers at any given time.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct IncomingBody {
@@ -7351,11 +7248,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents a future which may eventaully return trailers, or an error.
-            ///
-            /// In the case that the incoming HTTP Request or Response did not have any
-            /// trailers, this future will resolve to the empty set of trailers once the
-            /// complete Request or Response body has been received.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct FutureTrailers {
@@ -7393,7 +7285,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents an outgoing HTTP Response.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct OutgoingResponse {
@@ -7431,22 +7322,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents an outgoing HTTP Request or Response's Body.
-            ///
-            /// A body has both its contents - a stream of bytes - and a (possibly
-            /// empty) set of trailers, inducating the full contents of the body
-            /// have been sent. This resource represents the contents as an
-            /// `output-stream` child resource, and the completion of the body (with
-            /// optional trailers) with a static function that consumes the
-            /// `outgoing-body` resource, and ensures that the user of this interface
-            /// may not write to the body contents after the body has been finished.
-            ///
-            /// If the user code drops this resource, as opposed to calling the static
-            /// method `finish`, the implementation should treat the body as incomplete,
-            /// and that an error has occured. The implementation should propogate this
-            /// error to the HTTP protocol by whatever means it has available,
-            /// including: corrupting the body on the wire, aborting the associated
-            /// Request, or sending a late status code for the Response.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct OutgoingBody {
@@ -7484,11 +7359,6 @@ pub mod wasi {
                     }
                 }
             }
-            /// Represents a future which may eventaully return an incoming HTTP
-            /// Response, or an error.
-            ///
-            /// This resource is returned by the `wasi:http/outgoing-handler` interface to
-            /// provide the HTTP Response corresponding to the sent Request.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct FutureIncomingResponse {
@@ -7528,9 +7398,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Construct an empty HTTP Fields.
-                ///
-                /// The resulting `fields` is mutable.
                 pub fn new() -> Self {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -7550,21 +7417,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Construct an HTTP Fields.
-                ///
-                /// The resulting `fields` is mutable.
-                ///
-                /// The list represents each key-value pair in the Fields. Keys
-                /// which have multiple values are represented by multiple entries in this
-                /// list with the same key.
-                ///
-                /// The tuple is a pair of the field key, represented as a string, and
-                /// Value, represented as a list of bytes. In a valid Fields, all keys
-                /// and values are valid UTF-8 strings. However, values are not always
-                /// well-formed, so they are represented as a raw list of bytes.
-                ///
-                /// An error result will be returned if any header or value was
-                /// syntactically invalid, or if a header was forbidden.
                 pub fn from_list(
                     entries: &[(FieldKey, FieldValue)],
                 ) -> Result<Fields, HeaderError> {
@@ -7663,10 +7515,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get all of the values corresponding to a key. If the key is not present
-                /// in this `fields`, an empty list is returned. However, if the key is
-                /// present but empty, this is represented by a list with one or more
-                /// empty field-values present.
                 pub fn get(&self, name: &str) -> _rt::Vec<FieldValue> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -7739,8 +7587,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns `true` when the key is present in this `fields`. If the key is
-                /// syntactically invalid, `false` is returned.
                 pub fn has(&self, name: &str) -> bool {
                     unsafe {
                         let vec0 = name;
@@ -7769,10 +7615,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set all of the values for a key. Clears any existing values for that
-                /// key, if they have been set.
-                ///
-                /// Fails with `header-error.immutable` if the `fields` are immutable.
                 pub fn set(
                     &self,
                     name: &str,
@@ -7882,10 +7724,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Delete all values for a key. Does nothing if no values for the key
-                /// exist.
-                ///
-                /// Fails with `header-error.immutable` if the `fields` are immutable.
                 pub fn delete(&self, name: &str) -> Result<(), HeaderError> {
                     unsafe {
                         #[repr(align(1))]
@@ -7949,10 +7787,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Append a value for a key. Does not change or delete any existing
-                /// values for that key.
-                ///
-                /// Fails with `header-error.immutable` if the `fields` are immutable.
                 pub fn append(
                     &self,
                     name: &str,
@@ -8034,12 +7868,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Retrieve the full set of keys and values in the Fields. Like the
-                /// constructor, the list represents each key-value pair.
-                ///
-                /// The outer list represents each key-value pair in the Fields. Keys
-                /// which have multiple values are represented by multiple entries in this
-                /// list with the same key.
                 pub fn entries(&self) -> _rt::Vec<(FieldKey, FieldValue)> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8112,9 +7940,6 @@ pub mod wasi {
             }
             impl Fields {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Make a deep copy of the Fields. Equivelant in behavior to calling the
-                /// `fields` constructor on the return value of `entries`. The resulting
-                /// `fields` is mutable.
                 pub fn clone(&self) -> Fields {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -8134,7 +7959,6 @@ pub mod wasi {
             }
             impl IncomingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the method of the incoming request.
                 pub fn method(&self) -> Method {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8198,7 +8022,6 @@ pub mod wasi {
             }
             impl IncomingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the path with query parameters from the request, as a string.
                 pub fn path_with_query(&self) -> Option<_rt::String> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8253,7 +8076,6 @@ pub mod wasi {
             }
             impl IncomingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the protocol scheme from the request.
                 pub fn scheme(&self) -> Option<Scheme> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8322,7 +8144,6 @@ pub mod wasi {
             }
             impl IncomingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the authority from the request, if it was present.
                 pub fn authority(&self) -> Option<_rt::String> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8377,14 +8198,6 @@ pub mod wasi {
             }
             impl IncomingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the `headers` associated with the request.
-                ///
-                /// The returned `headers` resource is immutable: `set`, `append`, and
-                /// `delete` operations will fail with `header-error.immutable`.
-                ///
-                /// The `headers` returned are a child resource: it must be dropped before
-                /// the parent `incoming-request` is dropped. Dropping this
-                /// `incoming-request` before all children are dropped will trap.
                 pub fn headers(&self) -> Headers {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -8404,8 +8217,6 @@ pub mod wasi {
             }
             impl IncomingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Gives the `incoming-body` associated with this request. Will only
-                /// return success at most once, and subsequent calls will return error.
                 pub fn consume(&self) -> Result<IncomingBody, ()> {
                     unsafe {
                         #[repr(align(4))]
@@ -8446,16 +8257,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Construct a new `outgoing-request` with a default `method` of `GET`, and
-                /// `none` values for `path-with-query`, `scheme`, and `authority`.
-                ///
-                /// * `headers` is the HTTP Headers for the Request.
-                ///
-                /// It is possible to construct, or manipulate with the accessor functions
-                /// below, an `outgoing-request` with an invalid combination of `scheme`
-                /// and `authority`, or `headers` which are not permitted to be sent.
-                /// It is the obligation of the `outgoing-handler.handle` implementation
-                /// to reject invalid constructions of `outgoing-request`.
                 pub fn new(headers: Headers) -> Self {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -8477,12 +8278,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the resource corresponding to the outgoing Body for this
-                /// Request.
-                ///
-                /// Returns success on the first call: the `outgoing-body` resource for
-                /// this `outgoing-request` can be retrieved at most once. Subsequent
-                /// calls will return error.
                 pub fn body(&self) -> Result<OutgoingBody, ()> {
                     unsafe {
                         #[repr(align(4))]
@@ -8523,7 +8318,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the Method for the Request.
                 pub fn method(&self) -> Method {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8587,8 +8381,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the Method for the Request. Fails if the string present in a
-                /// `method.other` argument is not a syntactically valid method.
                 pub fn set_method(&self, method: &Method) -> Result<(), ()> {
                     unsafe {
                         let (result1_0, result1_1, result1_2) = match method {
@@ -8647,8 +8439,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the combination of the HTTP Path and Query for the Request.
-                /// When `none`, this represents an empty Path and empty Query.
                 pub fn path_with_query(&self) -> Option<_rt::String> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8703,9 +8493,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the combination of the HTTP Path and Query for the Request.
-                /// When `none`, this represents an empty Path and empty Query. Fails is the
-                /// string given is not a syntactically valid path and query uri component.
                 pub fn set_path_with_query(
                     &self,
                     path_with_query: Option<&str>,
@@ -8759,8 +8546,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the HTTP Related Scheme for the Request. When `none`, the
-                /// implementation may choose an appropriate default scheme.
                 pub fn scheme(&self) -> Option<Scheme> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8829,9 +8614,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the HTTP Related Scheme for the Request. When `none`, the
-                /// implementation may choose an appropriate default scheme. Fails if the
-                /// string given is not a syntactically valid uri scheme.
                 pub fn set_scheme(&self, scheme: Option<&Scheme>) -> Result<(), ()> {
                     unsafe {
                         let (result2_0, result2_1, result2_2, result2_3) = match scheme {
@@ -8897,9 +8679,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the HTTP Authority for the Request. A value of `none` may be used
-                /// with Related Schemes which do not require an Authority. The HTTP and
-                /// HTTPS schemes always require an authority.
                 pub fn authority(&self) -> Option<_rt::String> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -8954,10 +8733,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the HTTP Authority for the Request. A value of `none` may be used
-                /// with Related Schemes which do not require an Authority. The HTTP and
-                /// HTTPS schemes always require an authority. Fails if the string given is
-                /// not a syntactically valid uri authority.
                 pub fn set_authority(&self, authority: Option<&str>) -> Result<(), ()> {
                     unsafe {
                         let (result1_0, result1_1, result1_2) = match authority {
@@ -9008,14 +8783,6 @@ pub mod wasi {
             }
             impl OutgoingRequest {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the headers associated with the Request.
-                ///
-                /// The returned `headers` resource is immutable: `set`, `append`, and
-                /// `delete` operations will fail with `header-error.immutable`.
-                ///
-                /// This headers resource is a child: it must be dropped before the parent
-                /// `outgoing-request` is dropped, or its ownership is transfered to
-                /// another component by e.g. `outgoing-handler.handle`.
                 pub fn headers(&self) -> Headers {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -9035,7 +8802,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Construct a default `request-options` value.
                 pub fn new() -> Self {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -9055,7 +8821,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// The timeout for the initial connect to the HTTP Server.
                 pub fn connect_timeout(&self) -> Option<Duration> {
                     unsafe {
                         #[repr(align(8))]
@@ -9093,8 +8858,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the timeout for the initial connect to the HTTP Server. An error
-                /// return value indicates that this timeout is not supported.
                 pub fn set_connect_timeout(
                     &self,
                     duration: Option<Duration>,
@@ -9133,7 +8896,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// The timeout for receiving the first byte of the Response body.
                 pub fn first_byte_timeout(&self) -> Option<Duration> {
                     unsafe {
                         #[repr(align(8))]
@@ -9171,8 +8933,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the timeout for receiving the first byte of the Response body. An
-                /// error return value indicates that this timeout is not supported.
                 pub fn set_first_byte_timeout(
                     &self,
                     duration: Option<Duration>,
@@ -9211,8 +8971,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// The timeout for receiving subsequent chunks of bytes in the Response
-                /// body stream.
                 pub fn between_bytes_timeout(&self) -> Option<Duration> {
                     unsafe {
                         #[repr(align(8))]
@@ -9250,9 +9008,6 @@ pub mod wasi {
             }
             impl RequestOptions {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the timeout for receiving subsequent chunks of bytes in the Response
-                /// body stream. An error return value indicates that this timeout is not
-                /// supported.
                 pub fn set_between_bytes_timeout(
                     &self,
                     duration: Option<Duration>,
@@ -9291,15 +9046,6 @@ pub mod wasi {
             }
             impl ResponseOutparam {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the value of the `response-outparam` to either send a response,
-                /// or indicate an error.
-                ///
-                /// This method consumes the `response-outparam` to ensure that it is
-                /// called at most once. If it is never called, the implementation
-                /// will respond with an error.
-                ///
-                /// The user may provide an `error` to `response` to allow the
-                /// implementation determine how to respond with an HTTP error response.
                 pub fn set(
                     param: ResponseOutparam,
                     response: Result<OutgoingResponse, ErrorCode>,
@@ -10030,7 +9776,6 @@ pub mod wasi {
             }
             impl IncomingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the status code from the incoming response.
                 pub fn status(&self) -> StatusCode {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10050,13 +9795,6 @@ pub mod wasi {
             }
             impl IncomingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the headers from the incoming response.
-                ///
-                /// The returned `headers` resource is immutable: `set`, `append`, and
-                /// `delete` operations will fail with `header-error.immutable`.
-                ///
-                /// This headers resource is a child: it must be dropped before the parent
-                /// `incoming-response` is dropped.
                 pub fn headers(&self) -> Headers {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10076,8 +9814,6 @@ pub mod wasi {
             }
             impl IncomingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the incoming body. May be called at most once. Returns error
-                /// if called additional times.
                 pub fn consume(&self) -> Result<IncomingBody, ()> {
                     unsafe {
                         #[repr(align(4))]
@@ -10118,21 +9854,6 @@ pub mod wasi {
             }
             impl IncomingBody {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the contents of the body, as a stream of bytes.
-                ///
-                /// Returns success on first call: the stream representing the contents
-                /// can be retrieved at most once. Subsequent calls will return error.
-                ///
-                /// The returned `input-stream` resource is a child: it must be dropped
-                /// before the parent `incoming-body` is dropped, or consumed by
-                /// `incoming-body.finish`.
-                ///
-                /// This invariant ensures that the implementation can determine whether
-                /// the user is consuming the contents of the body, waiting on the
-                /// `future-trailers` to be ready, or neither. This allows for network
-                /// backpressure is to be applied when the user is consuming the body,
-                /// and for that backpressure to not inhibit delivery of the trailers if
-                /// the user does not read the entire body.
                 pub fn stream(&self) -> Result<InputStream, ()> {
                     unsafe {
                         #[repr(align(4))]
@@ -10177,8 +9898,6 @@ pub mod wasi {
             }
             impl IncomingBody {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Takes ownership of `incoming-body`, and returns a `future-trailers`.
-                /// This function will trap if the `input-stream` child is still alive.
                 pub fn finish(this: IncomingBody) -> FutureTrailers {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10198,9 +9917,6 @@ pub mod wasi {
             }
             impl FutureTrailers {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns a pollable which becomes ready when either the trailers have
-                /// been received, or an error has occured. When this pollable is ready,
-                /// the `get` method will return `some`.
                 pub fn subscribe(&self) -> Pollable {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10224,25 +9940,6 @@ pub mod wasi {
             }
             impl FutureTrailers {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the contents of the trailers, or an error which occured,
-                /// once the future is ready.
-                ///
-                /// The outer `option` represents future readiness. Users can wait on this
-                /// `option` to become `some` using the `subscribe` method.
-                ///
-                /// The outer `result` is used to retrieve the trailers or error at most
-                /// once. It will be success on the first call in which the outer option
-                /// is `some`, and error on subsequent calls.
-                ///
-                /// The inner `result` represents that either the HTTP Request or Response
-                /// body, as well as any trailers, were received successfully, or that an
-                /// error occured receiving them. The optional `trailers` indicates whether
-                /// or not trailers were present in the body.
-                ///
-                /// When some `trailers` are returned by this method, the `trailers`
-                /// resource is immutable, and a child. Use of the `set`, `append`, or
-                /// `delete` methods will return an error, and the resource must be
-                /// dropped before the parent `future-trailers` is dropped.
                 pub fn get(
                     &self,
                 ) -> Option<Result<Result<Option<Trailers>, ErrorCode>, ()>> {
@@ -10841,11 +10538,6 @@ pub mod wasi {
             }
             impl OutgoingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Construct an `outgoing-response`, with a default `status-code` of `200`.
-                /// If a different `status-code` is needed, it must be set via the
-                /// `set-status-code` method.
-                ///
-                /// * `headers` is the HTTP Headers for the Response.
                 pub fn new(headers: Headers) -> Self {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10867,7 +10559,6 @@ pub mod wasi {
             }
             impl OutgoingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the HTTP Status Code for the Response.
                 pub fn status_code(&self) -> StatusCode {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10887,8 +10578,6 @@ pub mod wasi {
             }
             impl OutgoingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the HTTP Status Code for the Response. Fails if the status-code
-                /// given is not a valid http status code.
                 pub fn set_status_code(
                     &self,
                     status_code: StatusCode,
@@ -10923,14 +10612,6 @@ pub mod wasi {
             }
             impl OutgoingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the headers associated with the Request.
-                ///
-                /// The returned `headers` resource is immutable: `set`, `append`, and
-                /// `delete` operations will fail with `header-error.immutable`.
-                ///
-                /// This headers resource is a child: it must be dropped before the parent
-                /// `outgoing-request` is dropped, or its ownership is transfered to
-                /// another component by e.g. `outgoing-handler.handle`.
                 pub fn headers(&self) -> Headers {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -10950,11 +10631,6 @@ pub mod wasi {
             }
             impl OutgoingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the resource corresponding to the outgoing Body for this Response.
-                ///
-                /// Returns success on the first call: the `outgoing-body` resource for
-                /// this `outgoing-response` can be retrieved at most once. Subsequent
-                /// calls will return error.
                 pub fn body(&self) -> Result<OutgoingBody, ()> {
                     unsafe {
                         #[repr(align(4))]
@@ -10995,15 +10671,6 @@ pub mod wasi {
             }
             impl OutgoingBody {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns a stream for writing the body contents.
-                ///
-                /// The returned `output-stream` is a child resource: it must be dropped
-                /// before the parent `outgoing-body` resource is dropped (or finished),
-                /// otherwise the `outgoing-body` drop or `finish` will trap.
-                ///
-                /// Returns success on the first call: the `output-stream` resource for
-                /// this `outgoing-body` may be retrieved at most once. Subsequent calls
-                /// will return error.
                 pub fn write(&self) -> Result<OutputStream, ()> {
                     unsafe {
                         #[repr(align(4))]
@@ -11048,15 +10715,6 @@ pub mod wasi {
             }
             impl OutgoingBody {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Finalize an outgoing body, optionally providing trailers. This must be
-                /// called to signal that the response is complete. If the `outgoing-body`
-                /// is dropped without calling `outgoing-body.finalize`, the implementation
-                /// should treat the body as corrupted.
-                ///
-                /// Fails if the body's `outgoing-request` or `outgoing-response` was
-                /// constructed with a Content-Length header, and the contents written
-                /// to the body (via `write`) does not match the value given in the
-                /// Content-Length.
                 pub fn finish(
                     this: OutgoingBody,
                     trailers: Option<Trailers>,
@@ -11636,9 +11294,6 @@ pub mod wasi {
             }
             impl FutureIncomingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns a pollable which becomes ready when either the Response has
-                /// been received, or an error has occured. When this pollable is ready,
-                /// the `get` method will return `some`.
                 pub fn subscribe(&self) -> Pollable {
                     unsafe {
                         #[cfg(target_arch = "wasm32")]
@@ -11662,20 +11317,6 @@ pub mod wasi {
             }
             impl FutureIncomingResponse {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Returns the incoming HTTP Response, or an error, once one is ready.
-                ///
-                /// The outer `option` represents future readiness. Users can wait on this
-                /// `option` to become `some` using the `subscribe` method.
-                ///
-                /// The outer `result` is used to retrieve the response or error at most
-                /// once. It will be success on the first call in which the outer option
-                /// is `some`, and error on subsequent calls.
-                ///
-                /// The inner `result` represents that either the incoming HTTP Response
-                /// status and headers have recieved successfully, or that an error
-                /// occured. Errors may also occur while consuming the response body,
-                /// but those will be reported by the `incoming-body` and its
-                /// `output-stream` child.
                 pub fn get(
                     &self,
                 ) -> Option<Result<Result<IncomingResponse, ErrorCode>, ()>> {
@@ -12263,17 +11904,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Attempts to extract a http-related `error` from the wasi:io `error`
-            /// provided.
-            ///
-            /// Stream operations which return
-            /// `wasi:io/stream/stream-error::last-operation-failed` have a payload of
-            /// type `wasi:io/error/error` with more information about the operation
-            /// that failed. This payload can be passed through to this function to see
-            /// if there's http-related information about the error to return.
-            ///
-            /// Note that this function is fallible because not all io-errors are
-            /// http-related errors.
             pub fn http_error_code(err: &IoError) -> Option<ErrorCode> {
                 unsafe {
                     #[repr(align(8))]
@@ -12829,8 +12459,6 @@ pub mod wasi {
                 }
             }
         }
-        /// This interface defines a handler of outgoing HTTP Requests. It should be
-        /// imported by components which wish to make HTTP Requests.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod outgoing_handler {
             #[used]
@@ -12842,16 +12470,6 @@ pub mod wasi {
             pub type FutureIncomingResponse = super::super::super::wasi::http::types::FutureIncomingResponse;
             pub type ErrorCode = super::super::super::wasi::http::types::ErrorCode;
             #[allow(unused_unsafe, clippy::all)]
-            /// This function is invoked with an outgoing HTTP Request, and it returns
-            /// a resource `future-incoming-response` which represents an HTTP Response
-            /// which may arrive in the future.
-            ///
-            /// The `options` argument accepts optional parameters for the HTTP
-            /// protocol's transport layer.
-            ///
-            /// This function may return an error if the `outgoing-request` is invalid
-            /// or not allowed to be made. Otherwise, protocol errors are reported
-            /// through the `future-incoming-response`.
             pub fn handle(
                 request: OutgoingRequest,
                 options: Option<RequestOptions>,
@@ -14699,46 +14317,16 @@ pub mod wasi {
         }
     }
     pub mod keyvalue {
-        /// A keyvalue interface that provides eventually consistent key-value operations.
-        ///
-        /// Each of these operations acts on a single key-value pair.
-        ///
-        /// The value in the key-value pair is defined as a `u8` byte array and the intention is that it is
-        /// the common denominator for all data types defined by different key-value stores to handle data,
-        /// ensuring compatibility between different key-value stores. Note: the clients will be expecting
-        /// serialization/deserialization overhead to be handled by the key-value store. The value could be
-        /// a serialized object from JSON, HTML or vendor-specific data types like AWS S3 objects.
-        ///
-        /// Data consistency in a key value store refers to the guarantee that once a write operation
-        /// completes, all subsequent read operations will return the value that was written.
-        ///
-        /// Any implementation of this interface must have enough consistency to guarantee "reading your
-        /// writes." In particular, this means that the client should never get a value that is older than
-        /// the one it wrote, but it MAY get a newer value if one was written around the same time. These
-        /// guarantees only apply to the same client (which will likely be provided by the host or an
-        /// external capability of some kind). In this context a "client" is referring to the caller or
-        /// guest that is consuming this interface. Once a write request is committed by a specific client,
-        /// all subsequent read requests by the same client will reflect that write or any subsequent
-        /// writes. Another client running in a different context may or may not immediately see the result
-        /// due to the replication lag. As an example of all of this, if a value at a given key is A, and
-        /// the client writes B, then immediately reads, it should get B. If something else writes C in
-        /// quick succession, then the client may get C. However, a client running in a separate context may
-        /// still see A or B
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod store {
             #[used]
             #[doc(hidden)]
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
-            /// The set of errors which may be raised by functions in this package
             #[derive(Clone)]
             pub enum Error {
-                /// The host does not recognize the store identifier requested.
                 NoSuchStore,
-                /// The requesting component does not have access to the specified store
-                /// (which may or may not exist).
                 AccessDenied,
-                /// Some implementation-specific error has occurred (e.g. I/O)
                 Other(_rt::String),
             }
             impl ::core::fmt::Debug for Error {
@@ -14768,13 +14356,9 @@ pub mod wasi {
                 }
             }
             impl std::error::Error for Error {}
-            /// A response to a `list-keys` operation.
             #[derive(Clone)]
             pub struct KeyResponse {
-                /// The list of keys returned by the query.
                 pub keys: _rt::Vec<_rt::String>,
-                /// The continuation token to use to fetch the next page of keys. If this is `null`, then
-                /// there are no more keys to fetch.
                 pub cursor: Option<_rt::String>,
             }
             impl ::core::fmt::Debug for KeyResponse {
@@ -14788,21 +14372,6 @@ pub mod wasi {
                         .finish()
                 }
             }
-            /// A bucket is a collection of key-value pairs. Each key-value pair is stored as a entry in the
-            /// bucket, and the bucket itself acts as a collection of all these entries.
-            ///
-            /// It is worth noting that the exact terminology for bucket in key-value stores can very
-            /// depending on the specific implementation. For example:
-            ///
-            /// 1. Amazon DynamoDB calls a collection of key-value pairs a table
-            /// 2. Redis has hashes, sets, and sorted sets as different types of collections
-            /// 3. Cassandra calls a collection of key-value pairs a column family
-            /// 4. MongoDB calls a collection of key-value pairs a collection
-            /// 5. Riak calls a collection of key-value pairs a bucket
-            /// 6. Memcached calls a collection of key-value pairs a slab
-            /// 7. Azure Cosmos DB calls a collection of key-value pairs a container
-            ///
-            /// In this interface, we use the term `bucket` to refer to a collection of key-value pairs
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct Bucket {
@@ -14842,13 +14411,6 @@ pub mod wasi {
             }
             impl Bucket {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the value associated with the specified `key`
-                ///
-                /// The value is returned as an option. If the key-value pair exists in the
-                /// store, it returns `Ok(value)`. If the key does not exist in the
-                /// store, it returns `Ok(none)`.
-                ///
-                /// If any other error occurs, it returns an `Err(error)`.
                 pub fn get(&self, key: &str) -> Result<Option<_rt::Vec<u8>>, Error> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -14956,12 +14518,6 @@ pub mod wasi {
             }
             impl Bucket {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Set the value associated with the key in the store. If the key already
-                /// exists in the store, it overwrites the value.
-                ///
-                /// If the key does not exist in the store, it creates a new key-value pair.
-                ///
-                /// If any other error occurs, it returns an `Err(error)`.
                 pub fn set(&self, key: &str, value: &[u8]) -> Result<(), Error> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -15062,11 +14618,6 @@ pub mod wasi {
             }
             impl Bucket {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Delete the key-value pair associated with the key in the store.
-                ///
-                /// If the key does not exist in the store, it does nothing.
-                ///
-                /// If any other error occurs, it returns an `Err(error)`.
                 pub fn delete(&self, key: &str) -> Result<(), Error> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -15153,12 +14704,6 @@ pub mod wasi {
             }
             impl Bucket {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Check if the key exists in the store.
-                ///
-                /// If the key exists in the store, it returns `Ok(true)`. If the key does
-                /// not exist in the store, it returns `Ok(false)`.
-                ///
-                /// If any other error occurs, it returns an `Err(error)`.
                 pub fn exists(&self, key: &str) -> Result<bool, Error> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -15250,22 +14795,6 @@ pub mod wasi {
             }
             impl Bucket {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get all the keys in the store with an optional cursor (for use in pagination). It
-                /// returns a list of keys. Please note that for most KeyValue implementations, this is a
-                /// can be a very expensive operation and so it should be used judiciously. Implementations
-                /// can return any number of keys in a single response, but they should never attempt to
-                /// send more data than is reasonable (i.e. on a small edge device, this may only be a few
-                /// KB, while on a large machine this could be several MB). Any response should also return
-                /// a cursor that can be used to fetch the next page of keys. See the `key-response` record
-                /// for more information.
-                ///
-                /// Note that the keys are not guaranteed to be returned in any particular order.
-                ///
-                /// If the store is empty, it returns an empty list.
-                ///
-                /// MAY show an out-of-date list of keys if there are concurrent writes to the store.
-                ///
-                /// If any error occurs, it returns an `Err(error)`.
                 pub fn list_keys(
                     &self,
                     cursor: Option<&str>,
@@ -15431,11 +14960,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Get the bucket with the specified identifier.
-            ///
-            /// `identifier` must refer to a bucket provided by the host.
-            ///
-            /// `error::no-such-store` will be raised if the `identifier` is not recognized.
             pub fn open(identifier: &str) -> Result<Bucket, Error> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -15513,16 +15037,6 @@ pub mod wasi {
                 }
             }
         }
-        /// A keyvalue interface that provides atomic operations.
-        ///
-        /// Atomic operations are single, indivisible operations. When a fault causes an atomic operation to
-        /// fail, it will appear to the invoker of the atomic operation that the action either completed
-        /// successfully or did nothing at all.
-        ///
-        /// Please note that this interface is bare functions that take a reference to a bucket. This is to
-        /// get around the current lack of a way to "extend" a resource with additional methods inside of
-        /// wit. Future version of the interface will instead extend these methods on the base `bucket`
-        /// resource.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod atomics {
             #[used]
@@ -15531,7 +15045,6 @@ pub mod wasi {
             use super::super::super::_rt;
             pub type Bucket = super::super::super::wasi::keyvalue::store::Bucket;
             pub type Error = super::super::super::wasi::keyvalue::store::Error;
-            /// A handle to a CAS (compare-and-swap) operation.
             #[derive(Debug)]
             #[repr(transparent)]
             pub struct Cas {
@@ -15571,13 +15084,8 @@ pub mod wasi {
                     }
                 }
             }
-            /// The error returned by a CAS operation
             pub enum CasError {
-                /// A store error occurred when performing the operation
                 StoreError(Error),
-                /// The CAS operation failed because the value was too old. This returns a new CAS handle
-                /// for easy retries. Implementors MUST return a CAS handle that has been updated to the
-                /// latest version or transaction.
                 CasFailed(Cas),
             }
             impl ::core::fmt::Debug for CasError {
@@ -15606,8 +15114,6 @@ pub mod wasi {
             impl std::error::Error for CasError {}
             impl Cas {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Construct a new CAS operation. Implementors can map the underlying functionality
-                /// (transactions, versions, etc) as desired.
                 pub fn new(bucket: &Bucket, key: &str) -> Result<Cas, Error> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -15702,8 +15208,6 @@ pub mod wasi {
             }
             impl Cas {
                 #[allow(unused_unsafe, clippy::all)]
-                /// Get the current value of the key (if it exists). This allows for avoiding reads if all
-                /// that is needed to ensure the atomicity of the operation
                 pub fn current(&self) -> Result<Option<_rt::Vec<u8>>, Error> {
                     unsafe {
                         #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -15798,13 +15302,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Atomically increment the value associated with the key in the store by the given delta. It
-            /// returns the new value.
-            ///
-            /// If the key does not exist in the store, it creates a new key-value pair with the value set
-            /// to the given delta.
-            ///
-            /// If any other error occurs, it returns an `Err(error)`.
             pub fn increment(
                 bucket: &Bucket,
                 key: &str,
@@ -15896,8 +15393,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Perform the swap on a CAS operation. This consumes the CAS handle and returns an error if
-            /// the CAS operation failed.
             pub fn swap(cas: Cas, value: &[u8]) -> Result<(), CasError> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -16006,25 +15501,6 @@ pub mod wasi {
                 }
             }
         }
-        /// A keyvalue interface that provides batch operations.
-        ///
-        /// A batch operation is an operation that operates on multiple keys at once.
-        ///
-        /// Batch operations are useful for reducing network round-trip time. For example, if you want to
-        /// get the values associated with 100 keys, you can either do 100 get operations or you can do 1
-        /// batch get operation. The batch operation is faster because it only needs to make 1 network call
-        /// instead of 100.
-        ///
-        /// A batch operation does not guarantee atomicity, meaning that if the batch operation fails, some
-        /// of the keys may have been modified and some may not.
-        ///
-        /// This interface does has the same consistency guarantees as the `store` interface, meaning that
-        /// you should be able to "read your writes."
-        ///
-        /// Please note that this interface is bare functions that take a reference to a bucket. This is to
-        /// get around the current lack of a way to "extend" a resource with additional methods inside of
-        /// wit. Future version of the interface will instead extend these methods on the base `bucket`
-        /// resource.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod batch {
             #[used]
@@ -16034,15 +15510,6 @@ pub mod wasi {
             pub type Bucket = super::super::super::wasi::keyvalue::store::Bucket;
             pub type Error = super::super::super::wasi::keyvalue::store::Error;
             #[allow(unused_unsafe, clippy::all)]
-            /// Get the key-value pairs associated with the keys in the store. It returns a list of
-            /// key-value pairs.
-            ///
-            /// If any of the keys do not exist in the store, it returns a `none` value for that pair in the
-            /// list.
-            ///
-            /// MAY show an out-of-date value if there are concurrent writes to the store.
-            ///
-            /// If any other error occurs, it returns an `Err(error)`.
             pub fn get_many(
                 bucket: &Bucket,
                 keys: &[_rt::String],
@@ -16210,19 +15677,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Set the values associated with the keys in the store. If the key already exists in the
-            /// store, it overwrites the value.
-            ///
-            /// Note that the key-value pairs are not guaranteed to be set in the order they are provided.
-            ///
-            /// If any of the keys do not exist in the store, it creates a new key-value pair.
-            ///
-            /// If any other error occurs, it returns an `Err(error)`. When an error occurs, it does not
-            /// rollback the key-value pairs that were already set. Thus, this batch operation does not
-            /// guarantee atomicity, implying that some key-value pairs could be set while others might
-            /// fail.
-            ///
-            /// Other concurrent operations may also be able to see the partial results.
             pub fn set_many(
                 bucket: &Bucket,
                 key_values: &[(_rt::String, _rt::Vec<u8>)],
@@ -16344,19 +15798,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Delete the key-value pairs associated with the keys in the store.
-            ///
-            /// Note that the key-value pairs are not guaranteed to be deleted in the order they are
-            /// provided.
-            ///
-            /// If any of the keys do not exist in the store, it skips the key.
-            ///
-            /// If any other error occurs, it returns an `Err(error)`. When an error occurs, it does not
-            /// rollback the key-value pairs that were already deleted. Thus, this batch operation does not
-            /// guarantee atomicity, implying that some key-value pairs could be deleted while others might
-            /// fail.
-            ///
-            /// Other concurrent operations may also be able to see the partial results.
             pub fn delete_many(
                 bucket: &Bucket,
                 keys: &[_rt::String],
@@ -16470,10 +15911,6 @@ pub mod wasi {
         }
     }
     pub mod random {
-        /// WASI Random is a random data API.
-        ///
-        /// It is intended to be portable at least between Unix-family platforms and
-        /// Windows.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod random {
             #[used]
@@ -16481,18 +15918,6 @@ pub mod wasi {
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
             #[allow(unused_unsafe, clippy::all)]
-            /// Return `len` cryptographically-secure random or pseudo-random bytes.
-            ///
-            /// This function must produce data at least as cryptographically secure and
-            /// fast as an adequately seeded cryptographically-secure pseudo-random
-            /// number generator (CSPRNG). It must not block, from the perspective of
-            /// the calling program, under any circumstances, including on the first
-            /// request and on requests for numbers of bytes. The returned data must
-            /// always be unpredictable.
-            ///
-            /// This function must always return fresh data. Deterministic environments
-            /// must omit this function, rather than implementing it with deterministic
-            /// data.
             pub fn get_random_bytes(len: u64) -> _rt::Vec<u8> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -16528,10 +15953,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Return a cryptographically-secure random or pseudo-random `u64` value.
-            ///
-            /// This function returns the same type of data as `get-random-bytes`,
-            /// represented as a `u64`.
             pub fn get_random_u64() -> u64 {
                 unsafe {
                     #[cfg(target_arch = "wasm32")]
@@ -16549,10 +15970,6 @@ pub mod wasi {
                 }
             }
         }
-        /// The insecure interface for insecure pseudo-random numbers.
-        ///
-        /// It is intended to be portable at least between Unix-family platforms and
-        /// Windows.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod insecure {
             #[used]
@@ -16560,14 +15977,6 @@ pub mod wasi {
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
             #[allow(unused_unsafe, clippy::all)]
-            /// Return `len` insecure pseudo-random bytes.
-            ///
-            /// This function is not cryptographically secure. Do not use it for
-            /// anything related to security.
-            ///
-            /// There are no requirements on the values of the returned bytes, however
-            /// implementations are encouraged to return evenly distributed values with
-            /// a long period.
             pub fn get_insecure_random_bytes(len: u64) -> _rt::Vec<u8> {
                 unsafe {
                     #[cfg_attr(target_pointer_width = "64", repr(align(8)))]
@@ -16603,10 +16012,6 @@ pub mod wasi {
                 }
             }
             #[allow(unused_unsafe, clippy::all)]
-            /// Return an insecure pseudo-random `u64` value.
-            ///
-            /// This function returns the same type of pseudo-random data as
-            /// `get-insecure-random-bytes`, represented as a `u64`.
             pub fn get_insecure_random_u64() -> u64 {
                 unsafe {
                     #[cfg(target_arch = "wasm32")]
@@ -16624,33 +16029,12 @@ pub mod wasi {
                 }
             }
         }
-        /// The insecure-seed interface for seeding hash-map DoS resistance.
-        ///
-        /// It is intended to be portable at least between Unix-family platforms and
-        /// Windows.
         #[allow(dead_code, async_fn_in_trait, unused_imports, clippy::all)]
         pub mod insecure_seed {
             #[used]
             #[doc(hidden)]
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             #[allow(unused_unsafe, clippy::all)]
-            /// Return a 128-bit value that may contain a pseudo-random value.
-            ///
-            /// The returned value is not required to be computed from a CSPRNG, and may
-            /// even be entirely deterministic. Host implementations are encouraged to
-            /// provide pseudo-random values to any program exposed to
-            /// attacker-controlled content, to enable DoS protection built into many
-            /// languages' hash-map implementations.
-            ///
-            /// This function is intended to only be called once, by a source language
-            /// to initialize Denial Of Service (DoS) protection in its hash-map
-            /// implementation.
-            ///
-            /// # Expected future evolution
-            ///
-            /// This will likely be changed to a value import, to prevent it from being
-            /// called multiple times and potentially used for purposes other than DoS
-            /// protection.
             pub fn insecure_seed() -> (u64, u64) {
                 unsafe {
                     #[repr(align(8))]
@@ -20606,7 +19990,9 @@ pub mod wavs {
                 pub workflow_id: WorkflowId,
                 pub envelope: Envelope,
                 pub signature: EnvelopeSignature,
+                /// origin-* is used for reorg handling
                 pub origin_tx_hash: _rt::Vec<u8>,
+                pub origin_block: u64,
             }
             impl ::core::fmt::Debug for Packet {
                 fn fmt(
@@ -20619,6 +20005,7 @@ pub mod wavs {
                         .field("envelope", &self.envelope)
                         .field("signature", &self.signature)
                         .field("origin-tx-hash", &self.origin_tx_hash)
+                        .field("origin-block", &self.origin_block)
                         .finish()
                 }
             }
@@ -20738,11 +20125,8 @@ pub mod wavs {
             #[doc(hidden)]
             static __FORCE_SECTION_REF: fn() = super::super::super::__link_custom_section_describing_imports;
             use super::super::super::_rt;
-            /// A string mostly following the caip-2 format of namespace:reference, e.g. "eip155:1" for Ethereum mainnet or "cosmos:cosmoshub-4" for Cosmos Hub
-            /// however, we allow up to 32 characters for the "namespace" part, and we call the "reference" part "chain-id" to confirm with popular usage
             pub type ChainKey = _rt::String;
             pub type EvmTxHash = _rt::Vec<u8>;
-            /// 32 bytes, a keccak hash of an RLP encoded signed transaction
             pub type CosmosTxHash = _rt::String;
             #[derive(Clone)]
             pub enum AnyTxHash {
@@ -20767,7 +20151,6 @@ pub mod wavs {
             #[derive(Clone)]
             pub struct CosmosAddress {
                 pub bech32_addr: _rt::String,
-                /// prefix is the first part of the bech32 address
                 pub prefix_len: u32,
             }
             impl ::core::fmt::Debug for CosmosAddress {
@@ -20992,7 +20375,6 @@ pub mod wavs {
                     }
                 }
             }
-            /// Permissions types
             #[derive(Clone)]
             pub struct Permissions {
                 pub allowed_http_hosts: AllowedHostPermission,
@@ -21009,7 +20391,6 @@ pub mod wavs {
                         .finish()
                 }
             }
-            /// Component types
             #[derive(Clone)]
             pub struct Component {
                 pub source: ComponentSource,
@@ -21108,7 +20489,6 @@ pub mod wavs {
                         .finish()
                 }
             }
-            /// Trigger types
             #[derive(Clone)]
             pub enum Trigger {
                 EvmContractEvent(TriggerEvmContractEvent),
@@ -21208,7 +20588,6 @@ pub mod wavs {
                         .finish()
                 }
             }
-            /// Submit types
             #[derive(Clone)]
             pub enum Submit {
                 None,
@@ -21227,7 +20606,6 @@ pub mod wavs {
                     }
                 }
             }
-            /// Workflow types
             #[derive(Clone)]
             pub struct Workflow {
                 pub trigger: Trigger,
@@ -21246,7 +20624,6 @@ pub mod wavs {
                         .finish()
                 }
             }
-            /// Service types
             #[derive(Clone)]
             pub struct Service {
                 pub name: _rt::String,
@@ -23861,16 +23238,16 @@ macro_rules! __export_aggregator_world_impl {
 pub(crate) use __export_aggregator_world_impl as export;
 #[cfg(target_arch = "wasm32")]
 #[unsafe(
-    link_section = "component-type:wit-bindgen:0.41.0:wavs:aggregator@0.6.0-alpha.11:aggregator-world:encoded world"
+    link_section = "component-type:wit-bindgen:0.41.0:wavs:aggregator@0.6.0-alpha.12:aggregator-world:encoded world"
 )]
 #[doc(hidden)]
 #[allow(clippy::octal_escapes)]
-pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 20268] = *b"\
-\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xa4\x9d\x01\x01A\x02\
+pub static __WIT_BINDGEN_COMPONENT_TYPE: [u8; 20282] = *b"\
+\0asm\x0d\0\x01\0\0\x19\x16wit-component-encoding\x04\0\x07\xb2\x9d\x01\x01A\x02\
 \x01A~\x01B\x08\x01s\x04\0\x06digest\x03\0\0\x01r\x01\x05nanosw\x04\0\x09timesta\
 mp\x03\0\x02\x01r\x01\x04secsw\x04\0\x08duration\x03\0\x04\x01q\x05\x05error\0\0\
 \x04warn\0\0\x04info\0\0\x05debug\0\0\x05trace\0\0\x04\0\x09log-level\x03\0\x06\x03\
-\0\x1ewavs:types/core@0.6.0-alpha.11\x05\0\x01B\x1d\x01s\x04\0\x09chain-key\x03\0\
+\0\x1ewavs:types/core@0.6.0-alpha.12\x05\0\x01B\x1d\x01s\x04\0\x09chain-key\x03\0\
 \0\x01p}\x04\0\x0bevm-tx-hash\x03\0\x02\x01s\x04\0\x0ecosmos-tx-hash\x03\0\x04\x01\
 q\x02\x03evm\x01\x03\0\x06cosmos\x01\x05\0\x04\0\x0bany-tx-hash\x03\0\x06\x01r\x02\
 \x0bbech32-addrs\x0aprefix-leny\x04\0\x0ecosmos-address\x03\0\x08\x01o\x02ss\x01\
@@ -23883,7 +23260,7 @@ kw\x01r\x09\x07address\x13\x04data\x16\x07tx-hash\x03\x0cblock-numberw\x09log-in
 dexw\x0ablock-hash\x17\x0fblock-timestamp\x18\x08tx-index\x18\x07removed\x7f\x04\
 \0\x0devm-event-log\x03\0\x19\x01r\x03\x08chain-ids\x0bws-endpoint\x0e\x0dhttp-e\
 ndpoint\x0e\x04\0\x10evm-chain-config\x03\0\x1b\x03\0\x1fwavs:types/chain@0.6.0-\
-alpha.11\x05\x01\x02\x03\0\0\x06digest\x02\x03\0\0\x09timestamp\x02\x03\0\x01\x09\
+alpha.12\x05\x01\x02\x03\0\0\x06digest\x02\x03\0\0\x09timestamp\x02\x03\0\x01\x09\
 chain-key\x02\x03\0\x01\x0bevm-address\x02\x03\0\x01\x0ecosmos-address\x01BO\x02\
 \x03\x02\x01\x02\x04\0\x06digest\x03\0\0\x02\x03\x02\x01\x03\x04\0\x09timestamp\x03\
 \0\x02\x02\x03\x02\x01\x04\x04\0\x09chain-key\x03\0\x04\x02\x03\x02\x01\x05\x04\0\
@@ -23917,368 +23294,369 @@ service\x03\0E\x01r\x03\x05chain\x05\x07address\x07\x07max-gas%\x04\0\x17evm-con
 tract-submission\x03\0G\x01q\x01\x03evm\x01\xc8\0\0\x04\0\x0aaggregator\x03\0I\x01\
 r\x02\x07service\xc6\0\x0bworkflow-id\x0d\x04\0\x17service-and-workflow-id\x03\0\
 K\x01r\x02\x08workflow\xc2\0\x0bworkflow-id\x0d\x04\0\x18workflow-and-workflow-i\
-d\x03\0M\x03\0!wavs:types/service@0.6.0-alpha.11\x05\x07\x02\x03\0\0\x08duration\
+d\x03\0M\x03\0!wavs:types/service@0.6.0-alpha.12\x05\x07\x02\x03\0\0\x08duration\
 \x02\x03\0\x02\x07service\x02\x03\0\x02\x0bworkflow-id\x02\x03\0\x02\x0esignatur\
 e-kind\x01B\x1a\x02\x03\x02\x01\x08\x04\0\x08duration\x03\0\0\x02\x03\x02\x01\x09\
 \x04\0\x07service\x03\0\x02\x02\x03\x02\x01\x0a\x04\0\x0bworkflow-id\x03\0\x04\x02\
 \x03\x02\x01\x0b\x04\0\x0esignature-kind\x03\0\x06\x02\x03\x02\x01\x04\x04\0\x09\
 chain-key\x03\0\x08\x02\x03\x02\x01\x05\x04\0\x0bevm-address\x03\0\x0a\x01p}\x01\
 r\x03\x08event-id\x0c\x08ordering\x0c\x07payload\x0c\x04\0\x08envelope\x03\0\x0d\
-\x01r\x02\x04data\x0c\x04kind\x07\x04\0\x12envelope-signature\x03\0\x0f\x01r\x05\
+\x01r\x02\x04data\x0c\x04kind\x07\x04\0\x12envelope-signature\x03\0\x0f\x01r\x06\
 \x07service\x03\x0bworkflow-id\x05\x08envelope\x0e\x09signature\x10\x0eorigin-tx\
--hash\x0c\x04\0\x06packet\x03\0\x11\x01r\x01\x05delay\x01\x04\0\x0ctimer-action\x03\
-\0\x13\x01kw\x01r\x03\x05chain\x09\x10contract-address\x0b\x09gas-price\x15\x04\0\
-\x0dsubmit-action\x03\0\x16\x01q\x02\x05timer\x01\x14\0\x06submit\x01\x17\0\x04\0\
-\x11aggregator-action\x03\0\x18\x03\0)wavs:aggregator/aggregator@0.6.0-alpha.11\x05\
-\x0c\x02\x03\0\x03\x06packet\x03\0\x06packet\x03\0\x0d\x02\x03\0\x03\x11aggregat\
-or-action\x03\0\x11aggregator-action\x03\0\x0f\x02\x03\0\x01\x0bany-tx-hash\x03\0\
-\x0bany-tx-hash\x03\0\x11\x01B\x0a\x04\0\x08pollable\x03\x01\x01h\0\x01@\x01\x04\
-self\x01\0\x7f\x04\0\x16[method]pollable.ready\x01\x02\x01@\x01\x04self\x01\x01\0\
-\x04\0\x16[method]pollable.block\x01\x03\x01p\x01\x01py\x01@\x01\x02in\x04\0\x05\
-\x04\0\x04poll\x01\x06\x03\0\x12wasi:io/poll@0.2.0\x05\x13\x02\x03\0\x04\x08poll\
-able\x01B\x0f\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\0\x01w\x04\0\x07instan\
-t\x03\0\x02\x01w\x04\0\x08duration\x03\0\x04\x01@\0\0\x03\x04\0\x03now\x01\x06\x01\
-@\0\0\x05\x04\0\x0aresolution\x01\x07\x01i\x01\x01@\x01\x04when\x03\0\x08\x04\0\x11\
-subscribe-instant\x01\x09\x01@\x01\x04when\x05\0\x08\x04\0\x12subscribe-duration\
-\x01\x0a\x03\0!wasi:clocks/monotonic-clock@0.2.0\x05\x15\x01B\x04\x04\0\x05error\
-\x03\x01\x01h\0\x01@\x01\x04self\x01\0s\x04\0\x1d[method]error.to-debug-string\x01\
-\x02\x03\0\x13wasi:io/error@0.2.0\x05\x16\x02\x03\0\x06\x05error\x01B(\x02\x03\x02\
-\x01\x17\x04\0\x05error\x03\0\0\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\x02\x01\
-i\x01\x01q\x02\x15last-operation-failed\x01\x04\0\x06closed\0\0\x04\0\x0cstream-\
-error\x03\0\x05\x04\0\x0cinput-stream\x03\x01\x04\0\x0doutput-stream\x03\x01\x01\
-h\x07\x01p}\x01j\x01\x0a\x01\x06\x01@\x02\x04self\x09\x03lenw\0\x0b\x04\0\x19[me\
-thod]input-stream.read\x01\x0c\x04\0\"[method]input-stream.blocking-read\x01\x0c\
-\x01j\x01w\x01\x06\x01@\x02\x04self\x09\x03lenw\0\x0d\x04\0\x19[method]input-str\
-eam.skip\x01\x0e\x04\0\"[method]input-stream.blocking-skip\x01\x0e\x01i\x03\x01@\
-\x01\x04self\x09\0\x0f\x04\0\x1e[method]input-stream.subscribe\x01\x10\x01h\x08\x01\
-@\x01\x04self\x11\0\x0d\x04\0![method]output-stream.check-write\x01\x12\x01j\0\x01\
-\x06\x01@\x02\x04self\x11\x08contents\x0a\0\x13\x04\0\x1b[method]output-stream.w\
-rite\x01\x14\x04\0.[method]output-stream.blocking-write-and-flush\x01\x14\x01@\x01\
-\x04self\x11\0\x13\x04\0\x1b[method]output-stream.flush\x01\x15\x04\0$[method]ou\
-tput-stream.blocking-flush\x01\x15\x01@\x01\x04self\x11\0\x0f\x04\0\x1f[method]o\
-utput-stream.subscribe\x01\x16\x01@\x02\x04self\x11\x03lenw\0\x13\x04\0\"[method\
-]output-stream.write-zeroes\x01\x17\x04\05[method]output-stream.blocking-write-z\
-eroes-and-flush\x01\x17\x01@\x03\x04self\x11\x03src\x09\x03lenw\0\x0d\x04\0\x1c[\
-method]output-stream.splice\x01\x18\x04\0%[method]output-stream.blocking-splice\x01\
-\x18\x03\0\x15wasi:io/streams@0.2.0\x05\x18\x02\x03\0\x05\x08duration\x02\x03\0\x07\
-\x0cinput-stream\x02\x03\0\x07\x0doutput-stream\x01B\xc0\x01\x02\x03\x02\x01\x19\
-\x04\0\x08duration\x03\0\0\x02\x03\x02\x01\x1a\x04\0\x0cinput-stream\x03\0\x02\x02\
-\x03\x02\x01\x1b\x04\0\x0doutput-stream\x03\0\x04\x02\x03\x02\x01\x17\x04\0\x08i\
-o-error\x03\0\x06\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\x08\x01q\x0a\x03ge\
-t\0\0\x04head\0\0\x04post\0\0\x03put\0\0\x06delete\0\0\x07connect\0\0\x07options\
-\0\0\x05trace\0\0\x05patch\0\0\x05other\x01s\0\x04\0\x06method\x03\0\x0a\x01q\x03\
-\x04HTTP\0\0\x05HTTPS\0\0\x05other\x01s\0\x04\0\x06scheme\x03\0\x0c\x01ks\x01k{\x01\
-r\x02\x05rcode\x0e\x09info-code\x0f\x04\0\x11DNS-error-payload\x03\0\x10\x01k}\x01\
-r\x02\x08alert-id\x12\x0dalert-message\x0e\x04\0\x1aTLS-alert-received-payload\x03\
-\0\x13\x01ky\x01r\x02\x0afield-name\x0e\x0afield-size\x15\x04\0\x12field-size-pa\
-yload\x03\0\x16\x01kw\x01k\x17\x01q'\x0bDNS-timeout\0\0\x09DNS-error\x01\x11\0\x15\
-destination-not-found\0\0\x17destination-unavailable\0\0\x19destination-IP-prohi\
-bited\0\0\x19destination-IP-unroutable\0\0\x12connection-refused\0\0\x15connecti\
-on-terminated\0\0\x12connection-timeout\0\0\x17connection-read-timeout\0\0\x18co\
-nnection-write-timeout\0\0\x18connection-limit-reached\0\0\x12TLS-protocol-error\
-\0\0\x15TLS-certificate-error\0\0\x12TLS-alert-received\x01\x14\0\x13HTTP-reques\
-t-denied\0\0\x1cHTTP-request-length-required\0\0\x16HTTP-request-body-size\x01\x18\
-\0\x1bHTTP-request-method-invalid\0\0\x18HTTP-request-URI-invalid\0\0\x19HTTP-re\
-quest-URI-too-long\0\0\x20HTTP-request-header-section-size\x01\x15\0\x18HTTP-req\
-uest-header-size\x01\x19\0!HTTP-request-trailer-section-size\x01\x15\0\x19HTTP-r\
-equest-trailer-size\x01\x17\0\x18HTTP-response-incomplete\0\0!HTTP-response-head\
-er-section-size\x01\x15\0\x19HTTP-response-header-size\x01\x17\0\x17HTTP-respons\
-e-body-size\x01\x18\0\"HTTP-response-trailer-section-size\x01\x15\0\x1aHTTP-resp\
-onse-trailer-size\x01\x17\0\x1dHTTP-response-transfer-coding\x01\x0e\0\x1cHTTP-r\
-esponse-content-coding\x01\x0e\0\x15HTTP-response-timeout\0\0\x13HTTP-upgrade-fa\
-iled\0\0\x13HTTP-protocol-error\0\0\x0dloop-detected\0\0\x13configuration-error\0\
-\0\x0einternal-error\x01\x0e\0\x04\0\x0aerror-code\x03\0\x1a\x01q\x03\x0einvalid\
--syntax\0\0\x09forbidden\0\0\x09immutable\0\0\x04\0\x0cheader-error\x03\0\x1c\x01\
-s\x04\0\x09field-key\x03\0\x1e\x01p}\x04\0\x0bfield-value\x03\0\x20\x04\0\x06fie\
-lds\x03\x01\x04\0\x07headers\x03\0\"\x04\0\x08trailers\x03\0\"\x04\0\x10incoming\
--request\x03\x01\x04\0\x10outgoing-request\x03\x01\x04\0\x0frequest-options\x03\x01\
-\x04\0\x11response-outparam\x03\x01\x01{\x04\0\x0bstatus-code\x03\0)\x04\0\x11in\
-coming-response\x03\x01\x04\0\x0dincoming-body\x03\x01\x04\0\x0ffuture-trailers\x03\
-\x01\x04\0\x11outgoing-response\x03\x01\x04\0\x0doutgoing-body\x03\x01\x04\0\x18\
-future-incoming-response\x03\x01\x01i\"\x01@\0\01\x04\0\x13[constructor]fields\x01\
-2\x01o\x02\x1f!\x01p3\x01j\x011\x01\x1d\x01@\x01\x07entries4\05\x04\0\x18[static\
-]fields.from-list\x016\x01h\"\x01p!\x01@\x02\x04self7\x04name\x1f\08\x04\0\x12[m\
-ethod]fields.get\x019\x01@\x02\x04self7\x04name\x1f\0\x7f\x04\0\x12[method]field\
-s.has\x01:\x01j\0\x01\x1d\x01@\x03\x04self7\x04name\x1f\x05value8\0;\x04\0\x12[m\
-ethod]fields.set\x01<\x01@\x02\x04self7\x04name\x1f\0;\x04\0\x15[method]fields.d\
-elete\x01=\x01@\x03\x04self7\x04name\x1f\x05value!\0;\x04\0\x15[method]fields.ap\
-pend\x01>\x01@\x01\x04self7\04\x04\0\x16[method]fields.entries\x01?\x01@\x01\x04\
-self7\01\x04\0\x14[method]fields.clone\x01@\x01h%\x01@\x01\x04self\xc1\0\0\x0b\x04\
-\0\x1f[method]incoming-request.method\x01B\x01@\x01\x04self\xc1\0\0\x0e\x04\0([m\
-ethod]incoming-request.path-with-query\x01C\x01k\x0d\x01@\x01\x04self\xc1\0\0\xc4\
-\0\x04\0\x1f[method]incoming-request.scheme\x01E\x04\0\"[method]incoming-request\
-.authority\x01C\x01i#\x01@\x01\x04self\xc1\0\0\xc6\0\x04\0\x20[method]incoming-r\
-equest.headers\x01G\x01i,\x01j\x01\xc8\0\0\x01@\x01\x04self\xc1\0\0\xc9\0\x04\0\x20\
-[method]incoming-request.consume\x01J\x01i&\x01@\x01\x07headers\xc6\0\0\xcb\0\x04\
-\0\x1d[constructor]outgoing-request\x01L\x01h&\x01i/\x01j\x01\xce\0\0\x01@\x01\x04\
-self\xcd\0\0\xcf\0\x04\0\x1d[method]outgoing-request.body\x01P\x01@\x01\x04self\xcd\
-\0\0\x0b\x04\0\x1f[method]outgoing-request.method\x01Q\x01j\0\0\x01@\x02\x04self\
-\xcd\0\x06method\x0b\0\xd2\0\x04\0#[method]outgoing-request.set-method\x01S\x01@\
-\x01\x04self\xcd\0\0\x0e\x04\0([method]outgoing-request.path-with-query\x01T\x01\
-@\x02\x04self\xcd\0\x0fpath-with-query\x0e\0\xd2\0\x04\0,[method]outgoing-reques\
-t.set-path-with-query\x01U\x01@\x01\x04self\xcd\0\0\xc4\0\x04\0\x1f[method]outgo\
-ing-request.scheme\x01V\x01@\x02\x04self\xcd\0\x06scheme\xc4\0\0\xd2\0\x04\0#[me\
-thod]outgoing-request.set-scheme\x01W\x04\0\"[method]outgoing-request.authority\x01\
-T\x01@\x02\x04self\xcd\0\x09authority\x0e\0\xd2\0\x04\0&[method]outgoing-request\
-.set-authority\x01X\x01@\x01\x04self\xcd\0\0\xc6\0\x04\0\x20[method]outgoing-req\
-uest.headers\x01Y\x01i'\x01@\0\0\xda\0\x04\0\x1c[constructor]request-options\x01\
-[\x01h'\x01k\x01\x01@\x01\x04self\xdc\0\0\xdd\0\x04\0'[method]request-options.co\
-nnect-timeout\x01^\x01@\x02\x04self\xdc\0\x08duration\xdd\0\0\xd2\0\x04\0+[metho\
-d]request-options.set-connect-timeout\x01_\x04\0*[method]request-options.first-b\
-yte-timeout\x01^\x04\0.[method]request-options.set-first-byte-timeout\x01_\x04\0\
--[method]request-options.between-bytes-timeout\x01^\x04\01[method]request-option\
-s.set-between-bytes-timeout\x01_\x01i(\x01i.\x01j\x01\xe1\0\x01\x1b\x01@\x02\x05\
-param\xe0\0\x08response\xe2\0\x01\0\x04\0\x1d[static]response-outparam.set\x01c\x01\
-h+\x01@\x01\x04self\xe4\0\0*\x04\0\x20[method]incoming-response.status\x01e\x01@\
-\x01\x04self\xe4\0\0\xc6\0\x04\0![method]incoming-response.headers\x01f\x01@\x01\
-\x04self\xe4\0\0\xc9\0\x04\0![method]incoming-response.consume\x01g\x01h,\x01i\x03\
-\x01j\x01\xe9\0\0\x01@\x01\x04self\xe8\0\0\xea\0\x04\0\x1c[method]incoming-body.\
-stream\x01k\x01i-\x01@\x01\x04this\xc8\0\0\xec\0\x04\0\x1c[static]incoming-body.\
-finish\x01m\x01h-\x01i\x09\x01@\x01\x04self\xee\0\0\xef\0\x04\0![method]future-t\
-railers.subscribe\x01p\x01i$\x01k\xf1\0\x01j\x01\xf2\0\x01\x1b\x01j\x01\xf3\0\0\x01\
-k\xf4\0\x01@\x01\x04self\xee\0\0\xf5\0\x04\0\x1b[method]future-trailers.get\x01v\
-\x01@\x01\x07headers\xc6\0\0\xe1\0\x04\0\x1e[constructor]outgoing-response\x01w\x01\
-h.\x01@\x01\x04self\xf8\0\0*\x04\0%[method]outgoing-response.status-code\x01y\x01\
-@\x02\x04self\xf8\0\x0bstatus-code*\0\xd2\0\x04\0)[method]outgoing-response.set-\
-status-code\x01z\x01@\x01\x04self\xf8\0\0\xc6\0\x04\0![method]outgoing-response.\
-headers\x01{\x01@\x01\x04self\xf8\0\0\xcf\0\x04\0\x1e[method]outgoing-response.b\
-ody\x01|\x01h/\x01i\x05\x01j\x01\xfe\0\0\x01@\x01\x04self\xfd\0\0\xff\0\x04\0\x1b\
-[method]outgoing-body.write\x01\x80\x01\x01j\0\x01\x1b\x01@\x02\x04this\xce\0\x08\
-trailers\xf2\0\0\x81\x01\x04\0\x1c[static]outgoing-body.finish\x01\x82\x01\x01h0\
-\x01@\x01\x04self\x83\x01\0\xef\0\x04\0*[method]future-incoming-response.subscri\
-be\x01\x84\x01\x01i+\x01j\x01\x85\x01\x01\x1b\x01j\x01\x86\x01\0\x01k\x87\x01\x01\
-@\x01\x04self\x83\x01\0\x88\x01\x04\0$[method]future-incoming-response.get\x01\x89\
-\x01\x01h\x07\x01k\x1b\x01@\x01\x03err\x8a\x01\0\x8b\x01\x04\0\x0fhttp-error-cod\
-e\x01\x8c\x01\x03\0\x15wasi:http/types@0.2.0\x05\x1c\x02\x03\0\x08\x10outgoing-r\
-equest\x02\x03\0\x08\x0frequest-options\x02\x03\0\x08\x18future-incoming-respons\
-e\x02\x03\0\x08\x0aerror-code\x01B\x0f\x02\x03\x02\x01\x1d\x04\0\x10outgoing-req\
-uest\x03\0\0\x02\x03\x02\x01\x1e\x04\0\x0frequest-options\x03\0\x02\x02\x03\x02\x01\
-\x1f\x04\0\x18future-incoming-response\x03\0\x04\x02\x03\x02\x01\x20\x04\0\x0aer\
-ror-code\x03\0\x06\x01i\x01\x01i\x03\x01k\x09\x01i\x05\x01j\x01\x0b\x01\x07\x01@\
-\x02\x07request\x08\x07options\x0a\0\x0c\x04\0\x06handle\x01\x0d\x03\0\x20wasi:h\
-ttp/outgoing-handler@0.2.0\x05!\x02\x03\0\x01\x10evm-chain-config\x02\x03\0\x01\x13\
-cosmos-chain-config\x02\x03\0\0\x09log-level\x02\x03\0\x02\x17service-and-workfl\
-ow-id\x02\x03\0\x02\x18workflow-and-workflow-id\x01B\x19\x02\x03\x02\x01\"\x04\0\
-\x10evm-chain-config\x03\0\0\x02\x03\x02\x01#\x04\0\x13cosmos-chain-config\x03\0\
-\x02\x02\x03\x02\x01$\x04\0\x09log-level\x03\0\x04\x02\x03\x02\x01%\x04\0\x17ser\
-vice-and-workflow-id\x03\0\x06\x02\x03\x02\x01&\x04\0\x18workflow-and-workflow-i\
-d\x03\0\x08\x01k\x01\x01@\x01\x09chain-keys\0\x0a\x04\0\x14get-evm-chain-config\x01\
-\x0b\x01k\x03\x01@\x01\x09chain-keys\0\x0c\x04\0\x17get-cosmos-chain-config\x01\x0d\
-\x01ks\x01@\x01\x03keys\0\x0e\x04\0\x0aconfig-var\x01\x0f\x01@\x02\x05level\x05\x07\
-messages\x01\0\x04\0\x03log\x01\x10\x01@\0\0\x07\x04\0\x0bget-service\x01\x11\x01\
-@\0\0\x09\x04\0\x0cget-workflow\x01\x12\x03\0\x04host\x05'\x01B\x0a\x01o\x02ss\x01\
-p\0\x01@\0\0\x01\x04\0\x0fget-environment\x01\x02\x01ps\x01@\0\0\x03\x04\0\x0dge\
-t-arguments\x01\x04\x01ks\x01@\0\0\x05\x04\0\x0binitial-cwd\x01\x06\x03\0\x1awas\
-i:cli/environment@0.2.0\x05(\x01B\x03\x01j\0\0\x01@\x01\x06status\0\x01\0\x04\0\x04\
-exit\x01\x01\x03\0\x13wasi:cli/exit@0.2.0\x05)\x01B\x05\x02\x03\x02\x01\x1a\x04\0\
-\x0cinput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x09get-stdin\x01\x03\x03\0\x14\
-wasi:cli/stdin@0.2.0\x05*\x01B\x05\x02\x03\x02\x01\x1b\x04\0\x0doutput-stream\x03\
-\0\0\x01i\x01\x01@\0\0\x02\x04\0\x0aget-stdout\x01\x03\x03\0\x15wasi:cli/stdout@\
-0.2.0\x05+\x01B\x05\x02\x03\x02\x01\x1b\x04\0\x0doutput-stream\x03\0\0\x01i\x01\x01\
-@\0\0\x02\x04\0\x0aget-stderr\x01\x03\x03\0\x15wasi:cli/stderr@0.2.0\x05,\x01B\x01\
-\x04\0\x0eterminal-input\x03\x01\x03\0\x1dwasi:cli/terminal-input@0.2.0\x05-\x01\
-B\x01\x04\0\x0fterminal-output\x03\x01\x03\0\x1ewasi:cli/terminal-output@0.2.0\x05\
-.\x02\x03\0\x10\x0eterminal-input\x01B\x06\x02\x03\x02\x01/\x04\0\x0eterminal-in\
-put\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\0\x12get-terminal-stdin\x01\x04\x03\
-\0\x1dwasi:cli/terminal-stdin@0.2.0\x050\x02\x03\0\x11\x0fterminal-output\x01B\x06\
-\x02\x03\x02\x011\x04\0\x0fterminal-output\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\
-\x04\0\x13get-terminal-stdout\x01\x04\x03\0\x1ewasi:cli/terminal-stdout@0.2.0\x05\
-2\x01B\x06\x02\x03\x02\x011\x04\0\x0fterminal-output\x03\0\0\x01i\x01\x01k\x02\x01\
-@\0\0\x03\x04\0\x13get-terminal-stderr\x01\x04\x03\0\x1ewasi:cli/terminal-stderr\
-@0.2.0\x053\x01B\x05\x01r\x02\x07secondsw\x0bnanosecondsy\x04\0\x08datetime\x03\0\
-\0\x01@\0\0\x01\x04\0\x03now\x01\x02\x04\0\x0aresolution\x01\x02\x03\0\x1cwasi:c\
-locks/wall-clock@0.2.0\x054\x02\x03\0\x07\x05error\x02\x03\0\x15\x08datetime\x01\
-Br\x02\x03\x02\x01\x1a\x04\0\x0cinput-stream\x03\0\0\x02\x03\x02\x01\x1b\x04\0\x0d\
-output-stream\x03\0\x02\x02\x03\x02\x015\x04\0\x05error\x03\0\x04\x02\x03\x02\x01\
-6\x04\0\x08datetime\x03\0\x06\x01w\x04\0\x08filesize\x03\0\x08\x01m\x08\x07unkno\
-wn\x0cblock-device\x10character-device\x09directory\x04fifo\x0dsymbolic-link\x0c\
-regular-file\x06socket\x04\0\x0fdescriptor-type\x03\0\x0a\x01n\x06\x04read\x05wr\
-ite\x13file-integrity-sync\x13data-integrity-sync\x14requested-write-sync\x10mut\
-ate-directory\x04\0\x10descriptor-flags\x03\0\x0c\x01n\x01\x0esymlink-follow\x04\
-\0\x0apath-flags\x03\0\x0e\x01n\x04\x06create\x09directory\x09exclusive\x08trunc\
-ate\x04\0\x0aopen-flags\x03\0\x10\x01w\x04\0\x0alink-count\x03\0\x12\x01k\x07\x01\
-r\x06\x04type\x0b\x0alink-count\x13\x04size\x09\x15data-access-timestamp\x14\x1b\
-data-modification-timestamp\x14\x17status-change-timestamp\x14\x04\0\x0fdescript\
-or-stat\x03\0\x15\x01q\x03\x09no-change\0\0\x03now\0\0\x09timestamp\x01\x07\0\x04\
-\0\x0dnew-timestamp\x03\0\x17\x01r\x02\x04type\x0b\x04names\x04\0\x0fdirectory-e\
-ntry\x03\0\x19\x01m%\x06access\x0bwould-block\x07already\x0ebad-descriptor\x04bu\
-sy\x08deadlock\x05quota\x05exist\x0efile-too-large\x15illegal-byte-sequence\x0bi\
-n-progress\x0binterrupted\x07invalid\x02io\x0cis-directory\x04loop\x0etoo-many-l\
-inks\x0cmessage-size\x0dname-too-long\x09no-device\x08no-entry\x07no-lock\x13ins\
-ufficient-memory\x12insufficient-space\x0dnot-directory\x09not-empty\x0fnot-reco\
-verable\x0bunsupported\x06no-tty\x0eno-such-device\x08overflow\x0dnot-permitted\x04\
-pipe\x09read-only\x0cinvalid-seek\x0etext-file-busy\x0ccross-device\x04\0\x0aerr\
-or-code\x03\0\x1b\x01m\x06\x06normal\x0asequential\x06random\x09will-need\x09don\
-t-need\x08no-reuse\x04\0\x06advice\x03\0\x1d\x01r\x02\x05lowerw\x05upperw\x04\0\x13\
-metadata-hash-value\x03\0\x1f\x04\0\x0adescriptor\x03\x01\x04\0\x16directory-ent\
-ry-stream\x03\x01\x01h!\x01i\x01\x01j\x01$\x01\x1c\x01@\x02\x04self#\x06offset\x09\
-\0%\x04\0\"[method]descriptor.read-via-stream\x01&\x01i\x03\x01j\x01'\x01\x1c\x01\
-@\x02\x04self#\x06offset\x09\0(\x04\0#[method]descriptor.write-via-stream\x01)\x01\
-@\x01\x04self#\0(\x04\0$[method]descriptor.append-via-stream\x01*\x01j\0\x01\x1c\
-\x01@\x04\x04self#\x06offset\x09\x06length\x09\x06advice\x1e\0+\x04\0\x19[method\
-]descriptor.advise\x01,\x01@\x01\x04self#\0+\x04\0\x1c[method]descriptor.sync-da\
-ta\x01-\x01j\x01\x0d\x01\x1c\x01@\x01\x04self#\0.\x04\0\x1c[method]descriptor.ge\
-t-flags\x01/\x01j\x01\x0b\x01\x1c\x01@\x01\x04self#\00\x04\0\x1b[method]descript\
-or.get-type\x011\x01@\x02\x04self#\x04size\x09\0+\x04\0\x1b[method]descriptor.se\
-t-size\x012\x01@\x03\x04self#\x15data-access-timestamp\x18\x1bdata-modification-\
-timestamp\x18\0+\x04\0\x1c[method]descriptor.set-times\x013\x01p}\x01o\x024\x7f\x01\
-j\x015\x01\x1c\x01@\x03\x04self#\x06length\x09\x06offset\x09\06\x04\0\x17[method\
-]descriptor.read\x017\x01j\x01\x09\x01\x1c\x01@\x03\x04self#\x06buffer4\x06offse\
-t\x09\08\x04\0\x18[method]descriptor.write\x019\x01i\"\x01j\x01:\x01\x1c\x01@\x01\
-\x04self#\0;\x04\0![method]descriptor.read-directory\x01<\x04\0\x17[method]descr\
-iptor.sync\x01-\x01@\x02\x04self#\x04paths\0+\x04\0&[method]descriptor.create-di\
-rectory-at\x01=\x01j\x01\x16\x01\x1c\x01@\x01\x04self#\0>\x04\0\x17[method]descr\
-iptor.stat\x01?\x01@\x03\x04self#\x0apath-flags\x0f\x04paths\0>\x04\0\x1a[method\
-]descriptor.stat-at\x01@\x01@\x05\x04self#\x0apath-flags\x0f\x04paths\x15data-ac\
-cess-timestamp\x18\x1bdata-modification-timestamp\x18\0+\x04\0\x1f[method]descri\
-ptor.set-times-at\x01A\x01@\x05\x04self#\x0eold-path-flags\x0f\x08old-paths\x0en\
-ew-descriptor#\x08new-paths\0+\x04\0\x1a[method]descriptor.link-at\x01B\x01i!\x01\
-j\x01\xc3\0\x01\x1c\x01@\x05\x04self#\x0apath-flags\x0f\x04paths\x0aopen-flags\x11\
-\x05flags\x0d\0\xc4\0\x04\0\x1a[method]descriptor.open-at\x01E\x01j\x01s\x01\x1c\
-\x01@\x02\x04self#\x04paths\0\xc6\0\x04\0\x1e[method]descriptor.readlink-at\x01G\
-\x04\0&[method]descriptor.remove-directory-at\x01=\x01@\x04\x04self#\x08old-path\
-s\x0enew-descriptor#\x08new-paths\0+\x04\0\x1c[method]descriptor.rename-at\x01H\x01\
-@\x03\x04self#\x08old-paths\x08new-paths\0+\x04\0\x1d[method]descriptor.symlink-\
-at\x01I\x04\0![method]descriptor.unlink-file-at\x01=\x01@\x02\x04self#\x05other#\
-\0\x7f\x04\0![method]descriptor.is-same-object\x01J\x01j\x01\x20\x01\x1c\x01@\x01\
-\x04self#\0\xcb\0\x04\0\x20[method]descriptor.metadata-hash\x01L\x01@\x03\x04sel\
-f#\x0apath-flags\x0f\x04paths\0\xcb\0\x04\0#[method]descriptor.metadata-hash-at\x01\
-M\x01h\"\x01k\x1a\x01j\x01\xcf\0\x01\x1c\x01@\x01\x04self\xce\0\0\xd0\0\x04\03[m\
-ethod]directory-entry-stream.read-directory-entry\x01Q\x01h\x05\x01k\x1c\x01@\x01\
-\x03err\xd2\0\0\xd3\0\x04\0\x15filesystem-error-code\x01T\x03\0\x1bwasi:filesyst\
-em/types@0.2.0\x057\x02\x03\0\x16\x0adescriptor\x01B\x07\x02\x03\x02\x018\x04\0\x0a\
-descriptor\x03\0\0\x01i\x01\x01o\x02\x02s\x01p\x03\x01@\0\0\x04\x04\0\x0fget-dir\
-ectories\x01\x05\x03\0\x1ewasi:filesystem/preopens@0.2.0\x059\x01B\x11\x04\0\x07\
-network\x03\x01\x01m\x15\x07unknown\x0daccess-denied\x0dnot-supported\x10invalid\
--argument\x0dout-of-memory\x07timeout\x14concurrency-conflict\x0fnot-in-progress\
-\x0bwould-block\x0dinvalid-state\x10new-socket-limit\x14address-not-bindable\x0e\
-address-in-use\x12remote-unreachable\x12connection-refused\x10connection-reset\x12\
-connection-aborted\x12datagram-too-large\x11name-unresolvable\x1atemporary-resol\
-ver-failure\x1apermanent-resolver-failure\x04\0\x0aerror-code\x03\0\x01\x01m\x02\
-\x04ipv4\x04ipv6\x04\0\x11ip-address-family\x03\0\x03\x01o\x04}}}}\x04\0\x0cipv4\
--address\x03\0\x05\x01o\x08{{{{{{{{\x04\0\x0cipv6-address\x03\0\x07\x01q\x02\x04\
-ipv4\x01\x06\0\x04ipv6\x01\x08\0\x04\0\x0aip-address\x03\0\x09\x01r\x02\x04port{\
-\x07address\x06\x04\0\x13ipv4-socket-address\x03\0\x0b\x01r\x04\x04port{\x09flow\
--infoy\x07address\x08\x08scope-idy\x04\0\x13ipv6-socket-address\x03\0\x0d\x01q\x02\
-\x04ipv4\x01\x0c\0\x04ipv6\x01\x0e\0\x04\0\x11ip-socket-address\x03\0\x0f\x03\0\x1a\
-wasi:sockets/network@0.2.0\x05:\x02\x03\0\x18\x07network\x01B\x05\x02\x03\x02\x01\
-;\x04\0\x07network\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x10instance-network\x01\x03\
-\x03\0#wasi:sockets/instance-network@0.2.0\x05<\x02\x03\0\x18\x0aerror-code\x02\x03\
-\0\x18\x11ip-socket-address\x02\x03\0\x18\x11ip-address-family\x01BD\x02\x03\x02\
-\x01\x14\x04\0\x08pollable\x03\0\0\x02\x03\x02\x01;\x04\0\x07network\x03\0\x02\x02\
-\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x04\x02\x03\x02\x01>\x04\0\x11ip-socket-\
-address\x03\0\x06\x02\x03\x02\x01?\x04\0\x11ip-address-family\x03\0\x08\x01p}\x01\
-r\x02\x04data\x0a\x0eremote-address\x07\x04\0\x11incoming-datagram\x03\0\x0b\x01\
-k\x07\x01r\x02\x04data\x0a\x0eremote-address\x0d\x04\0\x11outgoing-datagram\x03\0\
-\x0e\x04\0\x0audp-socket\x03\x01\x04\0\x18incoming-datagram-stream\x03\x01\x04\0\
-\x18outgoing-datagram-stream\x03\x01\x01h\x10\x01h\x03\x01j\0\x01\x05\x01@\x03\x04\
-self\x13\x07network\x14\x0dlocal-address\x07\0\x15\x04\0\x1d[method]udp-socket.s\
-tart-bind\x01\x16\x01@\x01\x04self\x13\0\x15\x04\0\x1e[method]udp-socket.finish-\
-bind\x01\x17\x01i\x11\x01i\x12\x01o\x02\x18\x19\x01j\x01\x1a\x01\x05\x01@\x02\x04\
-self\x13\x0eremote-address\x0d\0\x1b\x04\0\x19[method]udp-socket.stream\x01\x1c\x01\
-j\x01\x07\x01\x05\x01@\x01\x04self\x13\0\x1d\x04\0\x20[method]udp-socket.local-a\
-ddress\x01\x1e\x04\0![method]udp-socket.remote-address\x01\x1e\x01@\x01\x04self\x13\
-\0\x09\x04\0![method]udp-socket.address-family\x01\x1f\x01j\x01}\x01\x05\x01@\x01\
-\x04self\x13\0\x20\x04\0$[method]udp-socket.unicast-hop-limit\x01!\x01@\x02\x04s\
-elf\x13\x05value}\0\x15\x04\0([method]udp-socket.set-unicast-hop-limit\x01\"\x01\
-j\x01w\x01\x05\x01@\x01\x04self\x13\0#\x04\0&[method]udp-socket.receive-buffer-s\
-ize\x01$\x01@\x02\x04self\x13\x05valuew\0\x15\x04\0*[method]udp-socket.set-recei\
-ve-buffer-size\x01%\x04\0#[method]udp-socket.send-buffer-size\x01$\x04\0'[method\
-]udp-socket.set-send-buffer-size\x01%\x01i\x01\x01@\x01\x04self\x13\0&\x04\0\x1c\
-[method]udp-socket.subscribe\x01'\x01h\x11\x01p\x0c\x01j\x01)\x01\x05\x01@\x02\x04\
-self(\x0bmax-resultsw\0*\x04\0([method]incoming-datagram-stream.receive\x01+\x01\
-@\x01\x04self(\0&\x04\0*[method]incoming-datagram-stream.subscribe\x01,\x01h\x12\
-\x01@\x01\x04self-\0#\x04\0+[method]outgoing-datagram-stream.check-send\x01.\x01\
-p\x0f\x01@\x02\x04self-\x09datagrams/\0#\x04\0%[method]outgoing-datagram-stream.\
-send\x010\x01@\x01\x04self-\0&\x04\0*[method]outgoing-datagram-stream.subscribe\x01\
-1\x03\0\x16wasi:sockets/udp@0.2.0\x05@\x02\x03\0\x1a\x0audp-socket\x01B\x0c\x02\x03\
-\x02\x01;\x04\0\x07network\x03\0\0\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x02\
-\x02\x03\x02\x01?\x04\0\x11ip-address-family\x03\0\x04\x02\x03\x02\x01A\x04\0\x0a\
-udp-socket\x03\0\x06\x01i\x07\x01j\x01\x08\x01\x03\x01@\x01\x0eaddress-family\x05\
-\0\x09\x04\0\x11create-udp-socket\x01\x0a\x03\0$wasi:sockets/udp-create-socket@0\
-.2.0\x05B\x01BT\x02\x03\x02\x01\x1a\x04\0\x0cinput-stream\x03\0\0\x02\x03\x02\x01\
-\x1b\x04\0\x0doutput-stream\x03\0\x02\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\
-\x04\x02\x03\x02\x01\x19\x04\0\x08duration\x03\0\x06\x02\x03\x02\x01;\x04\0\x07n\
-etwork\x03\0\x08\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x0a\x02\x03\x02\x01>\
-\x04\0\x11ip-socket-address\x03\0\x0c\x02\x03\x02\x01?\x04\0\x11ip-address-famil\
-y\x03\0\x0e\x01m\x03\x07receive\x04send\x04both\x04\0\x0dshutdown-type\x03\0\x10\
-\x04\0\x0atcp-socket\x03\x01\x01h\x12\x01h\x09\x01j\0\x01\x0b\x01@\x03\x04self\x13\
-\x07network\x14\x0dlocal-address\x0d\0\x15\x04\0\x1d[method]tcp-socket.start-bin\
-d\x01\x16\x01@\x01\x04self\x13\0\x15\x04\0\x1e[method]tcp-socket.finish-bind\x01\
-\x17\x01@\x03\x04self\x13\x07network\x14\x0eremote-address\x0d\0\x15\x04\0\x20[m\
-ethod]tcp-socket.start-connect\x01\x18\x01i\x01\x01i\x03\x01o\x02\x19\x1a\x01j\x01\
-\x1b\x01\x0b\x01@\x01\x04self\x13\0\x1c\x04\0![method]tcp-socket.finish-connect\x01\
-\x1d\x04\0\x1f[method]tcp-socket.start-listen\x01\x17\x04\0\x20[method]tcp-socke\
-t.finish-listen\x01\x17\x01i\x12\x01o\x03\x1e\x19\x1a\x01j\x01\x1f\x01\x0b\x01@\x01\
-\x04self\x13\0\x20\x04\0\x19[method]tcp-socket.accept\x01!\x01j\x01\x0d\x01\x0b\x01\
-@\x01\x04self\x13\0\"\x04\0\x20[method]tcp-socket.local-address\x01#\x04\0![meth\
-od]tcp-socket.remote-address\x01#\x01@\x01\x04self\x13\0\x7f\x04\0\x1f[method]tc\
-p-socket.is-listening\x01$\x01@\x01\x04self\x13\0\x0f\x04\0![method]tcp-socket.a\
-ddress-family\x01%\x01@\x02\x04self\x13\x05valuew\0\x15\x04\0*[method]tcp-socket\
-.set-listen-backlog-size\x01&\x01j\x01\x7f\x01\x0b\x01@\x01\x04self\x13\0'\x04\0\
-%[method]tcp-socket.keep-alive-enabled\x01(\x01@\x02\x04self\x13\x05value\x7f\0\x15\
-\x04\0)[method]tcp-socket.set-keep-alive-enabled\x01)\x01j\x01\x07\x01\x0b\x01@\x01\
-\x04self\x13\0*\x04\0'[method]tcp-socket.keep-alive-idle-time\x01+\x01@\x02\x04s\
-elf\x13\x05value\x07\0\x15\x04\0+[method]tcp-socket.set-keep-alive-idle-time\x01\
-,\x04\0&[method]tcp-socket.keep-alive-interval\x01+\x04\0*[method]tcp-socket.set\
--keep-alive-interval\x01,\x01j\x01y\x01\x0b\x01@\x01\x04self\x13\0-\x04\0#[metho\
-d]tcp-socket.keep-alive-count\x01.\x01@\x02\x04self\x13\x05valuey\0\x15\x04\0'[m\
-ethod]tcp-socket.set-keep-alive-count\x01/\x01j\x01}\x01\x0b\x01@\x01\x04self\x13\
-\00\x04\0\x1c[method]tcp-socket.hop-limit\x011\x01@\x02\x04self\x13\x05value}\0\x15\
-\x04\0\x20[method]tcp-socket.set-hop-limit\x012\x01j\x01w\x01\x0b\x01@\x01\x04se\
-lf\x13\03\x04\0&[method]tcp-socket.receive-buffer-size\x014\x04\0*[method]tcp-so\
-cket.set-receive-buffer-size\x01&\x04\0#[method]tcp-socket.send-buffer-size\x014\
-\x04\0'[method]tcp-socket.set-send-buffer-size\x01&\x01i\x05\x01@\x01\x04self\x13\
-\05\x04\0\x1c[method]tcp-socket.subscribe\x016\x01@\x02\x04self\x13\x0dshutdown-\
-type\x11\0\x15\x04\0\x1b[method]tcp-socket.shutdown\x017\x03\0\x16wasi:sockets/t\
-cp@0.2.0\x05C\x02\x03\0\x1c\x0atcp-socket\x01B\x0c\x02\x03\x02\x01;\x04\0\x07net\
-work\x03\0\0\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x02\x02\x03\x02\x01?\x04\
-\0\x11ip-address-family\x03\0\x04\x02\x03\x02\x01D\x04\0\x0atcp-socket\x03\0\x06\
-\x01i\x07\x01j\x01\x08\x01\x03\x01@\x01\x0eaddress-family\x05\0\x09\x04\0\x11cre\
-ate-tcp-socket\x01\x0a\x03\0$wasi:sockets/tcp-create-socket@0.2.0\x05E\x02\x03\0\
-\x18\x0aip-address\x01B\x16\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\0\x02\x03\
-\x02\x01;\x04\0\x07network\x03\0\x02\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x04\
-\x02\x03\x02\x01F\x04\0\x0aip-address\x03\0\x06\x04\0\x16resolve-address-stream\x03\
-\x01\x01h\x08\x01k\x07\x01j\x01\x0a\x01\x05\x01@\x01\x04self\x09\0\x0b\x04\03[me\
-thod]resolve-address-stream.resolve-next-address\x01\x0c\x01i\x01\x01@\x01\x04se\
-lf\x09\0\x0d\x04\0([method]resolve-address-stream.subscribe\x01\x0e\x01h\x03\x01\
-i\x08\x01j\x01\x10\x01\x05\x01@\x02\x07network\x0f\x04names\0\x11\x04\0\x11resol\
-ve-addresses\x01\x12\x03\0!wasi:sockets/ip-name-lookup@0.2.0\x05G\x01B\x05\x01p}\
-\x01@\x01\x03lenw\0\0\x04\0\x10get-random-bytes\x01\x01\x01@\0\0w\x04\0\x0eget-r\
-andom-u64\x01\x02\x03\0\x18wasi:random/random@0.2.0\x05H\x01B\x05\x01p}\x01@\x01\
-\x03lenw\0\0\x04\0\x19get-insecure-random-bytes\x01\x01\x01@\0\0w\x04\0\x17get-i\
-nsecure-random-u64\x01\x02\x03\0\x1awasi:random/insecure@0.2.0\x05I\x01B\x03\x01\
-o\x02ww\x01@\0\0\0\x04\0\x0dinsecure-seed\x01\x01\x03\0\x1fwasi:random/insecure-\
-seed@0.2.0\x05J\x01B\x1c\x01q\x03\x0dno-such-store\0\0\x0daccess-denied\0\0\x05o\
-ther\x01s\0\x04\0\x05error\x03\0\0\x01ps\x01ks\x01r\x02\x04keys\x02\x06cursor\x03\
-\x04\0\x0ckey-response\x03\0\x04\x04\0\x06bucket\x03\x01\x01h\x06\x01p}\x01k\x08\
-\x01j\x01\x09\x01\x01\x01@\x02\x04self\x07\x03keys\0\x0a\x04\0\x12[method]bucket\
-.get\x01\x0b\x01j\0\x01\x01\x01@\x03\x04self\x07\x03keys\x05value\x08\0\x0c\x04\0\
-\x12[method]bucket.set\x01\x0d\x01@\x02\x04self\x07\x03keys\0\x0c\x04\0\x15[meth\
-od]bucket.delete\x01\x0e\x01j\x01\x7f\x01\x01\x01@\x02\x04self\x07\x03keys\0\x0f\
-\x04\0\x15[method]bucket.exists\x01\x10\x01j\x01\x05\x01\x01\x01@\x02\x04self\x07\
-\x06cursor\x03\0\x11\x04\0\x18[method]bucket.list-keys\x01\x12\x01i\x06\x01j\x01\
-\x13\x01\x01\x01@\x01\x0aidentifiers\0\x14\x04\0\x04open\x01\x15\x03\0\x20wasi:k\
-eyvalue/store@0.2.0-draft2\x05K\x02\x03\0\"\x06bucket\x02\x03\0\"\x05error\x01B\x18\
-\x02\x03\x02\x01L\x04\0\x06bucket\x03\0\0\x02\x03\x02\x01M\x04\0\x05error\x03\0\x02\
-\x04\0\x03cas\x03\x01\x01i\x04\x01q\x02\x0bstore-error\x01\x03\0\x0acas-failed\x01\
-\x05\0\x04\0\x09cas-error\x03\0\x06\x01h\x01\x01j\x01\x05\x01\x03\x01@\x02\x06bu\
-cket\x08\x03keys\0\x09\x04\0\x0f[static]cas.new\x01\x0a\x01h\x04\x01p}\x01k\x0c\x01\
-j\x01\x0d\x01\x03\x01@\x01\x04self\x0b\0\x0e\x04\0\x13[method]cas.current\x01\x0f\
-\x01j\x01x\x01\x03\x01@\x03\x06bucket\x08\x03keys\x05deltax\0\x10\x04\0\x09incre\
-ment\x01\x11\x01j\0\x01\x07\x01@\x02\x03cas\x05\x05value\x0c\0\x12\x04\0\x04swap\
-\x01\x13\x03\0\"wasi:keyvalue/atomics@0.2.0-draft2\x05N\x01B\x13\x02\x03\x02\x01\
-L\x04\0\x06bucket\x03\0\0\x02\x03\x02\x01M\x04\0\x05error\x03\0\x02\x01h\x01\x01\
-ps\x01p}\x01o\x02s\x06\x01k\x07\x01p\x08\x01j\x01\x09\x01\x03\x01@\x02\x06bucket\
-\x04\x04keys\x05\0\x0a\x04\0\x08get-many\x01\x0b\x01p\x07\x01j\0\x01\x03\x01@\x02\
-\x06bucket\x04\x0akey-values\x0c\0\x0d\x04\0\x08set-many\x01\x0e\x01@\x02\x06buc\
-ket\x04\x04keys\x05\0\x0d\x04\0\x0bdelete-many\x01\x0f\x03\0\x20wasi:keyvalue/ba\
-tch@0.2.0-draft2\x05O\x01p\x10\x01j\x01\xd0\0\x01s\x01@\x01\x06packet\x0e\0\xd1\0\
-\x04\0\x0eprocess-packet\x01R\x04\0\x15handle-timer-callback\x01R\x01j\x01\x12\x01\
-s\x01j\0\x01s\x01@\x02\x06packet\x0e\x09tx-result\xd3\0\0\xd4\0\x04\0\x16handle-\
-submit-callback\x01U\x04\0/wavs:aggregator/aggregator-world@0.6.0-alpha.11\x04\0\
-\x0b\x16\x01\0\x10aggregator-world\x03\0\0\0G\x09producers\x01\x0cprocessed-by\x02\
-\x0dwit-component\x070.227.1\x10wit-bindgen-rust\x060.41.0";
+-hash\x0c\x0corigin-blockw\x04\0\x06packet\x03\0\x11\x01r\x01\x05delay\x01\x04\0\
+\x0ctimer-action\x03\0\x13\x01kw\x01r\x03\x05chain\x09\x10contract-address\x0b\x09\
+gas-price\x15\x04\0\x0dsubmit-action\x03\0\x16\x01q\x02\x05timer\x01\x14\0\x06su\
+bmit\x01\x17\0\x04\0\x11aggregator-action\x03\0\x18\x03\0)wavs:aggregator/aggreg\
+ator@0.6.0-alpha.12\x05\x0c\x02\x03\0\x03\x06packet\x03\0\x06packet\x03\0\x0d\x02\
+\x03\0\x03\x11aggregator-action\x03\0\x11aggregator-action\x03\0\x0f\x02\x03\0\x01\
+\x0bany-tx-hash\x03\0\x0bany-tx-hash\x03\0\x11\x01B\x0a\x04\0\x08pollable\x03\x01\
+\x01h\0\x01@\x01\x04self\x01\0\x7f\x04\0\x16[method]pollable.ready\x01\x02\x01@\x01\
+\x04self\x01\x01\0\x04\0\x16[method]pollable.block\x01\x03\x01p\x01\x01py\x01@\x01\
+\x02in\x04\0\x05\x04\0\x04poll\x01\x06\x03\0\x12wasi:io/poll@0.2.0\x05\x13\x02\x03\
+\0\x04\x08pollable\x01B\x0f\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\0\x01w\x04\
+\0\x07instant\x03\0\x02\x01w\x04\0\x08duration\x03\0\x04\x01@\0\0\x03\x04\0\x03n\
+ow\x01\x06\x01@\0\0\x05\x04\0\x0aresolution\x01\x07\x01i\x01\x01@\x01\x04when\x03\
+\0\x08\x04\0\x11subscribe-instant\x01\x09\x01@\x01\x04when\x05\0\x08\x04\0\x12su\
+bscribe-duration\x01\x0a\x03\0!wasi:clocks/monotonic-clock@0.2.0\x05\x15\x01B\x04\
+\x04\0\x05error\x03\x01\x01h\0\x01@\x01\x04self\x01\0s\x04\0\x1d[method]error.to\
+-debug-string\x01\x02\x03\0\x13wasi:io/error@0.2.0\x05\x16\x02\x03\0\x06\x05erro\
+r\x01B(\x02\x03\x02\x01\x17\x04\0\x05error\x03\0\0\x02\x03\x02\x01\x14\x04\0\x08\
+pollable\x03\0\x02\x01i\x01\x01q\x02\x15last-operation-failed\x01\x04\0\x06close\
+d\0\0\x04\0\x0cstream-error\x03\0\x05\x04\0\x0cinput-stream\x03\x01\x04\0\x0dout\
+put-stream\x03\x01\x01h\x07\x01p}\x01j\x01\x0a\x01\x06\x01@\x02\x04self\x09\x03l\
+enw\0\x0b\x04\0\x19[method]input-stream.read\x01\x0c\x04\0\"[method]input-stream\
+.blocking-read\x01\x0c\x01j\x01w\x01\x06\x01@\x02\x04self\x09\x03lenw\0\x0d\x04\0\
+\x19[method]input-stream.skip\x01\x0e\x04\0\"[method]input-stream.blocking-skip\x01\
+\x0e\x01i\x03\x01@\x01\x04self\x09\0\x0f\x04\0\x1e[method]input-stream.subscribe\
+\x01\x10\x01h\x08\x01@\x01\x04self\x11\0\x0d\x04\0![method]output-stream.check-w\
+rite\x01\x12\x01j\0\x01\x06\x01@\x02\x04self\x11\x08contents\x0a\0\x13\x04\0\x1b\
+[method]output-stream.write\x01\x14\x04\0.[method]output-stream.blocking-write-a\
+nd-flush\x01\x14\x01@\x01\x04self\x11\0\x13\x04\0\x1b[method]output-stream.flush\
+\x01\x15\x04\0$[method]output-stream.blocking-flush\x01\x15\x01@\x01\x04self\x11\
+\0\x0f\x04\0\x1f[method]output-stream.subscribe\x01\x16\x01@\x02\x04self\x11\x03\
+lenw\0\x13\x04\0\"[method]output-stream.write-zeroes\x01\x17\x04\05[method]outpu\
+t-stream.blocking-write-zeroes-and-flush\x01\x17\x01@\x03\x04self\x11\x03src\x09\
+\x03lenw\0\x0d\x04\0\x1c[method]output-stream.splice\x01\x18\x04\0%[method]outpu\
+t-stream.blocking-splice\x01\x18\x03\0\x15wasi:io/streams@0.2.0\x05\x18\x02\x03\0\
+\x05\x08duration\x02\x03\0\x07\x0cinput-stream\x02\x03\0\x07\x0doutput-stream\x01\
+B\xc0\x01\x02\x03\x02\x01\x19\x04\0\x08duration\x03\0\0\x02\x03\x02\x01\x1a\x04\0\
+\x0cinput-stream\x03\0\x02\x02\x03\x02\x01\x1b\x04\0\x0doutput-stream\x03\0\x04\x02\
+\x03\x02\x01\x17\x04\0\x08io-error\x03\0\x06\x02\x03\x02\x01\x14\x04\0\x08pollab\
+le\x03\0\x08\x01q\x0a\x03get\0\0\x04head\0\0\x04post\0\0\x03put\0\0\x06delete\0\0\
+\x07connect\0\0\x07options\0\0\x05trace\0\0\x05patch\0\0\x05other\x01s\0\x04\0\x06\
+method\x03\0\x0a\x01q\x03\x04HTTP\0\0\x05HTTPS\0\0\x05other\x01s\0\x04\0\x06sche\
+me\x03\0\x0c\x01ks\x01k{\x01r\x02\x05rcode\x0e\x09info-code\x0f\x04\0\x11DNS-err\
+or-payload\x03\0\x10\x01k}\x01r\x02\x08alert-id\x12\x0dalert-message\x0e\x04\0\x1a\
+TLS-alert-received-payload\x03\0\x13\x01ky\x01r\x02\x0afield-name\x0e\x0afield-s\
+ize\x15\x04\0\x12field-size-payload\x03\0\x16\x01kw\x01k\x17\x01q'\x0bDNS-timeou\
+t\0\0\x09DNS-error\x01\x11\0\x15destination-not-found\0\0\x17destination-unavail\
+able\0\0\x19destination-IP-prohibited\0\0\x19destination-IP-unroutable\0\0\x12co\
+nnection-refused\0\0\x15connection-terminated\0\0\x12connection-timeout\0\0\x17c\
+onnection-read-timeout\0\0\x18connection-write-timeout\0\0\x18connection-limit-r\
+eached\0\0\x12TLS-protocol-error\0\0\x15TLS-certificate-error\0\0\x12TLS-alert-r\
+eceived\x01\x14\0\x13HTTP-request-denied\0\0\x1cHTTP-request-length-required\0\0\
+\x16HTTP-request-body-size\x01\x18\0\x1bHTTP-request-method-invalid\0\0\x18HTTP-\
+request-URI-invalid\0\0\x19HTTP-request-URI-too-long\0\0\x20HTTP-request-header-\
+section-size\x01\x15\0\x18HTTP-request-header-size\x01\x19\0!HTTP-request-traile\
+r-section-size\x01\x15\0\x19HTTP-request-trailer-size\x01\x17\0\x18HTTP-response\
+-incomplete\0\0!HTTP-response-header-section-size\x01\x15\0\x19HTTP-response-hea\
+der-size\x01\x17\0\x17HTTP-response-body-size\x01\x18\0\"HTTP-response-trailer-s\
+ection-size\x01\x15\0\x1aHTTP-response-trailer-size\x01\x17\0\x1dHTTP-response-t\
+ransfer-coding\x01\x0e\0\x1cHTTP-response-content-coding\x01\x0e\0\x15HTTP-respo\
+nse-timeout\0\0\x13HTTP-upgrade-failed\0\0\x13HTTP-protocol-error\0\0\x0dloop-de\
+tected\0\0\x13configuration-error\0\0\x0einternal-error\x01\x0e\0\x04\0\x0aerror\
+-code\x03\0\x1a\x01q\x03\x0einvalid-syntax\0\0\x09forbidden\0\0\x09immutable\0\0\
+\x04\0\x0cheader-error\x03\0\x1c\x01s\x04\0\x09field-key\x03\0\x1e\x01p}\x04\0\x0b\
+field-value\x03\0\x20\x04\0\x06fields\x03\x01\x04\0\x07headers\x03\0\"\x04\0\x08\
+trailers\x03\0\"\x04\0\x10incoming-request\x03\x01\x04\0\x10outgoing-request\x03\
+\x01\x04\0\x0frequest-options\x03\x01\x04\0\x11response-outparam\x03\x01\x01{\x04\
+\0\x0bstatus-code\x03\0)\x04\0\x11incoming-response\x03\x01\x04\0\x0dincoming-bo\
+dy\x03\x01\x04\0\x0ffuture-trailers\x03\x01\x04\0\x11outgoing-response\x03\x01\x04\
+\0\x0doutgoing-body\x03\x01\x04\0\x18future-incoming-response\x03\x01\x01i\"\x01\
+@\0\01\x04\0\x13[constructor]fields\x012\x01o\x02\x1f!\x01p3\x01j\x011\x01\x1d\x01\
+@\x01\x07entries4\05\x04\0\x18[static]fields.from-list\x016\x01h\"\x01p!\x01@\x02\
+\x04self7\x04name\x1f\08\x04\0\x12[method]fields.get\x019\x01@\x02\x04self7\x04n\
+ame\x1f\0\x7f\x04\0\x12[method]fields.has\x01:\x01j\0\x01\x1d\x01@\x03\x04self7\x04\
+name\x1f\x05value8\0;\x04\0\x12[method]fields.set\x01<\x01@\x02\x04self7\x04name\
+\x1f\0;\x04\0\x15[method]fields.delete\x01=\x01@\x03\x04self7\x04name\x1f\x05val\
+ue!\0;\x04\0\x15[method]fields.append\x01>\x01@\x01\x04self7\04\x04\0\x16[method\
+]fields.entries\x01?\x01@\x01\x04self7\01\x04\0\x14[method]fields.clone\x01@\x01\
+h%\x01@\x01\x04self\xc1\0\0\x0b\x04\0\x1f[method]incoming-request.method\x01B\x01\
+@\x01\x04self\xc1\0\0\x0e\x04\0([method]incoming-request.path-with-query\x01C\x01\
+k\x0d\x01@\x01\x04self\xc1\0\0\xc4\0\x04\0\x1f[method]incoming-request.scheme\x01\
+E\x04\0\"[method]incoming-request.authority\x01C\x01i#\x01@\x01\x04self\xc1\0\0\xc6\
+\0\x04\0\x20[method]incoming-request.headers\x01G\x01i,\x01j\x01\xc8\0\0\x01@\x01\
+\x04self\xc1\0\0\xc9\0\x04\0\x20[method]incoming-request.consume\x01J\x01i&\x01@\
+\x01\x07headers\xc6\0\0\xcb\0\x04\0\x1d[constructor]outgoing-request\x01L\x01h&\x01\
+i/\x01j\x01\xce\0\0\x01@\x01\x04self\xcd\0\0\xcf\0\x04\0\x1d[method]outgoing-req\
+uest.body\x01P\x01@\x01\x04self\xcd\0\0\x0b\x04\0\x1f[method]outgoing-request.me\
+thod\x01Q\x01j\0\0\x01@\x02\x04self\xcd\0\x06method\x0b\0\xd2\0\x04\0#[method]ou\
+tgoing-request.set-method\x01S\x01@\x01\x04self\xcd\0\0\x0e\x04\0([method]outgoi\
+ng-request.path-with-query\x01T\x01@\x02\x04self\xcd\0\x0fpath-with-query\x0e\0\xd2\
+\0\x04\0,[method]outgoing-request.set-path-with-query\x01U\x01@\x01\x04self\xcd\0\
+\0\xc4\0\x04\0\x1f[method]outgoing-request.scheme\x01V\x01@\x02\x04self\xcd\0\x06\
+scheme\xc4\0\0\xd2\0\x04\0#[method]outgoing-request.set-scheme\x01W\x04\0\"[meth\
+od]outgoing-request.authority\x01T\x01@\x02\x04self\xcd\0\x09authority\x0e\0\xd2\
+\0\x04\0&[method]outgoing-request.set-authority\x01X\x01@\x01\x04self\xcd\0\0\xc6\
+\0\x04\0\x20[method]outgoing-request.headers\x01Y\x01i'\x01@\0\0\xda\0\x04\0\x1c\
+[constructor]request-options\x01[\x01h'\x01k\x01\x01@\x01\x04self\xdc\0\0\xdd\0\x04\
+\0'[method]request-options.connect-timeout\x01^\x01@\x02\x04self\xdc\0\x08durati\
+on\xdd\0\0\xd2\0\x04\0+[method]request-options.set-connect-timeout\x01_\x04\0*[m\
+ethod]request-options.first-byte-timeout\x01^\x04\0.[method]request-options.set-\
+first-byte-timeout\x01_\x04\0-[method]request-options.between-bytes-timeout\x01^\
+\x04\01[method]request-options.set-between-bytes-timeout\x01_\x01i(\x01i.\x01j\x01\
+\xe1\0\x01\x1b\x01@\x02\x05param\xe0\0\x08response\xe2\0\x01\0\x04\0\x1d[static]\
+response-outparam.set\x01c\x01h+\x01@\x01\x04self\xe4\0\0*\x04\0\x20[method]inco\
+ming-response.status\x01e\x01@\x01\x04self\xe4\0\0\xc6\0\x04\0![method]incoming-\
+response.headers\x01f\x01@\x01\x04self\xe4\0\0\xc9\0\x04\0![method]incoming-resp\
+onse.consume\x01g\x01h,\x01i\x03\x01j\x01\xe9\0\0\x01@\x01\x04self\xe8\0\0\xea\0\
+\x04\0\x1c[method]incoming-body.stream\x01k\x01i-\x01@\x01\x04this\xc8\0\0\xec\0\
+\x04\0\x1c[static]incoming-body.finish\x01m\x01h-\x01i\x09\x01@\x01\x04self\xee\0\
+\0\xef\0\x04\0![method]future-trailers.subscribe\x01p\x01i$\x01k\xf1\0\x01j\x01\xf2\
+\0\x01\x1b\x01j\x01\xf3\0\0\x01k\xf4\0\x01@\x01\x04self\xee\0\0\xf5\0\x04\0\x1b[\
+method]future-trailers.get\x01v\x01@\x01\x07headers\xc6\0\0\xe1\0\x04\0\x1e[cons\
+tructor]outgoing-response\x01w\x01h.\x01@\x01\x04self\xf8\0\0*\x04\0%[method]out\
+going-response.status-code\x01y\x01@\x02\x04self\xf8\0\x0bstatus-code*\0\xd2\0\x04\
+\0)[method]outgoing-response.set-status-code\x01z\x01@\x01\x04self\xf8\0\0\xc6\0\
+\x04\0![method]outgoing-response.headers\x01{\x01@\x01\x04self\xf8\0\0\xcf\0\x04\
+\0\x1e[method]outgoing-response.body\x01|\x01h/\x01i\x05\x01j\x01\xfe\0\0\x01@\x01\
+\x04self\xfd\0\0\xff\0\x04\0\x1b[method]outgoing-body.write\x01\x80\x01\x01j\0\x01\
+\x1b\x01@\x02\x04this\xce\0\x08trailers\xf2\0\0\x81\x01\x04\0\x1c[static]outgoin\
+g-body.finish\x01\x82\x01\x01h0\x01@\x01\x04self\x83\x01\0\xef\0\x04\0*[method]f\
+uture-incoming-response.subscribe\x01\x84\x01\x01i+\x01j\x01\x85\x01\x01\x1b\x01\
+j\x01\x86\x01\0\x01k\x87\x01\x01@\x01\x04self\x83\x01\0\x88\x01\x04\0$[method]fu\
+ture-incoming-response.get\x01\x89\x01\x01h\x07\x01k\x1b\x01@\x01\x03err\x8a\x01\
+\0\x8b\x01\x04\0\x0fhttp-error-code\x01\x8c\x01\x03\0\x15wasi:http/types@0.2.0\x05\
+\x1c\x02\x03\0\x08\x10outgoing-request\x02\x03\0\x08\x0frequest-options\x02\x03\0\
+\x08\x18future-incoming-response\x02\x03\0\x08\x0aerror-code\x01B\x0f\x02\x03\x02\
+\x01\x1d\x04\0\x10outgoing-request\x03\0\0\x02\x03\x02\x01\x1e\x04\0\x0frequest-\
+options\x03\0\x02\x02\x03\x02\x01\x1f\x04\0\x18future-incoming-response\x03\0\x04\
+\x02\x03\x02\x01\x20\x04\0\x0aerror-code\x03\0\x06\x01i\x01\x01i\x03\x01k\x09\x01\
+i\x05\x01j\x01\x0b\x01\x07\x01@\x02\x07request\x08\x07options\x0a\0\x0c\x04\0\x06\
+handle\x01\x0d\x03\0\x20wasi:http/outgoing-handler@0.2.0\x05!\x02\x03\0\x01\x10e\
+vm-chain-config\x02\x03\0\x01\x13cosmos-chain-config\x02\x03\0\0\x09log-level\x02\
+\x03\0\x02\x17service-and-workflow-id\x02\x03\0\x02\x18workflow-and-workflow-id\x01\
+B\x19\x02\x03\x02\x01\"\x04\0\x10evm-chain-config\x03\0\0\x02\x03\x02\x01#\x04\0\
+\x13cosmos-chain-config\x03\0\x02\x02\x03\x02\x01$\x04\0\x09log-level\x03\0\x04\x02\
+\x03\x02\x01%\x04\0\x17service-and-workflow-id\x03\0\x06\x02\x03\x02\x01&\x04\0\x18\
+workflow-and-workflow-id\x03\0\x08\x01k\x01\x01@\x01\x09chain-keys\0\x0a\x04\0\x14\
+get-evm-chain-config\x01\x0b\x01k\x03\x01@\x01\x09chain-keys\0\x0c\x04\0\x17get-\
+cosmos-chain-config\x01\x0d\x01ks\x01@\x01\x03keys\0\x0e\x04\0\x0aconfig-var\x01\
+\x0f\x01@\x02\x05level\x05\x07messages\x01\0\x04\0\x03log\x01\x10\x01@\0\0\x07\x04\
+\0\x0bget-service\x01\x11\x01@\0\0\x09\x04\0\x0cget-workflow\x01\x12\x03\0\x04ho\
+st\x05'\x01B\x0a\x01o\x02ss\x01p\0\x01@\0\0\x01\x04\0\x0fget-environment\x01\x02\
+\x01ps\x01@\0\0\x03\x04\0\x0dget-arguments\x01\x04\x01ks\x01@\0\0\x05\x04\0\x0bi\
+nitial-cwd\x01\x06\x03\0\x1awasi:cli/environment@0.2.0\x05(\x01B\x03\x01j\0\0\x01\
+@\x01\x06status\0\x01\0\x04\0\x04exit\x01\x01\x03\0\x13wasi:cli/exit@0.2.0\x05)\x01\
+B\x05\x02\x03\x02\x01\x1a\x04\0\x0cinput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\x04\
+\0\x09get-stdin\x01\x03\x03\0\x14wasi:cli/stdin@0.2.0\x05*\x01B\x05\x02\x03\x02\x01\
+\x1b\x04\0\x0doutput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x0aget-stdout\x01\
+\x03\x03\0\x15wasi:cli/stdout@0.2.0\x05+\x01B\x05\x02\x03\x02\x01\x1b\x04\0\x0do\
+utput-stream\x03\0\0\x01i\x01\x01@\0\0\x02\x04\0\x0aget-stderr\x01\x03\x03\0\x15\
+wasi:cli/stderr@0.2.0\x05,\x01B\x01\x04\0\x0eterminal-input\x03\x01\x03\0\x1dwas\
+i:cli/terminal-input@0.2.0\x05-\x01B\x01\x04\0\x0fterminal-output\x03\x01\x03\0\x1e\
+wasi:cli/terminal-output@0.2.0\x05.\x02\x03\0\x10\x0eterminal-input\x01B\x06\x02\
+\x03\x02\x01/\x04\0\x0eterminal-input\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\
+\0\x12get-terminal-stdin\x01\x04\x03\0\x1dwasi:cli/terminal-stdin@0.2.0\x050\x02\
+\x03\0\x11\x0fterminal-output\x01B\x06\x02\x03\x02\x011\x04\0\x0fterminal-output\
+\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\0\x13get-terminal-stdout\x01\x04\x03\
+\0\x1ewasi:cli/terminal-stdout@0.2.0\x052\x01B\x06\x02\x03\x02\x011\x04\0\x0fter\
+minal-output\x03\0\0\x01i\x01\x01k\x02\x01@\0\0\x03\x04\0\x13get-terminal-stderr\
+\x01\x04\x03\0\x1ewasi:cli/terminal-stderr@0.2.0\x053\x01B\x05\x01r\x02\x07secon\
+dsw\x0bnanosecondsy\x04\0\x08datetime\x03\0\0\x01@\0\0\x01\x04\0\x03now\x01\x02\x04\
+\0\x0aresolution\x01\x02\x03\0\x1cwasi:clocks/wall-clock@0.2.0\x054\x02\x03\0\x07\
+\x05error\x02\x03\0\x15\x08datetime\x01Br\x02\x03\x02\x01\x1a\x04\0\x0cinput-str\
+eam\x03\0\0\x02\x03\x02\x01\x1b\x04\0\x0doutput-stream\x03\0\x02\x02\x03\x02\x01\
+5\x04\0\x05error\x03\0\x04\x02\x03\x02\x016\x04\0\x08datetime\x03\0\x06\x01w\x04\
+\0\x08filesize\x03\0\x08\x01m\x08\x07unknown\x0cblock-device\x10character-device\
+\x09directory\x04fifo\x0dsymbolic-link\x0cregular-file\x06socket\x04\0\x0fdescri\
+ptor-type\x03\0\x0a\x01n\x06\x04read\x05write\x13file-integrity-sync\x13data-int\
+egrity-sync\x14requested-write-sync\x10mutate-directory\x04\0\x10descriptor-flag\
+s\x03\0\x0c\x01n\x01\x0esymlink-follow\x04\0\x0apath-flags\x03\0\x0e\x01n\x04\x06\
+create\x09directory\x09exclusive\x08truncate\x04\0\x0aopen-flags\x03\0\x10\x01w\x04\
+\0\x0alink-count\x03\0\x12\x01k\x07\x01r\x06\x04type\x0b\x0alink-count\x13\x04si\
+ze\x09\x15data-access-timestamp\x14\x1bdata-modification-timestamp\x14\x17status\
+-change-timestamp\x14\x04\0\x0fdescriptor-stat\x03\0\x15\x01q\x03\x09no-change\0\
+\0\x03now\0\0\x09timestamp\x01\x07\0\x04\0\x0dnew-timestamp\x03\0\x17\x01r\x02\x04\
+type\x0b\x04names\x04\0\x0fdirectory-entry\x03\0\x19\x01m%\x06access\x0bwould-bl\
+ock\x07already\x0ebad-descriptor\x04busy\x08deadlock\x05quota\x05exist\x0efile-t\
+oo-large\x15illegal-byte-sequence\x0bin-progress\x0binterrupted\x07invalid\x02io\
+\x0cis-directory\x04loop\x0etoo-many-links\x0cmessage-size\x0dname-too-long\x09n\
+o-device\x08no-entry\x07no-lock\x13insufficient-memory\x12insufficient-space\x0d\
+not-directory\x09not-empty\x0fnot-recoverable\x0bunsupported\x06no-tty\x0eno-suc\
+h-device\x08overflow\x0dnot-permitted\x04pipe\x09read-only\x0cinvalid-seek\x0ete\
+xt-file-busy\x0ccross-device\x04\0\x0aerror-code\x03\0\x1b\x01m\x06\x06normal\x0a\
+sequential\x06random\x09will-need\x09dont-need\x08no-reuse\x04\0\x06advice\x03\0\
+\x1d\x01r\x02\x05lowerw\x05upperw\x04\0\x13metadata-hash-value\x03\0\x1f\x04\0\x0a\
+descriptor\x03\x01\x04\0\x16directory-entry-stream\x03\x01\x01h!\x01i\x01\x01j\x01\
+$\x01\x1c\x01@\x02\x04self#\x06offset\x09\0%\x04\0\"[method]descriptor.read-via-\
+stream\x01&\x01i\x03\x01j\x01'\x01\x1c\x01@\x02\x04self#\x06offset\x09\0(\x04\0#\
+[method]descriptor.write-via-stream\x01)\x01@\x01\x04self#\0(\x04\0$[method]desc\
+riptor.append-via-stream\x01*\x01j\0\x01\x1c\x01@\x04\x04self#\x06offset\x09\x06\
+length\x09\x06advice\x1e\0+\x04\0\x19[method]descriptor.advise\x01,\x01@\x01\x04\
+self#\0+\x04\0\x1c[method]descriptor.sync-data\x01-\x01j\x01\x0d\x01\x1c\x01@\x01\
+\x04self#\0.\x04\0\x1c[method]descriptor.get-flags\x01/\x01j\x01\x0b\x01\x1c\x01\
+@\x01\x04self#\00\x04\0\x1b[method]descriptor.get-type\x011\x01@\x02\x04self#\x04\
+size\x09\0+\x04\0\x1b[method]descriptor.set-size\x012\x01@\x03\x04self#\x15data-\
+access-timestamp\x18\x1bdata-modification-timestamp\x18\0+\x04\0\x1c[method]desc\
+riptor.set-times\x013\x01p}\x01o\x024\x7f\x01j\x015\x01\x1c\x01@\x03\x04self#\x06\
+length\x09\x06offset\x09\06\x04\0\x17[method]descriptor.read\x017\x01j\x01\x09\x01\
+\x1c\x01@\x03\x04self#\x06buffer4\x06offset\x09\08\x04\0\x18[method]descriptor.w\
+rite\x019\x01i\"\x01j\x01:\x01\x1c\x01@\x01\x04self#\0;\x04\0![method]descriptor\
+.read-directory\x01<\x04\0\x17[method]descriptor.sync\x01-\x01@\x02\x04self#\x04\
+paths\0+\x04\0&[method]descriptor.create-directory-at\x01=\x01j\x01\x16\x01\x1c\x01\
+@\x01\x04self#\0>\x04\0\x17[method]descriptor.stat\x01?\x01@\x03\x04self#\x0apat\
+h-flags\x0f\x04paths\0>\x04\0\x1a[method]descriptor.stat-at\x01@\x01@\x05\x04sel\
+f#\x0apath-flags\x0f\x04paths\x15data-access-timestamp\x18\x1bdata-modification-\
+timestamp\x18\0+\x04\0\x1f[method]descriptor.set-times-at\x01A\x01@\x05\x04self#\
+\x0eold-path-flags\x0f\x08old-paths\x0enew-descriptor#\x08new-paths\0+\x04\0\x1a\
+[method]descriptor.link-at\x01B\x01i!\x01j\x01\xc3\0\x01\x1c\x01@\x05\x04self#\x0a\
+path-flags\x0f\x04paths\x0aopen-flags\x11\x05flags\x0d\0\xc4\0\x04\0\x1a[method]\
+descriptor.open-at\x01E\x01j\x01s\x01\x1c\x01@\x02\x04self#\x04paths\0\xc6\0\x04\
+\0\x1e[method]descriptor.readlink-at\x01G\x04\0&[method]descriptor.remove-direct\
+ory-at\x01=\x01@\x04\x04self#\x08old-paths\x0enew-descriptor#\x08new-paths\0+\x04\
+\0\x1c[method]descriptor.rename-at\x01H\x01@\x03\x04self#\x08old-paths\x08new-pa\
+ths\0+\x04\0\x1d[method]descriptor.symlink-at\x01I\x04\0![method]descriptor.unli\
+nk-file-at\x01=\x01@\x02\x04self#\x05other#\0\x7f\x04\0![method]descriptor.is-sa\
+me-object\x01J\x01j\x01\x20\x01\x1c\x01@\x01\x04self#\0\xcb\0\x04\0\x20[method]d\
+escriptor.metadata-hash\x01L\x01@\x03\x04self#\x0apath-flags\x0f\x04paths\0\xcb\0\
+\x04\0#[method]descriptor.metadata-hash-at\x01M\x01h\"\x01k\x1a\x01j\x01\xcf\0\x01\
+\x1c\x01@\x01\x04self\xce\0\0\xd0\0\x04\03[method]directory-entry-stream.read-di\
+rectory-entry\x01Q\x01h\x05\x01k\x1c\x01@\x01\x03err\xd2\0\0\xd3\0\x04\0\x15file\
+system-error-code\x01T\x03\0\x1bwasi:filesystem/types@0.2.0\x057\x02\x03\0\x16\x0a\
+descriptor\x01B\x07\x02\x03\x02\x018\x04\0\x0adescriptor\x03\0\0\x01i\x01\x01o\x02\
+\x02s\x01p\x03\x01@\0\0\x04\x04\0\x0fget-directories\x01\x05\x03\0\x1ewasi:files\
+ystem/preopens@0.2.0\x059\x01B\x11\x04\0\x07network\x03\x01\x01m\x15\x07unknown\x0d\
+access-denied\x0dnot-supported\x10invalid-argument\x0dout-of-memory\x07timeout\x14\
+concurrency-conflict\x0fnot-in-progress\x0bwould-block\x0dinvalid-state\x10new-s\
+ocket-limit\x14address-not-bindable\x0eaddress-in-use\x12remote-unreachable\x12c\
+onnection-refused\x10connection-reset\x12connection-aborted\x12datagram-too-larg\
+e\x11name-unresolvable\x1atemporary-resolver-failure\x1apermanent-resolver-failu\
+re\x04\0\x0aerror-code\x03\0\x01\x01m\x02\x04ipv4\x04ipv6\x04\0\x11ip-address-fa\
+mily\x03\0\x03\x01o\x04}}}}\x04\0\x0cipv4-address\x03\0\x05\x01o\x08{{{{{{{{\x04\
+\0\x0cipv6-address\x03\0\x07\x01q\x02\x04ipv4\x01\x06\0\x04ipv6\x01\x08\0\x04\0\x0a\
+ip-address\x03\0\x09\x01r\x02\x04port{\x07address\x06\x04\0\x13ipv4-socket-addre\
+ss\x03\0\x0b\x01r\x04\x04port{\x09flow-infoy\x07address\x08\x08scope-idy\x04\0\x13\
+ipv6-socket-address\x03\0\x0d\x01q\x02\x04ipv4\x01\x0c\0\x04ipv6\x01\x0e\0\x04\0\
+\x11ip-socket-address\x03\0\x0f\x03\0\x1awasi:sockets/network@0.2.0\x05:\x02\x03\
+\0\x18\x07network\x01B\x05\x02\x03\x02\x01;\x04\0\x07network\x03\0\0\x01i\x01\x01\
+@\0\0\x02\x04\0\x10instance-network\x01\x03\x03\0#wasi:sockets/instance-network@\
+0.2.0\x05<\x02\x03\0\x18\x0aerror-code\x02\x03\0\x18\x11ip-socket-address\x02\x03\
+\0\x18\x11ip-address-family\x01BD\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\0\x02\
+\x03\x02\x01;\x04\0\x07network\x03\0\x02\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\
+\0\x04\x02\x03\x02\x01>\x04\0\x11ip-socket-address\x03\0\x06\x02\x03\x02\x01?\x04\
+\0\x11ip-address-family\x03\0\x08\x01p}\x01r\x02\x04data\x0a\x0eremote-address\x07\
+\x04\0\x11incoming-datagram\x03\0\x0b\x01k\x07\x01r\x02\x04data\x0a\x0eremote-ad\
+dress\x0d\x04\0\x11outgoing-datagram\x03\0\x0e\x04\0\x0audp-socket\x03\x01\x04\0\
+\x18incoming-datagram-stream\x03\x01\x04\0\x18outgoing-datagram-stream\x03\x01\x01\
+h\x10\x01h\x03\x01j\0\x01\x05\x01@\x03\x04self\x13\x07network\x14\x0dlocal-addre\
+ss\x07\0\x15\x04\0\x1d[method]udp-socket.start-bind\x01\x16\x01@\x01\x04self\x13\
+\0\x15\x04\0\x1e[method]udp-socket.finish-bind\x01\x17\x01i\x11\x01i\x12\x01o\x02\
+\x18\x19\x01j\x01\x1a\x01\x05\x01@\x02\x04self\x13\x0eremote-address\x0d\0\x1b\x04\
+\0\x19[method]udp-socket.stream\x01\x1c\x01j\x01\x07\x01\x05\x01@\x01\x04self\x13\
+\0\x1d\x04\0\x20[method]udp-socket.local-address\x01\x1e\x04\0![method]udp-socke\
+t.remote-address\x01\x1e\x01@\x01\x04self\x13\0\x09\x04\0![method]udp-socket.add\
+ress-family\x01\x1f\x01j\x01}\x01\x05\x01@\x01\x04self\x13\0\x20\x04\0$[method]u\
+dp-socket.unicast-hop-limit\x01!\x01@\x02\x04self\x13\x05value}\0\x15\x04\0([met\
+hod]udp-socket.set-unicast-hop-limit\x01\"\x01j\x01w\x01\x05\x01@\x01\x04self\x13\
+\0#\x04\0&[method]udp-socket.receive-buffer-size\x01$\x01@\x02\x04self\x13\x05va\
+luew\0\x15\x04\0*[method]udp-socket.set-receive-buffer-size\x01%\x04\0#[method]u\
+dp-socket.send-buffer-size\x01$\x04\0'[method]udp-socket.set-send-buffer-size\x01\
+%\x01i\x01\x01@\x01\x04self\x13\0&\x04\0\x1c[method]udp-socket.subscribe\x01'\x01\
+h\x11\x01p\x0c\x01j\x01)\x01\x05\x01@\x02\x04self(\x0bmax-resultsw\0*\x04\0([met\
+hod]incoming-datagram-stream.receive\x01+\x01@\x01\x04self(\0&\x04\0*[method]inc\
+oming-datagram-stream.subscribe\x01,\x01h\x12\x01@\x01\x04self-\0#\x04\0+[method\
+]outgoing-datagram-stream.check-send\x01.\x01p\x0f\x01@\x02\x04self-\x09datagram\
+s/\0#\x04\0%[method]outgoing-datagram-stream.send\x010\x01@\x01\x04self-\0&\x04\0\
+*[method]outgoing-datagram-stream.subscribe\x011\x03\0\x16wasi:sockets/udp@0.2.0\
+\x05@\x02\x03\0\x1a\x0audp-socket\x01B\x0c\x02\x03\x02\x01;\x04\0\x07network\x03\
+\0\0\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x02\x02\x03\x02\x01?\x04\0\x11ip\
+-address-family\x03\0\x04\x02\x03\x02\x01A\x04\0\x0audp-socket\x03\0\x06\x01i\x07\
+\x01j\x01\x08\x01\x03\x01@\x01\x0eaddress-family\x05\0\x09\x04\0\x11create-udp-s\
+ocket\x01\x0a\x03\0$wasi:sockets/udp-create-socket@0.2.0\x05B\x01BT\x02\x03\x02\x01\
+\x1a\x04\0\x0cinput-stream\x03\0\0\x02\x03\x02\x01\x1b\x04\0\x0doutput-stream\x03\
+\0\x02\x02\x03\x02\x01\x14\x04\0\x08pollable\x03\0\x04\x02\x03\x02\x01\x19\x04\0\
+\x08duration\x03\0\x06\x02\x03\x02\x01;\x04\0\x07network\x03\0\x08\x02\x03\x02\x01\
+=\x04\0\x0aerror-code\x03\0\x0a\x02\x03\x02\x01>\x04\0\x11ip-socket-address\x03\0\
+\x0c\x02\x03\x02\x01?\x04\0\x11ip-address-family\x03\0\x0e\x01m\x03\x07receive\x04\
+send\x04both\x04\0\x0dshutdown-type\x03\0\x10\x04\0\x0atcp-socket\x03\x01\x01h\x12\
+\x01h\x09\x01j\0\x01\x0b\x01@\x03\x04self\x13\x07network\x14\x0dlocal-address\x0d\
+\0\x15\x04\0\x1d[method]tcp-socket.start-bind\x01\x16\x01@\x01\x04self\x13\0\x15\
+\x04\0\x1e[method]tcp-socket.finish-bind\x01\x17\x01@\x03\x04self\x13\x07network\
+\x14\x0eremote-address\x0d\0\x15\x04\0\x20[method]tcp-socket.start-connect\x01\x18\
+\x01i\x01\x01i\x03\x01o\x02\x19\x1a\x01j\x01\x1b\x01\x0b\x01@\x01\x04self\x13\0\x1c\
+\x04\0![method]tcp-socket.finish-connect\x01\x1d\x04\0\x1f[method]tcp-socket.sta\
+rt-listen\x01\x17\x04\0\x20[method]tcp-socket.finish-listen\x01\x17\x01i\x12\x01\
+o\x03\x1e\x19\x1a\x01j\x01\x1f\x01\x0b\x01@\x01\x04self\x13\0\x20\x04\0\x19[meth\
+od]tcp-socket.accept\x01!\x01j\x01\x0d\x01\x0b\x01@\x01\x04self\x13\0\"\x04\0\x20\
+[method]tcp-socket.local-address\x01#\x04\0![method]tcp-socket.remote-address\x01\
+#\x01@\x01\x04self\x13\0\x7f\x04\0\x1f[method]tcp-socket.is-listening\x01$\x01@\x01\
+\x04self\x13\0\x0f\x04\0![method]tcp-socket.address-family\x01%\x01@\x02\x04self\
+\x13\x05valuew\0\x15\x04\0*[method]tcp-socket.set-listen-backlog-size\x01&\x01j\x01\
+\x7f\x01\x0b\x01@\x01\x04self\x13\0'\x04\0%[method]tcp-socket.keep-alive-enabled\
+\x01(\x01@\x02\x04self\x13\x05value\x7f\0\x15\x04\0)[method]tcp-socket.set-keep-\
+alive-enabled\x01)\x01j\x01\x07\x01\x0b\x01@\x01\x04self\x13\0*\x04\0'[method]tc\
+p-socket.keep-alive-idle-time\x01+\x01@\x02\x04self\x13\x05value\x07\0\x15\x04\0\
++[method]tcp-socket.set-keep-alive-idle-time\x01,\x04\0&[method]tcp-socket.keep-\
+alive-interval\x01+\x04\0*[method]tcp-socket.set-keep-alive-interval\x01,\x01j\x01\
+y\x01\x0b\x01@\x01\x04self\x13\0-\x04\0#[method]tcp-socket.keep-alive-count\x01.\
+\x01@\x02\x04self\x13\x05valuey\0\x15\x04\0'[method]tcp-socket.set-keep-alive-co\
+unt\x01/\x01j\x01}\x01\x0b\x01@\x01\x04self\x13\00\x04\0\x1c[method]tcp-socket.h\
+op-limit\x011\x01@\x02\x04self\x13\x05value}\0\x15\x04\0\x20[method]tcp-socket.s\
+et-hop-limit\x012\x01j\x01w\x01\x0b\x01@\x01\x04self\x13\03\x04\0&[method]tcp-so\
+cket.receive-buffer-size\x014\x04\0*[method]tcp-socket.set-receive-buffer-size\x01\
+&\x04\0#[method]tcp-socket.send-buffer-size\x014\x04\0'[method]tcp-socket.set-se\
+nd-buffer-size\x01&\x01i\x05\x01@\x01\x04self\x13\05\x04\0\x1c[method]tcp-socket\
+.subscribe\x016\x01@\x02\x04self\x13\x0dshutdown-type\x11\0\x15\x04\0\x1b[method\
+]tcp-socket.shutdown\x017\x03\0\x16wasi:sockets/tcp@0.2.0\x05C\x02\x03\0\x1c\x0a\
+tcp-socket\x01B\x0c\x02\x03\x02\x01;\x04\0\x07network\x03\0\0\x02\x03\x02\x01=\x04\
+\0\x0aerror-code\x03\0\x02\x02\x03\x02\x01?\x04\0\x11ip-address-family\x03\0\x04\
+\x02\x03\x02\x01D\x04\0\x0atcp-socket\x03\0\x06\x01i\x07\x01j\x01\x08\x01\x03\x01\
+@\x01\x0eaddress-family\x05\0\x09\x04\0\x11create-tcp-socket\x01\x0a\x03\0$wasi:\
+sockets/tcp-create-socket@0.2.0\x05E\x02\x03\0\x18\x0aip-address\x01B\x16\x02\x03\
+\x02\x01\x14\x04\0\x08pollable\x03\0\0\x02\x03\x02\x01;\x04\0\x07network\x03\0\x02\
+\x02\x03\x02\x01=\x04\0\x0aerror-code\x03\0\x04\x02\x03\x02\x01F\x04\0\x0aip-add\
+ress\x03\0\x06\x04\0\x16resolve-address-stream\x03\x01\x01h\x08\x01k\x07\x01j\x01\
+\x0a\x01\x05\x01@\x01\x04self\x09\0\x0b\x04\03[method]resolve-address-stream.res\
+olve-next-address\x01\x0c\x01i\x01\x01@\x01\x04self\x09\0\x0d\x04\0([method]reso\
+lve-address-stream.subscribe\x01\x0e\x01h\x03\x01i\x08\x01j\x01\x10\x01\x05\x01@\
+\x02\x07network\x0f\x04names\0\x11\x04\0\x11resolve-addresses\x01\x12\x03\0!wasi\
+:sockets/ip-name-lookup@0.2.0\x05G\x01B\x05\x01p}\x01@\x01\x03lenw\0\0\x04\0\x10\
+get-random-bytes\x01\x01\x01@\0\0w\x04\0\x0eget-random-u64\x01\x02\x03\0\x18wasi\
+:random/random@0.2.0\x05H\x01B\x05\x01p}\x01@\x01\x03lenw\0\0\x04\0\x19get-insec\
+ure-random-bytes\x01\x01\x01@\0\0w\x04\0\x17get-insecure-random-u64\x01\x02\x03\0\
+\x1awasi:random/insecure@0.2.0\x05I\x01B\x03\x01o\x02ww\x01@\0\0\0\x04\0\x0dinse\
+cure-seed\x01\x01\x03\0\x1fwasi:random/insecure-seed@0.2.0\x05J\x01B\x1c\x01q\x03\
+\x0dno-such-store\0\0\x0daccess-denied\0\0\x05other\x01s\0\x04\0\x05error\x03\0\0\
+\x01ps\x01ks\x01r\x02\x04keys\x02\x06cursor\x03\x04\0\x0ckey-response\x03\0\x04\x04\
+\0\x06bucket\x03\x01\x01h\x06\x01p}\x01k\x08\x01j\x01\x09\x01\x01\x01@\x02\x04se\
+lf\x07\x03keys\0\x0a\x04\0\x12[method]bucket.get\x01\x0b\x01j\0\x01\x01\x01@\x03\
+\x04self\x07\x03keys\x05value\x08\0\x0c\x04\0\x12[method]bucket.set\x01\x0d\x01@\
+\x02\x04self\x07\x03keys\0\x0c\x04\0\x15[method]bucket.delete\x01\x0e\x01j\x01\x7f\
+\x01\x01\x01@\x02\x04self\x07\x03keys\0\x0f\x04\0\x15[method]bucket.exists\x01\x10\
+\x01j\x01\x05\x01\x01\x01@\x02\x04self\x07\x06cursor\x03\0\x11\x04\0\x18[method]\
+bucket.list-keys\x01\x12\x01i\x06\x01j\x01\x13\x01\x01\x01@\x01\x0aidentifiers\0\
+\x14\x04\0\x04open\x01\x15\x03\0\x20wasi:keyvalue/store@0.2.0-draft2\x05K\x02\x03\
+\0\"\x06bucket\x02\x03\0\"\x05error\x01B\x18\x02\x03\x02\x01L\x04\0\x06bucket\x03\
+\0\0\x02\x03\x02\x01M\x04\0\x05error\x03\0\x02\x04\0\x03cas\x03\x01\x01i\x04\x01\
+q\x02\x0bstore-error\x01\x03\0\x0acas-failed\x01\x05\0\x04\0\x09cas-error\x03\0\x06\
+\x01h\x01\x01j\x01\x05\x01\x03\x01@\x02\x06bucket\x08\x03keys\0\x09\x04\0\x0f[st\
+atic]cas.new\x01\x0a\x01h\x04\x01p}\x01k\x0c\x01j\x01\x0d\x01\x03\x01@\x01\x04se\
+lf\x0b\0\x0e\x04\0\x13[method]cas.current\x01\x0f\x01j\x01x\x01\x03\x01@\x03\x06\
+bucket\x08\x03keys\x05deltax\0\x10\x04\0\x09increment\x01\x11\x01j\0\x01\x07\x01\
+@\x02\x03cas\x05\x05value\x0c\0\x12\x04\0\x04swap\x01\x13\x03\0\"wasi:keyvalue/a\
+tomics@0.2.0-draft2\x05N\x01B\x13\x02\x03\x02\x01L\x04\0\x06bucket\x03\0\0\x02\x03\
+\x02\x01M\x04\0\x05error\x03\0\x02\x01h\x01\x01ps\x01p}\x01o\x02s\x06\x01k\x07\x01\
+p\x08\x01j\x01\x09\x01\x03\x01@\x02\x06bucket\x04\x04keys\x05\0\x0a\x04\0\x08get\
+-many\x01\x0b\x01p\x07\x01j\0\x01\x03\x01@\x02\x06bucket\x04\x0akey-values\x0c\0\
+\x0d\x04\0\x08set-many\x01\x0e\x01@\x02\x06bucket\x04\x04keys\x05\0\x0d\x04\0\x0b\
+delete-many\x01\x0f\x03\0\x20wasi:keyvalue/batch@0.2.0-draft2\x05O\x01p\x10\x01j\
+\x01\xd0\0\x01s\x01@\x01\x06packet\x0e\0\xd1\0\x04\0\x0eprocess-packet\x01R\x04\0\
+\x15handle-timer-callback\x01R\x01j\x01\x12\x01s\x01j\0\x01s\x01@\x02\x06packet\x0e\
+\x09tx-result\xd3\0\0\xd4\0\x04\0\x16handle-submit-callback\x01U\x04\0/wavs:aggr\
+egator/aggregator-world@0.6.0-alpha.12\x04\0\x0b\x16\x01\0\x10aggregator-world\x03\
+\0\0\0G\x09producers\x01\x0cprocessed-by\x02\x0dwit-component\x070.227.1\x10wit-\
+bindgen-rust\x060.41.0";
 #[inline(never)]
 #[doc(hidden)]
 pub fn __link_custom_section_describing_imports() {

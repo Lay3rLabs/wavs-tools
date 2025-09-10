@@ -2,7 +2,7 @@ This repo contains various tools and services that make up the WAVS ecosystem.
 
 # PROJECTS
 
-## [operator-updater](projects/operator-updater) 
+## [operator-updater](projects/operator-updater)
 
 A service for updating AVS operator registrations within a single blockchain. This tool monitors ECDSAStakeRegistry contracts, tracks operator registration events, and maintains up-to-date operator sets for quorum management in AVS deployments.
 
@@ -38,7 +38,7 @@ A WASI component that provides deterministic event-based randomness by combining
 <details>
 <summary>System configuration</summary>
 
-### Setup default wkg registry 
+### Setup default wkg registry
 
 ```bash docci-ignore
 wkg config --default-registry wa.dev
@@ -59,6 +59,7 @@ cp .env.example .env
 Install dependencies, compile core contracts, etc.
 This may take a while on first run.
 ```bash
+# git submodule update --recursive --init
 task setup
 ```
 
@@ -72,10 +73,10 @@ task backend:start
 You can also start the backend with multiple chains, where the first will fork holesky and the rest will be local-only:
 
 ```bash
-task backend:start CHAINS=3 
+task backend:start CHAINS=3
 ```
 
-You can also spin up multipler operator instances:
+You can also spin up multiple operator instances:
 
 ```bash
 task backend:start OPERATORS=4
@@ -87,7 +88,7 @@ task backend:start OPERATORS=4
 task backend:stop
 ```
 
-## Develop a tool 
+## Develop a tool
 There are many sub-steps to deploying and developing a tool. For convenience, just run the `bootstrap` task, and take a look at what it does for more info
 
 ```bash
@@ -154,21 +155,21 @@ Jaeger UI is at http://localhost:16686/
 
 Prometheus is at http://localhost:9090/
 
-wavs-cli can be executed via `task cli:wavs -- [command]` 
+wavs-cli can be executed via `task cli:wavs -- [command]`
 
 # TASKFILES
 
-The `Taskfile.yml` in the root directory is used to run general commands like spinning up the backend, deploying middleware, etc. 
+The `Taskfile.yml` in the root directory is used to run general commands like spinning up the backend, deploying middleware, etc.
 
 Each project may have its own `Taskfile.yml` for specific tasks related to that tool.
 
 The files in [taskfile](taskfile) directory are imports, not run directly (by convention, the _only_ executable taskfiles are explicitly named `Taskfile.yml`).
 
-# CONFIGURATION 
+# CONFIGURATION
 
 Global secrets like private keys are stored in the [.env](#first-time-setup) file.
 
-Other global configuration variables are set in [taskfile/config.yml](taskfile/config.yml). 
+Other global configuration variables are set in [taskfile/config.yml](taskfile/config.yml).
 
 These make their way automatically to wherever they are needed. For example, changing a port or endpoint is only necessary in one place, not also in dockerfile or other places.
 
@@ -179,7 +180,7 @@ The system supports two global deployment modes controlled by the `DEPLOY_ENV` i
 - **`LOCAL`** (default): Full local deployment with middleware contracts
 - **`TESTNET`**: Skip middleware deployment (assumes contracts already deployed on testnet)
 
-Projects can optionally use **MOCK** middleware deployments to speed up development.  
+Projects can optionally use **MOCK** middleware deployments to speed up development.
 This configuration should be set in the project's **Taskfile** variables:
 
 ```yaml
@@ -188,7 +189,7 @@ USES_MOCK: true
 
 ## Transfer Ownership
 
-After deploying middleware contracts, you may want to transfer ownership of the ECDSA proxy and AVS contracts to different addresses. 
+After deploying middleware contracts, you may want to transfer ownership of the ECDSA proxy and AVS contracts to different addresses.
 
 ### Configuration
 
