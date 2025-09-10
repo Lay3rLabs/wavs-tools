@@ -100,6 +100,7 @@ There are many sub-steps to deploying and developing a tool. For convenience, ju
 (cd projects/multi-chain-quorum-sync && task bootstrap)
 
 (cd projects/wavs-drand && task bootstrap)
+# (cd projects/wavs-drand && task test:trigger-randomness)
 ```
 
 ## Testing
