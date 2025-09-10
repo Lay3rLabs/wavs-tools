@@ -104,7 +104,7 @@ impl Guest for Component {
 
 export!(Component with_types_in bindings);
 
-/// Creates a provider instance for EVM queries
+// Creates a provider instance for EVM queries
 // async fn create_provider(chain_key: &str) -> Result<RootProvider<Ethereum>, String> {
 //     let chain_config = host::get_evm_chain_config(chain_key)
 //         .ok_or(format!("Failed to get chain config for {chain_key}"))?;
