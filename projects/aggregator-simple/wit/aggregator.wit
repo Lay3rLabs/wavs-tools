@@ -1,0 +1,85 @@
+package wavs:aggregator@0.6.0-alpha.11;
+
+use wavs:types/core@0.6.0-alpha.11 as core-types;
+use wavs:types/service@0.6.0-alpha.11 as service-types;
+use wavs:types/chain@0.6.0-alpha.11 as chain-types;
+
+interface aggregator {
+    use core-types.{duration};
+    use service-types.{service, workflow-id, signature-kind};
+    use chain-types.{chain-key, evm-address};
+
+    record envelope {
+        event-id: list<u8>,
+        ordering: list<u8>,
+        payload: list<u8>,
+    }
+
+    record envelope-signature {
+        data: list<u8>,
+        kind: signature-kind,
+    }
+
+    record packet {
+        service: service,
+        workflow-id: workflow-id,
+        envelope: envelope,
+        signature: envelope-signature,
+        origin-tx-hash: list<u8>, // the tx hash from the original transaction that triggered this workflow (used for reorg handling)
+    }
+
+    variant aggregator-action {
+        timer(timer-action),
+        submit(submit-action),
+    }
+
+    record timer-action {
+        delay: duration,
+    }
+
+    record submit-action {
+        chain: chain-key,
+        contract-address: evm-address,
+        gas-price: option<u64>,
+    }
+}
+
+world aggregator-world {
+    // include needed for golang support
+    include wasi:cli/imports@0.2.0;
+
+    // wasi:http 0.2.6 uses the `imports` style, but for now import each interface separately
+    import wasi:http/types@0.2.0;
+    import wasi:http/outgoing-handler@0.2.0;
+
+    // for key-value store support
+    include wasi:keyvalue/imports@0.2.0-draft2;
+
+    import host: interface {
+        use chain-types.{evm-chain-config, cosmos-chain-config};
+        use core-types.{log-level};
+        use service-types.{service-and-workflow-id, workflow-and-workflow-id};
+
+        get-evm-chain-config: func(chain-key: string) -> option<evm-chain-config>;
+        get-cosmos-chain-config: func(chain-key: string) -> option<cosmos-chain-config>;
+
+        config-var: func(key: string) -> option<string>;
+
+        log: func(level: log-level, message: string);
+
+        // gets the service and workflow id that called this component
+        get-service: func() -> service-and-workflow-id;
+
+        // convenience function to get the workflow without having to walk service.workflows
+        get-workflow: func() -> workflow-and-workflow-id;
+    }
+
+    use aggregator.{packet, aggregator-action};
+    use chain-types.{any-tx-hash};
+
+    export process-packet: func(packet: packet) -> result<list<aggregator-action>, string>;
+
+    export handle-timer-callback: func(packet: packet) -> result<list<aggregator-action>, string>;
+
+    export handle-submit-callback: func(packet: packet, tx-result: result<any-tx-hash, string>) -> result<_, string>;
+}

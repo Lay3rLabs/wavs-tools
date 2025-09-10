@@ -12,7 +12,18 @@ crate-type = ["cdylib"]
 
 [package.metadata.component]
 package = "component:aggregator-simple"
-target = "wavs:aggregator@0.6.0-alpha.8"
+target.path = "../wit"
+
+[package.metadata.component.target.dependencies]
+"wavs:types" = { path = "/home/reece/Desktop/Programming/Rust/wavs-wasi/wit-definitions/types/wavs:types@0.6.0-alpha.11.wasm" }
+"wasi:cli" = "0.2.0"
+"wasi:clocks" = "0.2.0"
+"wasi:filesystem" = "0.2.0"
+"wasi:http" = "0.2.0"
+"wasi:io" = "0.2.0"
+"wasi:keyvalue" = "0.2.0-draft2"
+"wasi:random" = "0.2.0"
+"wasi:sockets" = "0.2.0"
 
 [dependencies]
 alloy-primitives = { workspace = true }
