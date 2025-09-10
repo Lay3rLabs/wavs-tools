@@ -101,6 +101,10 @@ There are many sub-steps to deploying and developing a tool. For convenience, ju
 
 (cd projects/wavs-drand && task bootstrap)
 # (cd projects/wavs-drand && task test:trigger-randomness)
+
+# @/home/reece/Desktop/Programming/Rust/wavs-tools/projects/wavs-drand/.project-output/com
+curl -X POST http://127.0.0.1:8200/upload -H "Content-Type: application/octet-stream" -H "Authorization: Bearer 123" --data-binary @/home/reece/Desktop/Programming/Rust/wavs-tools/projects/aggregator-simple/output/components/aggregator_simple.wasm
+
 ```
 
 ## Testing

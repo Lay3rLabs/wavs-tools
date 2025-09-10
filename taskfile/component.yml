@@ -92,12 +92,15 @@ tasks:
       - |
         echo "Uploading component {{.COMPONENT_NAME}} to {{.WAVS_AGGREGATOR_ENDPOINT}}/upload"
 
+        # upload with Authorized bearer Authorization: Bearer <token>
         echo curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/upload" \
           -H "Content-Type: application/octet-stream" \
+          -H "Authorization: Bearer 123" \
           --data-binary "@{{.COMPONENT_BINARY}}"
 
         RESPONSE=$(curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/upload" \
           -H "Content-Type: application/octet-stream" \
+          -H "Authorization: Bearer 123" \
           --data-binary "@{{.COMPONENT_BINARY}}" \
           2>/dev/null)
 

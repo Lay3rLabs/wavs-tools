@@ -89,7 +89,7 @@ cors_allowed_origins = [
     "http://localhost:*",
     "http://127.0.0.1:*",
 ]
-bearer_token = ""
+bearer_token = "123"
 
 # ----------------------------
 # CLI specific settings
@@ -106,7 +106,7 @@ data = "~/wavs/cli"
 # The directory to store the data.
 data = "~/wavs/aggregator"
 
-bearer_token = ""
+bearer_token = "123"
 
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",
