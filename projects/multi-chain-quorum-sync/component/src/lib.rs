@@ -39,7 +39,7 @@ struct Component;
 impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
-            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name: _, log }) => {
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain: _, log }) => {
                 block_on(async move {
                     let QuorumThresholdUpdated {
                         numerator,

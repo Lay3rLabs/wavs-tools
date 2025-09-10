@@ -35,13 +35,13 @@ impl TriggerInfo {
 
     async fn extract_trigger_info(trigger_action: TriggerAction) -> Result<(U256, B256, u64)> {
         match trigger_action.data {
-            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name, log }) => {
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
                 let timestamp = if let Some(timestamp) = log.block_timestamp {
                     timestamp
                 } else {
-                    let chain_config = get_evm_chain_config(&chain_name)
-                        .ok_or(anyhow!("Chain config for {0} not found", chain_name))?;
-                    let block = get_evm_block(chain_config, chain_name, log.block_number).await?;
+                    let chain_config = get_evm_chain_config(&chain)
+                        .ok_or(anyhow!("Chain config for {0} not found", chain))?;
+                    let block = get_evm_block(chain_config, chain, log.block_number).await?;
 
                     block.header.timestamp
                 };
@@ -59,19 +59,19 @@ impl TriggerInfo {
                 Ok((U256::ZERO, unique_id, timestamp))
             }
             TriggerData::BlockInterval(block) => {
-                if let Some(chain_config) = get_evm_chain_config(&block.chain_name) {
+                if let Some(chain_config) = get_evm_chain_config(&block.chain) {
                     let block =
-                        get_evm_block(chain_config, block.chain_name, block.block_height).await?;
+                        get_evm_block(chain_config, block.chain, block.block_height).await?;
 
                     Ok((
                         U256::ZERO,
                         block.header.transactions_root,
                         block.header.timestamp,
                     ))
-                } else if let Some(_chain_config) = get_cosmos_chain_config(&block.chain_name) {
+                } else if let Some(_chain_config) = get_cosmos_chain_config(&block.chain) {
                     unimplemented!()
                 } else {
-                    Err(anyhow!("Chain config for {0} not found", block.chain_name))
+                    Err(anyhow!("Chain config for {0} not found", block.chain))
                 }
             }
             TriggerData::CosmosContractEvent(_event) => {

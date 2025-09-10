@@ -67,12 +67,12 @@ impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
             // Register + Deregister
-            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name, log }) => {
-                let chain_config = get_evm_chain_config(&chain_name)
-                    .ok_or(format!("Could not get chain config for {chain_name}"))?;
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
+                let chain_config = get_evm_chain_config(&chain)
+                    .ok_or(format!("Could not get chain config for {chain}"))?;
                 let endpoint = chain_config
                     .http_endpoint
-                    .ok_or(format!("No http endpoint configured for {chain_name}"))?;
+                    .ok_or(format!("No http endpoint configured for {chain}"))?;
 
                 let provider = new_evm_provider::<Ethereum>(endpoint);
                 let stake_registry =
@@ -118,7 +118,7 @@ impl Guest for Component {
             }
             // Update
             TriggerData::BlockInterval(TriggerDataBlockInterval {
-                chain_name,
+                chain,
                 block_height,
             }) => {
                 let service_manager_address: Address = host::config_var("service_manager_address")
@@ -128,7 +128,7 @@ impl Guest for Component {
 
                 block_on(async move {
                     let result =
-                        handle_update_event(chain_name, block_height, service_manager_address)
+                        handle_update_event(chain, block_height, service_manager_address)
                             .await
                             .map_err(|e| e.to_string())?;
 
@@ -222,12 +222,12 @@ async fn handle_deregister_event(
 }
 
 async fn handle_update_event(
-    chain_name: String,
+    chain: String,
     block_height: u64,
     service_manager_address: Address,
 ) -> anyhow::Result<UpdateWithId> {
-    let chain_config = get_evm_chain_config(&chain_name)
-        .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
+    let chain_config = get_evm_chain_config(&chain)
+        .ok_or(anyhow!("Failed to get chain config for: {chain}"))?;
 
     let provider = new_evm_provider::<Ethereum>(
         chain_config

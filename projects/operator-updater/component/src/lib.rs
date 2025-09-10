@@ -37,7 +37,7 @@ sol!(
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct ComponentInput {
     pub service_manager_address: Address,
-    pub chain_name: String,
+    pub chain: String,
     pub block_height: u64,
 }
 
@@ -48,12 +48,12 @@ impl Guest for Component {
         // Decode the trigger event
         let ComponentInput {
             service_manager_address,
-            chain_name,
+            chain,
             block_height: _,
         } = match action.data {
             TriggerData::BlockInterval(TriggerDataBlockInterval {
                 block_height,
-                chain_name,
+                chain,
             }) => {
                 let service_manager_address = host::config_var("service_manager_address")
                     .ok_or("service_manager_address not configured")?
@@ -62,7 +62,7 @@ impl Guest for Component {
 
                 Ok(ComponentInput {
                     service_manager_address,
-                    chain_name,
+                    chain,
                     block_height,
                 })
             }
@@ -71,11 +71,11 @@ impl Guest for Component {
         }?;
         host::log(
             LogLevel::Info,
-            &format!("Starting operator update for chain {chain_name} for service manager {service_manager_address}"),
+            &format!("Starting operator update for chain {chain} for service manager {service_manager_address}"),
         );
 
         block_on(async move {
-            let avs_writer_payload = perform_operator_update(chain_name, service_manager_address)
+            let avs_writer_payload = perform_operator_update(chain, service_manager_address)
                 .await
                 .map_err(|e| e.to_string())?;
 
@@ -97,11 +97,11 @@ impl Guest for Component {
 }
 
 async fn perform_operator_update(
-    chain_name: String,
+    chain: String,
     service_manager_address: Address,
 ) -> Result<OperatorUpdatePayload> {
-    let chain_config = get_evm_chain_config(&chain_name)
-        .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
+    let chain_config = get_evm_chain_config(&chain)
+        .ok_or(anyhow!("Failed to get chain config for: {chain}"))?;
 
     let provider = new_evm_provider::<Ethereum>(
         chain_config
