@@ -2,20 +2,16 @@
 #[rustfmt::skip]
 mod bindings;
 
-use alloy_primitives::{TxHash};
-use alloy_provider::{Provider, RootProvider};
 use alloy_network::Ethereum;
+use alloy_primitives::TxHash;
+use alloy_provider::RootProvider;
 
 use crate::bindings::{
     export, host,
-    wavs::{
-        aggregator::aggregator::{TimerAction},
-        types::service::Submit, types::core::Duration,
-    },
+    wavs::{aggregator::aggregator::TimerAction, types::core::Duration, types::service::Submit},
     AggregatorAction, AnyTxHash, Guest, Packet,
 };
-use wavs_wasi_utils::evm::{new_evm_provider};
-use wstd::runtime::block_on;
+use wavs_wasi_utils::evm::new_evm_provider;
 
 struct Component;
 
@@ -109,13 +105,15 @@ impl Guest for Component {
 export!(Component with_types_in bindings);
 
 /// Creates a provider instance for EVM queries
-async fn create_provider(chain_key: &str) -> Result<RootProvider<Ethereum>, String> {
-    let chain_config = host::get_evm_chain_config(chain_key)
-        .ok_or(format!("Failed to get chain config for {}", chain_key))?;
+// async fn create_provider(chain_key: &str) -> Result<RootProvider<Ethereum>, String> {
+//     let chain_config = host::get_evm_chain_config(chain_key)
+//         .ok_or(format!("Failed to get chain config for {chain_key}"))?;
 
-    let provider = new_evm_provider::<Ethereum>(
-        chain_config.http_endpoint.ok_or("No HTTP endpoint configured")?,
-    );
+//     let provider = new_evm_provider::<Ethereum>(
+//         chain_config
+//             .http_endpoint
+//             .ok_or("No HTTP endpoint configured")?,
+//     );
 
-    Ok(provider)
-}
+//     Ok(provider)
+// }

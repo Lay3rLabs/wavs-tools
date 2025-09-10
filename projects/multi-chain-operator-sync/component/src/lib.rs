@@ -127,10 +127,9 @@ impl Guest for Component {
                     .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
 
                 block_on(async move {
-                    let result =
-                        handle_update_event(chain, block_height, service_manager_address)
-                            .await
-                            .map_err(|e| e.to_string())?;
+                    let result = handle_update_event(chain, block_height, service_manager_address)
+                        .await
+                        .map_err(|e| e.to_string())?;
 
                     Ok(Some(WasmResponse {
                         payload: result.abi_encode(),
@@ -226,8 +225,8 @@ async fn handle_update_event(
     block_height: u64,
     service_manager_address: Address,
 ) -> anyhow::Result<UpdateWithId> {
-    let chain_config = get_evm_chain_config(&chain)
-        .ok_or(anyhow!("Failed to get chain config for: {chain}"))?;
+    let chain_config =
+        get_evm_chain_config(&chain).ok_or(anyhow!("Failed to get chain config for: {chain}"))?;
 
     let provider = new_evm_provider::<Ethereum>(
         chain_config

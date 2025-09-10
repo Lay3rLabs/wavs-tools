@@ -100,8 +100,8 @@ async fn perform_operator_update(
     chain: String,
     service_manager_address: Address,
 ) -> Result<OperatorUpdatePayload> {
-    let chain_config = get_evm_chain_config(&chain)
-        .ok_or(anyhow!("Failed to get chain config for: {chain}"))?;
+    let chain_config =
+        get_evm_chain_config(&chain).ok_or(anyhow!("Failed to get chain config for: {chain}"))?;
 
     let provider = new_evm_provider::<Ethereum>(
         chain_config
