@@ -77,6 +77,7 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config {{.AGGREGATOR_COMPONENT_CONFIG}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component permissions --http-hosts '*' --file-system true
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
@@ -108,6 +109,7 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config {{.AGGREGATOR_COMPONENT_CONFIG}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component permissions --http-hosts '*' --file-system true
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
@@ -138,6 +140,7 @@ tasks:
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config {{.AGGREGATOR_COMPONENT_CONFIG}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component permissions --http-hosts '*' --file-system true
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
