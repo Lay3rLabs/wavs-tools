@@ -30,7 +30,7 @@ tasks:
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} --event-hash {{.QUORUM_THRESHOLD_UPDATED_EVENT_HASH}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}} --event-hash {{.QUORUM_THRESHOLD_UPDATED_EVENT_HASH}}
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}

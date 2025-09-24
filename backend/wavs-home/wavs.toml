@@ -12,73 +12,41 @@ prometheus = "http://localhost:9090"
 
 # == Ethereum chains ==
 
-# Mainnet
-[default.chains.evm.ethereum]
-chain_id = "1"
-ws_endpoint = "wss://eth.drpc.org"
-http_endpoint = "https://eth.drpc.org"
-
-[default.chains.evm.base]
-chain_id = "8453"
-ws_endpoint = "wss://base.drpc.org"
-http_endpoint = "https://base.drpc.org"
-
-[default.chains.evm.optimism]
-chain_id = "10"
-ws_endpoint = "wss://optimism.drpc.org"
-http_endpoint = "https://optimism.drpc.org"
-
-[default.chains.evm.arbitrum]
-chain_id = "42161"
-ws_endpoint = "wss://arbitrum.drpc.org"
-http_endpoint = "https://arbitrum.drpc.org"
-
-# Local / Testnet
-[default.chains.evm.local]
-chain_id = "31337"
+# Local
+[default.chains.evm.31337]
 ws_endpoint = "ws://localhost:8548"
 http_endpoint = "http://localhost:8548"
 poll_interval_ms = 7000
 
-[default.chains.evm.local2]
-chain_id = "31338"
+[default.chains.evm.31338]
 ws_endpoint = "ws://localhost:8549"
 http_endpoint = "http://localhost:8549"
 poll_interval_ms = 7000
 
-[default.chains.evm.local3]
-chain_id = "31339"
+[default.chains.evm.31339]
 ws_endpoint = "ws://localhost:8550"
 http_endpoint = "http://localhost:8550"
 poll_interval_ms = 7000
 
-[default.chains.evm.local4]
-chain_id = "31340"
+[default.chains.evm.31340]
 ws_endpoint = "ws://localhost:8551"
 http_endpoint = "http://localhost:8551"
 poll_interval_ms = 7000
 
-[default.chains.evm.local5]
-chain_id = "31341"
+[default.chains.evm.31341]
 ws_endpoint = "ws://localhost:8552"
 http_endpoint = "http://localhost:8552"
 poll_interval_ms = 7000
 
-[default.chains.evm.sepolia]
-chain_id = "11155111"
+# Testnet
+
+[default.chains.evm.11155111]
 ws_endpoint = "wss://ethereum-sepolia-rpc.publicnode.com"
 http_endpoint = "https://ethereum-sepolia-rpc.publicnode.com"
 
-[default.chains.evm.holesky]
-chain_id = "17000"
+[default.chains.evm.17000]
 ws_endpoint = "wss://ethereum-holesky-rpc.publicnode.com"
 http_endpoint = "https://ethereum-holesky-rpc.publicnode.com"
-
-[default.chains.evm.holesky-fork]
-chain_id = "17000"
-ws_endpoint = "ws://localhost:8545"
-http_endpoint = "http://localhost:8545"
-poll_interval_ms = 7000
 
 # ----------------------------
 # WAVS specific settings
@@ -89,6 +57,8 @@ cors_allowed_origins = [
     "http://localhost:*",
     "http://127.0.0.1:*",
 ]
+
+dev_endpoints_enabled = true
 
 
 # ----------------------------
@@ -105,6 +75,8 @@ data = "~/wavs/cli"
 [aggregator]
 # The directory to store the data.
 data = "~/wavs/aggregator"
+
+dev_endpoints_enabled = true
 
 cors_allowed_origins = [
     "https://lay3rlabs.github.io/*",

@@ -50,12 +50,12 @@ tasks:
       vars: [REPO_ROOT]
     cmds:
       - >
-        curl -X POST "{{.WAVS_ENDPOINT}}/service-key" 
+        curl -X POST "{{.WAVS_ENDPOINT}}/services/signer" 
         -H "Content-Type: application/json" 
         -d "{
           \"service_manager\": {
             \"evm\": {
-              \"chain_name\": \"{{.CHAIN_NAME}}\",
+              \"chain\": \"{{.CHAIN_NAME}}\",
               \"address\": \"{{.SERVICE_MANAGER_ADDRESS}}\"
             }
           }

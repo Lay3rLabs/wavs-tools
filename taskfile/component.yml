@@ -90,9 +90,9 @@ tasks:
         sh: task component:get-digest-filepath PROJECT={{.PROJECT}} COMPONENT_NAME={{.COMPONENT_NAME}}
     cmds:
       - |
-        echo "Uploading component {{.COMPONENT_NAME}} to {{.WAVS_AGGREGATOR_ENDPOINT}}/upload"
+        echo "Uploading component {{.COMPONENT_NAME}} to {{.WAVS_AGGREGATOR_ENDPOINT}}/dev/components"
 
-        RESPONSE=$(curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/upload" \
+        RESPONSE=$(curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/dev/components" \
           -H "Content-Type: application/octet-stream" \
           --data-binary "@{{.COMPONENT_BINARY}}" \
           2>/dev/null)

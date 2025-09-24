@@ -216,11 +216,7 @@ tasks:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     cmds:
       - |
-        if [ "{{.CHAIN_NUMBER}}" = "1" ]; then
-          echo "local"
-        else
-          echo "local{{.CHAIN_NUMBER}}"
-        fi
+        echo "evm:{{(add .ANVIL_FORK_CHAIN_ID (sub (atoi .CHAIN_NUMBER) 1))}}"
 
   get-wavs-endpoint-*:
     desc: "Get the wavs endpoint for an instance"
