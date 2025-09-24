@@ -3682,9 +3682,9 @@ dependencies = [
 
 [[package]]
 name = "wavs-wasi-utils"
-version = "0.6.0-alpha.8"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f568c1c55926efe5b8fdd2f940ec1ae6e32b6e5f2a3ab15895546680d45fbbd2"
+checksum = "7c754e952c97cf69c84e2135b991f6715b197b7df0e989911ab729e2aac1f131"
 dependencies = [
  "alloy-json-rpc",
  "alloy-primitives",
@@ -3701,7 +3701,6 @@ dependencies = [
  "serde_json",
  "tower-service",
  "wasi 0.14.2+wasi-0.2.4",
- "wit-bindgen-rt 0.43.0",
  "wstd",
 ]
 
@@ -3881,8 +3880,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9fd734226eac1fd7c450956964e3a9094c9cee65e9dafdf126feef8c0096db65"
 dependencies = [
  "bitflags",
- "futures",
- "once_cell",
 ]
 
 [[package]]

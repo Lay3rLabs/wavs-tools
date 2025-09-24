@@ -35,10 +35,11 @@ impl Guest for Component {
                     .map_err(|e| format!("Failed to parse address for '{chain_name}': {e}"))?;
 
                 let submit_action = SubmitAction {
-                    chain_name: chain_name.to_string(),
+                    chain: chain_name.to_string(),
                     contract_address: EvmAddress {
                         raw_bytes: address.to_vec(),
                     },
+                    gas_price: None,
                 };
 
                 actions.push(AggregatorAction::Submit(submit_action));

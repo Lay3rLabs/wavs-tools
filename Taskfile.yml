@@ -61,13 +61,7 @@ tasks:
     desc: "Run test suite and generate report"
     dir: tests
     cmds:
-      - bun run test:report
-
-  test:report:
-    desc: "Open test report in browser"
-    dir: tests
-    cmds:
-      - bun run test:report:open
+      - bun run test
 
   lint:
     desc: "Run code formatting and linting checks"
