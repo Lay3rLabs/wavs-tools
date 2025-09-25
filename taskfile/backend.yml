@@ -380,6 +380,9 @@ tasks:
   ###################################################################
   ##################### CHAIN CONFIGURATION ##########################
   ###################################################################
+  # Only for local evm instances
+  # Eventually need to refactor entire codebase to allow for local <=> testnet
+  # Since everything is heavily dependent on DEPLOY_ENV atm
   configure-chains:
     status:
       - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
@@ -389,9 +392,9 @@ tasks:
         sh: seq 1 {{.ACTIVE_CHAIN_COUNT}}
     deps:
       - for: { var: CHAIN_RANGE }
-        task: configure-chain-{{.ITEM}}
+        task: configure-evm-chain-{{.ITEM}}
 
-  configure-chain-*:
+  configure-evm-chain-*:
     desc: "Configure a single chain across all active WAVS operators"
     vars:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
