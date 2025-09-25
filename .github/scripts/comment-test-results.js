@@ -6,8 +6,7 @@ const { parseJUnitXML, parseFailureDetails } = require('./utils');
 
 async function commentTestResults({ github, context }) {
   const prNumber = context.eventName === 'pull_request' ? context.payload.pull_request.number : context.issue.number;
-  const stepNumber = 19; // Run tests with coverage step
-  const workflowLogsLink = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}#step:${stepNumber}:1`;
+  const workflowLogsLink = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
 
   try {
     // The report path is relative to the tests directory
