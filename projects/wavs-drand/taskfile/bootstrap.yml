@@ -65,16 +65,17 @@ tasks:
         WORKFLOW_ID=$(task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add | jq -r .workflow_id)
 
         # Configure workflow
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain-name {{.TRIGGER_CHAIN}} --address {{.TRIGGER_ADDRESS}} --event-hash {{.RANDOMNESS_REQUESTED_EVENT_HASH}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id ${WORKFLOW_ID} set-evm --chain {{.TRIGGER_CHAIN}} --address {{.TRIGGER_ADDRESS}} --event-hash {{.RANDOMNESS_REQUESTED_EVENT_HASH}}
           
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} component config {{.AGGREGATOR_COMPONENT_CONFIG}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id ${WORKFLOW_ID} component permissions --http-hosts '*' --file-system true
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id ${WORKFLOW_ID} set-source-digest --digest {{.COMPONENT_DIGEST}}
           
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id ${WORKFLOW_ID} permissions --http-hosts '*' --file-system true
           
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} manager set-evm --chain-name {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} manager set-evm --chain {{.SUBMIT_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
 
         echo "Service configuration built successfully"

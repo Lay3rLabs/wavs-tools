@@ -37,7 +37,7 @@ vars:
       "https://ethereum-holesky-rpc.publicnode.com",
       "${TESTNET_EVM_RPC_URL_3}", # Example using a paid endpoint
     ]
-  TESTNET_EVM_CHAIN_NAMES: ["sepolia", "holesky", "holesky"]
+  TESTNET_EVM_CHAIN_NAMES: ["evm.11155111", "evm.17000", "evm.17000"]
   TESTNET_CHAIN_COUNT: 3 # Count of testnet chains in TESTNET_EVM_RPC_URLS
   ACTIVE_CHAIN_COUNT:
     sh: |

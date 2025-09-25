@@ -5,7 +5,7 @@ mod utils;
 
 use crate::{
     bindings::{
-        wavs::operator::input::{TriggerData, TriggerDataEvmContractEvent},
+        wavs::{operator::input::TriggerData, types::events::TriggerDataEvmContractEvent},
         WasmResponse,
     },
     IManagerUpdateTypes::UpdateWithId,
@@ -39,7 +39,7 @@ struct Component;
 impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
-            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain_name: _, log }) => {
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { log, .. }) => {
                 block_on(async move {
                     let QuorumThresholdUpdated {
                         numerator,

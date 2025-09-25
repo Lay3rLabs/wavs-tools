@@ -151,7 +151,7 @@ tasks:
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} init --name {{.COMPONENT_NAME}}
 
-        task cli:wavs -- {{.SERVICE_JSON_CMD}} manager set-evm --chain-name {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} manager set-evm --chain {{.SOURCE_CHAIN}} --address {{.SERVICE_MANAGER_ADDRESS}}
 
         echo "Service configuration built successfully"
 
@@ -172,7 +172,7 @@ tasks:
       vars: [REPO_ROOT, SERVICE_JSON_PATH, TEMP_SERVICE_HASH_JSON_PATH]
     cmds:
       - >
-        curl --fail-with-body -X POST "{{.WAVS_ENDPOINT}}/save-service" 
+        curl --fail-with-body -X POST "{{.WAVS_ENDPOINT}}/dev/services" 
         -H "Content-Type: application/json" 
         --data-binary "@{{.SERVICE_JSON_PATH}}"
         -o "{{.TEMP_SERVICE_HASH_JSON_PATH}}"
@@ -185,7 +185,7 @@ tasks:
       CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - cd "{{.REPO_ROOT}}" && task middleware:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_URI="{{.SERVICE_URI}}"
 
@@ -201,12 +201,12 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
     cmds:
       - >
-        curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/register-service" 
+        curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/services" 
         -H "Content-Type: application/json" 
         -d "{
           \"service_manager\": {
             \"evm\": {
-              \"chain_name\": \"{{.CHAIN_NAME}}\",
+              \"chain\": \"{{.CHAIN_NAME}}\",
               \"address\": \"{{.SERVICE_MANAGER_ADDRESS}}\"
             }
           }
@@ -219,7 +219,7 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
-      SERVICE_URI: "{{.WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
+      SERVICE_URI: "{{.WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
@@ -248,7 +248,7 @@ tasks:
         sh: task get-temp-service-hash
       SOURCE_WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.FIRST_OPERATOR}}
-      SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/service-by-hash/{{.TEMP_SERVICE_HASH}}"
+      SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
@@ -256,15 +256,13 @@ tasks:
     desc: "Get the aggregators config values"
     requires:
       vars: [AGGREGATOR_PROJECT]
-    vars:
-      AGGREGATOR_FLAGS:
-        sh: task get-aggregator-simple-flags
     cmds:
       - |
         case "{{.AGGREGATOR_PROJECT}}" in
           "aggregator-simple")
             # Output the config vars in the expected format
-            echo "{{.AGGREGATOR_FLAGS}}"
+            AGGREGATOR_FLAGS=$(task get-aggregator-simple-flags)
+            echo "${AGGREGATOR_FLAGS}"
             ;;
           *)
             echo "Error: Unsupported aggregator project '{{.AGGREGATOR_PROJECT}}'. Only 'aggregator-simple' is supported." >&2
