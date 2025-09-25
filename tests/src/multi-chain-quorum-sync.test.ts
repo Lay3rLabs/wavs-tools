@@ -23,7 +23,7 @@ describe(PROJECT_NAME.toUpperCase(), function () {
   });
 
   describe("All tests", function () {
-    test("run-tests", async () => {
+    test(PROJECT_NAME + " run-tests", async () => {
       backendManager.assertRunning();
 
       await execAsync("task", ["run-tests"], {
