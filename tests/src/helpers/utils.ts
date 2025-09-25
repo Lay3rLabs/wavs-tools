@@ -1,14 +1,16 @@
 import fs from 'fs';
 import path from 'path';
-import { spawn, ChildProcess } from 'child_process';
+import { spawn, type Subprocess } from 'bun';
 
 export function rootPath(): string {
   // find the repo root directory by looking for the presence of .git
   let currentDir = process.cwd();
-  while (currentDir !== '/') {
-    if (fs.existsSync(`${currentDir}/.git`)) {
+  const root = path.parse(currentDir).root;
+  for (; ;) {
+    if (fs.existsSync(path.join(currentDir, '.git'))) {
       return path.resolve(currentDir);
     }
+    if (currentDir === root) break;
     currentDir = path.dirname(currentDir);
   }
 
@@ -28,7 +30,6 @@ export function projectPath(project: string): string {
 export interface ExecAsyncOptions {
   cwd?: string;
   env?: NodeJS.ProcessEnv;
-  shell?: boolean;
   captureOutput?: boolean;
   timeoutMs?: number;
 }
@@ -45,60 +46,56 @@ export async function execAsync(
   args: string[] = [],
   options: ExecAsyncOptions = {}
 ): Promise<ExecAsyncResult> {
-  const { cwd, env, shell = false, captureOutput = false, timeoutMs } = options;
+  const { cwd, env, captureOutput = false, timeoutMs } = options;
 
   return new Promise((resolve, reject) => {
     console.log(`Executing command: ${command} ${args.join(' ')} in ${cwd || process.cwd()}`);
 
-    const child: ChildProcess = spawn(command, args, {
+    const child: Subprocess = spawn([command, ...args], {
       cwd,
       env,
-      shell,
-      stdio: captureOutput ? ['ignore', 'pipe', 'pipe'] : 'inherit',
+      stdin: 'inherit',
+      stdout: captureOutput ? 'pipe' : 'inherit',
+      stderr: captureOutput ? 'pipe' : 'inherit',
     });
 
-    let stdout = '';
-    let stderr = '';
     let timeout: NodeJS.Timeout | undefined;
-
-    if (captureOutput && child.stdout) {
-      child.stdout.on('data', (data: Buffer) => {
-        stdout += data.toString();
-      });
-    }
-
-    if (captureOutput && child.stderr) {
-      child.stderr.on('data', (data: Buffer) => {
-        stderr += data.toString();
-      });
+    if (timeoutMs) {
+      timeout = setTimeout(() => {
+        try {
+          child.kill('SIGTERM');
+        } catch { }
+        reject(new Error(`Command "${command} ${args.join(' ')}" timed out after ${timeoutMs}ms`));
+      }, timeoutMs);
     }
 
     const cleanup = () => {
       if (timeout) clearTimeout(timeout);
     };
 
-    if (timeoutMs) {
-      timeout = setTimeout(() => {
-        child.kill('SIGTERM');
-        reject(new Error(`Command "${command} ${args.join(' ')}" timed out after ${timeoutMs}ms`));
-      }, timeoutMs);
-    }
+    const stdoutPromise: Promise<string> = captureOutput && child.stdout && typeof child.stdout !== 'number'
+      ? new Response(child.stdout).text()
+      : Promise.resolve('');
+    const stderrPromise: Promise<string> = captureOutput && child.stderr && typeof child.stderr !== 'number'
+      ? new Response(child.stderr).text()
+      : Promise.resolve('');
 
-    child.on('error', (err) => {
-      cleanup();
-      reject(err);
-    });
-
-    child.on('close', (code) => {
-      cleanup();
-      if (code !== 0) {
-        const errorMessage = captureOutput
-          ? `Command "${command} ${args.join(' ')}" failed with code ${code}\n\nSTDERR:\n${stderr}`
-          : `Command "${command} ${args.join(' ')}" failed with code ${code}`;
-        reject(new Error(errorMessage));
-      } else {
-        resolve(captureOutput ? { stdout, stderr } : null);
-      }
-    });
+    Promise.all([child.exited, stdoutPromise, stderrPromise])
+      .then(([exitCode, stdout, stderr]) => {
+        cleanup();
+        if (exitCode !== 0) {
+          const errorMessage = captureOutput
+            ? `Command "${command} ${args.join(' ')}" failed with code ${exitCode}\n\nSTDERR:\n${stderr}`
+            : `Command "${command} ${args.join(' ')}" failed with code ${exitCode}`;
+          reject(new Error(errorMessage));
+        } else {
+          resolve(captureOutput ? { stdout, stderr } : null);
+        }
+      })
+      .catch((err: any) => {
+        cleanup();
+        reject(err);
+      });
   });
 }
+
