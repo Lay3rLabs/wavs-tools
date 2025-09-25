@@ -12,32 +12,6 @@ prometheus = "http://localhost:9090"
 
 # == Ethereum chains ==
 
-# Local
-[default.chains.evm.31337]
-ws_endpoint = "ws://localhost:8548"
-http_endpoint = "http://localhost:8548"
-poll_interval_ms = 7000
-
-[default.chains.evm.31338]
-ws_endpoint = "ws://localhost:8549"
-http_endpoint = "http://localhost:8549"
-poll_interval_ms = 7000
-
-[default.chains.evm.31339]
-ws_endpoint = "ws://localhost:8550"
-http_endpoint = "http://localhost:8550"
-poll_interval_ms = 7000
-
-[default.chains.evm.31340]
-ws_endpoint = "ws://localhost:8551"
-http_endpoint = "http://localhost:8551"
-poll_interval_ms = 7000
-
-[default.chains.evm.31341]
-ws_endpoint = "ws://localhost:8552"
-http_endpoint = "http://localhost:8552"
-poll_interval_ms = 7000
-
 # Testnet
 
 [default.chains.evm.11155111]

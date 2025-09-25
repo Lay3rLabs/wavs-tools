@@ -28,6 +28,8 @@ tasks:
         vars:
           OPERATORS: "{{.OPERATORS}}"
       - task: start-telemetry
+    cmds:
+      - task: configure-chains
 
   stop:
     desc: "Stops all backend services"
@@ -374,6 +376,74 @@ tasks:
       ENV_VAR_NAME: "WAVS_SUBMISSION_MNEMONIC_{{.WAVS_INSTANCE}}"
     cmds:
       - echo "${{.ENV_VAR_NAME}}"
+
+  ###################################################################
+  ##################### CHAIN CONFIGURATION ##########################
+  ###################################################################
+  configure-chains:
+    status:
+      - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
+    desc: "Configure chains across all active WAVS operators"
+    vars:
+      CHAIN_RANGE:
+        sh: seq 1 {{.ACTIVE_CHAIN_COUNT}}
+    deps:
+      - for: { var: CHAIN_RANGE }
+        task: configure-chain-{{.ITEM}}
+
+  configure-chain-*:
+    desc: "Configure a single chain across all active WAVS operators"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_NAME:
+        sh: task backend:get-chain-name-{{.CHAIN_NUMBER}}
+      RPC_URL:
+        sh: task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      WAVS_RANGE:
+        sh: seq 1 {{.ACTIVE_WAVS_COUNT}}
+      POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS | default 7000}}"
+    requires:
+      vars: [CHAIN_NUMBER]
+    deps:
+      - for: { var: WAVS_RANGE }
+        task: add-evm-chain
+        vars:
+          CHAIN_NAME: "{{.CHAIN_NAME}}"
+          OPERATOR: "{{.ITEM}}"
+          HTTP_ENDPOINT: "{{.RPC_URL}}"
+          POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
+
+  add-evm-chain:
+    desc: "Add a new EVM chain to WAVS via POST /chains endpoint"
+    requires:
+      vars: [NAMESPACE, CHAIN_NAME, OPERATOR]
+    vars:
+      HTTP_ENDPOINT: "{{.HTTP_ENDPOINT}}"
+      NAMESPACE: '{{ index (.CHAIN_NAME | splitList ":") 0 }}'
+      CHAIN_ID: '{{ index (.CHAIN_NAME | splitList ":") 1 }}'
+      WS_ENDPOINT: "{{.WS_ENDPOINT}}"
+      FAUCET_ENDPOINT: "{{.FAUCET_ENDPOINT}}"
+      POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
+      WAVS_ENDPOINT:
+        sh: task backend:get-wavs-endpoint-{{.OPERATOR}}
+    preconditions:
+      - sh: "command -v curl"
+        msg: "curl is required but not installed"
+    cmds:
+      - |
+        curl -X POST "{{.WAVS_ENDPOINT}}/chains" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "chain": "{{.NAMESPACE}}:{{.CHAIN_ID}}",
+            "config": {
+              "type": "evm",
+              "chain_id": "{{.CHAIN_ID}}",
+              "ws_endpoint": {{.WS_ENDPOINT | quote}},
+              "http_endpoint": {{.HTTP_ENDPOINT | quote}},
+              "faucet_endpoint": {{.FAUCET_ENDPOINT | quote}},
+              "poll_interval_ms": {{.POLL_INTERVAL_MS | atoi | default 7000}}
+            }
+          }'
 
   ###################################################################
   ##################### TELEMETRY ###################################
