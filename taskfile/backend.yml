@@ -433,18 +433,26 @@ tasks:
       - sh: "command -v curl"
         msg: "curl is required but not installed"
     cmds:
-      - |
+      - >
         curl -X POST "{{.WAVS_ENDPOINT}}/chains" \
           -H "Content-Type: application/json" \
           -d '{
             "chain": "{{.NAMESPACE}}:{{.CHAIN_ID}}",
             "config": {
               "type": "evm",
-              "chain_id": "{{.CHAIN_ID}}",
-              "ws_endpoint": {{.WS_ENDPOINT | quote}},
-              "http_endpoint": {{.HTTP_ENDPOINT | quote}},
-              "faucet_endpoint": {{.FAUCET_ENDPOINT | quote}},
-              "poll_interval_ms": {{.POLL_INTERVAL_MS | atoi | default 7000}}
+              "chain_id": "{{.CHAIN_ID}}"
+              {{- if .WS_ENDPOINT}},
+              "ws_endpoint": "{{.WS_ENDPOINT}}"
+              {{- end}}
+              {{- if .HTTP_ENDPOINT}},
+              "http_endpoint": "{{.HTTP_ENDPOINT}}"
+              {{- end}}
+              {{- if .FAUCET_ENDPOINT}},
+              "faucet_endpoint": "{{.FAUCET_ENDPOINT}}"
+              {{- end}}
+              {{- if .POLL_INTERVAL_MS}},
+              "poll_interval_ms": {{.POLL_INTERVAL_MS}}
+              {{- end}}
             }
           }'
 
