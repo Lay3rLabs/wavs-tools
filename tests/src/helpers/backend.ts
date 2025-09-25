@@ -1,5 +1,4 @@
 import { execAsync, rootPath } from './utils';
-import { TIMEOUTS } from './constants';
 
 export interface BackendManagerConfig {
   nChains: number
