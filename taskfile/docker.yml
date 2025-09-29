@@ -1,7 +1,7 @@
 version: "3"
 
 vars:
-  WAVS_DOCKER_IMAGE: 'ghcr.io/lay3rlabs/wavs:5f4d496{{if eq .ARCH "arm64"}}-arm64{{end}}'
+  WAVS_DOCKER_IMAGE: 'ghcr.io/lay3rlabs/wavs:a6efaaf{{if eq .ARCH "arm64"}}-arm64{{end}}'
   MIDDLEWARE_DOCKER_IMAGE: 'ghcr.io/lay3rlabs/wavs-middleware:89fa0dd{{if eq .ARCH "arm64"}}-arm64{{end}}'
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"

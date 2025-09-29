@@ -29,6 +29,7 @@ tasks:
           OPERATORS: "{{.OPERATORS}}"
       - task: start-telemetry
     cmds:
+      - sleep 1
       - task: configure-local-chains
 
   stop:
@@ -437,7 +438,7 @@ tasks:
           POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
 
   add-evm-chain:
-    desc: "Add a new EVM chain to WAVS via POST /chains endpoint"
+    desc: "Add a new EVM chain to WAVS via POST /dev/chains endpoint"
     requires:
       vars: [ENDPOINT, NAMESPACE, CHAIN_NAME]
     vars:
@@ -452,7 +453,7 @@ tasks:
         msg: "curl is required but not installed"
     cmds:
       - >
-        curl --fail-with-body -X POST "{{.ENDPOINT}}/chains" \
+        curl --fail-with-body -X POST "{{.ENDPOINT}}/dev/chains" \
           -H "Content-Type: application/json" \
           -d '{
             "chain": "{{.NAMESPACE}}:{{.CHAIN_ID}}",
