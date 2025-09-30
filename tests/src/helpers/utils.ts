@@ -1,24 +1,22 @@
-import fs from "fs";
-import path from "path";
-import { spawn, type Subprocess } from "bun";
+import fs from 'fs';
+import path from 'path';
+import { spawn, ChildProcess } from 'child_process';
 
 export function rootPath(): string {
   // find the repo root directory by looking for the presence of .git
   let currentDir = process.cwd();
-  const root = path.parse(currentDir).root;
-  for (; ;) {
-    if (fs.existsSync(path.join(currentDir, ".git"))) {
+  while (currentDir !== '/') {
+    if (fs.existsSync(path.join(currentDir, '.git'))) {
       return path.resolve(currentDir);
     }
-    if (currentDir === root) break;
     currentDir = path.dirname(currentDir);
   }
 
-  throw new Error("Could not find the root directory of the repository");
+  throw new Error('Could not find the root directory of the repository');
 }
 
 export function projectPath(project: string): string {
-  const projectPath = path.resolve(path.join(rootPath(), "projects", project));
+  const projectPath = path.resolve(path.join(rootPath(), 'projects', project));
 
   if (!fs.existsSync(projectPath)) {
     throw new Error(`Path does not exist: ${projectPath}`);
@@ -29,87 +27,78 @@ export function projectPath(project: string): string {
 
 export interface ExecAsyncOptions {
   cwd?: string;
-  env?: Record<string, string | undefined>; // accept ProcessEnv-like
+  env?: NodeJS.ProcessEnv;
+  shell?: boolean;
   captureOutput?: boolean;
   timeoutMs?: number;
-  killSignal?: "SIGTERM" | "SIGKILL";
 }
 
 export interface ExecAsyncCaptureResult {
   stdout: string;
   stderr: string;
 }
+
 export type ExecAsyncResult = ExecAsyncCaptureResult | null;
-
-function toBunEnv(env?: Record<string, string | undefined>): Record<string, string> | undefined {
-  if (!env) return undefined;
-  const clean: Record<string, string> = {};
-  for (const [k, v] of Object.entries(env)) {
-    if (typeof v === "string") clean[k] = v;
-  }
-  return clean;
-}
-
-async function streamToText(
-  stream: ReadableStream | null | number | "inherit" | undefined
-): Promise<string> {
-  if (!stream || typeof stream === "number" || stream === "inherit") return "";
-  // Works for Web ReadableStreams (Bun)
-  return new Response(stream as ReadableStream).text();
-}
 
 export async function execAsync(
   command: string,
   args: string[] = [],
   options: ExecAsyncOptions = {}
 ): Promise<ExecAsyncResult> {
-  const { cwd, env, captureOutput = false, timeoutMs, killSignal = "SIGKILL" } = options;
+  const { cwd, env, shell = false, captureOutput = false, timeoutMs } = options;
 
-  return new Promise<ExecAsyncResult>((resolve, reject) => {
-    console.log(`Executing command: ${command} ${args.join(" ")} in ${cwd || process.cwd()}`);
+  return new Promise((resolve, reject) => {
+    console.log(`Executing command: ${command} ${args.join(' ')} in ${cwd || process.cwd()}`);
 
-    const child: Subprocess = spawn([command, ...args], {
+    const child: ChildProcess = spawn(command, args, {
       cwd,
-      env: toBunEnv(env),
-      stdin: "inherit",
-      stdout: captureOutput ? "pipe" : "inherit",
-      stderr: captureOutput ? "pipe" : "inherit",
+      env,
+      shell,
+      stdio: captureOutput ? ['ignore', 'pipe', 'pipe'] : 'inherit',
     });
 
+    let stdout = '';
+    let stderr = '';
     let timeout: NodeJS.Timeout | undefined;
-    if (timeoutMs && Number.isFinite(timeoutMs)) {
+
+    if (captureOutput && child.stdout) {
+      child.stdout.on('data', (data: Buffer) => {
+        stdout += data.toString();
+      });
+    }
+
+    if (captureOutput && child.stderr) {
+      child.stderr.on('data', (data: Buffer) => {
+        stderr += data.toString();
+      });
+    }
+
+    const cleanup = () => {
+      if (timeout) clearTimeout(timeout);
+    };
+
+    if (timeoutMs) {
       timeout = setTimeout(() => {
-        try {
-          child.kill(killSignal);
-        } catch { }
-        reject(new Error(`Command "${command} ${args.join(" ")}" timed out after ${timeoutMs}ms`));
+        child.kill('SIGTERM');
+        reject(new Error(`Command "${command} ${args.join(' ')}" timed out after ${timeoutMs}ms`));
       }, timeoutMs);
     }
 
-    const done = async () => {
-      try {
-        const [exitCode, stdout, stderr] = await Promise.all([
-          child.exited,
-          captureOutput ? streamToText(child.stdout as any) : Promise.resolve(""),
-          captureOutput ? streamToText(child.stderr as any) : Promise.resolve(""),
-        ]);
-        if (timeout) clearTimeout(timeout);
+    child.on('error', (err) => {
+      cleanup();
+      reject(err);
+    });
 
-        if (exitCode !== 0) {
-          const msg = captureOutput
-            ? `Command "${command} ${args.join(" ")}" failed with code ${exitCode}\n\nSTDERR:\n${stderr}\n\nSTDOUT:\n${stdout}`
-            : `Command "${command} ${args.join(" ")}" failed with code ${exitCode}`;
-          reject(new Error(msg));
-        } else {
-          resolve(captureOutput ? { stdout, stderr } : null);
-        }
-      } catch (err) {
-        if (timeout) clearTimeout(timeout);
-        reject(err);
+    child.on('close', (code) => {
+      cleanup();
+      if (code !== 0) {
+        const errorMessage = captureOutput
+          ? `Command "${command} ${args.join(' ')}" failed with code ${code}\n\nSTDERR:\n${stderr}`
+          : `Command "${command} ${args.join(' ')}" failed with code ${code}`;
+        reject(new Error(errorMessage));
+      } else {
+        resolve(captureOutput ? { stdout, stderr } : null);
       }
-    };
-
-    // Ensure we hook completion
-    void done();
+    });
   });
 }

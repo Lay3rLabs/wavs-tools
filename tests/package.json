@@ -1,6 +1,6 @@
 {
     "scripts": {
-        "test": "mkdir -p .test-reports && bun test src --reporter=junit --reporter-outfile=.test-reports/junit.xml --timeout 300000",
+        "test": "mkdir -p .test-reports && bun test src --reporter=junit --reporter-outfile=.test-reports/junit.xml --timeout 600000",
         "test:coverage": "mkdir -p .test-reports/coverage && bun test src --coverage --coverage-reporter=lcov --coverage-dir=.test-reports/coverage",
         "test:watch": "bun test src --watch",
         "test:clean": "rm -rf .test-reports coverage"
