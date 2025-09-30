@@ -1,7 +1,6 @@
 import { describe, beforeAll, afterAll, test } from "bun:test";
 import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
-import { TEST_TIMEOUT } from "./helpers/constants";
 
 const PROJECT_NAME = "wavs-drand";
 
@@ -29,6 +28,6 @@ describe(PROJECT_NAME.toUpperCase(), function () {
       await execAsync("task", ["run-tests"], {
         cwd: projectPath(PROJECT_NAME),
       });
-    }, TEST_TIMEOUT);
+    });
   });
 });
