@@ -54,9 +54,9 @@ tasks:
     cmds:
       - |
         if [ "{{.USES_MOCK}}" = "true" ]; then
-          cd "{{.REPO_ROOT}}" && task middleware:deploy-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+          cd "{{.REPO_ROOT}}" && task middleware:mock:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
         else
-          cd "{{.REPO_ROOT}}" && task middleware:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+          cd "{{.REPO_ROOT}}" && task middleware:ecdsa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
         fi
 
   middleware-transfer-ownership:
@@ -72,9 +72,9 @@ tasks:
     cmds:
       - |
         if [ "{{.USES_MOCK}}" = "true" ]; then
-          cd "{{.REPO_ROOT}}" && task middleware:mock-transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+          cd "{{.REPO_ROOT}}" && task middleware:mock:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
         else
-          cd "{{.REPO_ROOT}}" && task middleware:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+          cd "{{.REPO_ROOT}}" && task middleware:ecdsa:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
         fi
 
   build-mock-config:
@@ -84,8 +84,7 @@ tasks:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
-      MOCK_CONFIG_PATH:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-mock-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+      CONFIGURE_FILE: "wavs-mock-config.json"
     requires:
       vars: [PROJECT]
     cmds:
@@ -122,9 +121,9 @@ tasks:
             threshold: ($threshold | tonumber),
             quorumNumerator: ($quorumNumerator | tonumber),
             quorumDenominator: ($quorumDenominator | tonumber)
-          }' > "{{.MOCK_CONFIG_PATH}}"
+          }' > "{{.NODES_DIR}}/{{.CONFIGURE_FILE}}"
 
-        echo "Mock config written to {{.MOCK_CONFIG_PATH}} with $(echo "$OPERATORS_JSON" | jq length) operators"
+        echo "Mock config written to {{.NODES_DIR}}/{{.CONFIGURE_FILE}} with $(echo "$OPERATORS_JSON" | jq length) operators"
 
   build-empty-service:
     desc: "Build the empty service configuration"
@@ -187,7 +186,7 @@ tasks:
         sh: task get-temp-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_URI="{{.SERVICE_URI}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:ecdsa:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_URI="{{.SERVICE_URI}}"
 
   register-service:
     vars:
@@ -233,9 +232,9 @@ tasks:
       - |
         if [ "{{.USES_MOCK}}" = "true" ]; then
           task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
-          cd "{{.REPO_ROOT}}" && task middleware:configure-mock PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+          cd "{{.REPO_ROOT}}" && task middleware:mock:configure PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
         else
-          cd "{{.REPO_ROOT}}" && task middleware:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+          cd "{{.REPO_ROOT}}" && task middleware:ecdsa:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
         fi
 
   deploy-service-*:

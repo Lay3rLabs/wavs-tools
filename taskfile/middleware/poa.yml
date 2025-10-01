@@ -1,0 +1,185 @@
+version: "3"
+
+includes:
+  utils:
+    taskfile: ./utils.yml
+    flatten: true
+
+tasks:
+  deploy:
+    desc: "Deploy POA middleware contracts"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    deps:
+      - task: clean
+        vars:
+          PROJECT: "{{.PROJECT}}"
+          SERVICE_NAME: "{{.SERVICE_NAME}}"
+          CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    env:
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+    cmds:
+      - mkdir -p {{.NODES_DIR}}
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e FUNDED_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} deploy
+
+  register-operator:
+    desc: "Register an operator with the POA stake registry"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, OPERATOR_ADDRESS, WEIGHT]
+    env:
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
+      SIGNING_ADDRESS:
+        sh: cd "{{.ROOT}}" && task get-service-signing-address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e OPERATOR_KEY
+        -e SIGNING_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation registerOperator {{.OPERATOR_ADDRESS}} {{.WEIGHT}}
+
+  update-operator-weight:
+    desc: "Update the weight of a registered operator"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, OPERATOR_ADDRESS, WEIGHT]
+    env:
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
+      SIGNING_ADDRESS:
+        sh: cd "{{.ROOT}}" && task get-service-signing-address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e OPERATOR_KEY
+        -e SIGNING_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation updateOperatorWeight {{.OPERATOR_ADDRESS}} {{.WEIGHT}}
+
+  update-signing-key:
+    desc: "Update the signing key for an operator"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, OPERATOR_KEY, SIGNING_ADDRESS]
+    env:
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
+      SIGNING_ADDRESS:
+        sh: cd "{{.ROOT}}" && task get-service-signing-address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e OPERATOR_KEY
+        -e SIGNING_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} update_signing_key {{.OPERATOR_KEY}} {{.SIGNING_ADDRESS}}
+
+  deregister-operator:
+    desc: "Deregister an operator from the POA stake registry"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, OPERATOR_ADDRESS]
+    env:
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
+      SIGNING_ADDRESS:
+        sh: cd "{{.ROOT}}" && task get-service-signing-address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e OPERATOR_KEY
+        -e SIGNING_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation deregisterOperator {{.OPERATOR_ADDRESS}}
+
+  update-stake-threshold:
+    desc: "Update the minimum stake threshold required for validation"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, THRESHOLD]
+    env:
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
+      SIGNING_ADDRESS:
+        sh: cd "{{.ROOT}}" && task get-service-signing-address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e OPERATOR_KEY
+        -e SIGNING_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation updateStakeThreshold {{.THRESHOLD}}
+
+  update-quorum:
+    desc: "Update the quorum configuration for signature validation"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, QUORUM_NUMERATOR, QUORUM_DENOMINATOR]
+    env:
+      DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
+      SIGNING_ADDRESS:
+        sh: cd "{{.ROOT}}" && task get-service-signing-address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e RPC_URL
+        -e OPERATOR_KEY
+        -e SIGNING_ADDRESS
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation updateQuorum {{.QUORUM_NUMERATOR}} {{.QUORUM_DENOMINATOR}}

@@ -48,7 +48,7 @@ tasks:
     cmds:
       - >
         cd {{.REPO_ROOT}} &&
-        task middleware:deregister-operator 
+        task middleware:ecdsa:deregister-operator 
         PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
         WAVS_INSTANCE="{{.OPERATOR}}"
       - task: validate-operator-weight-updated-event
@@ -118,7 +118,7 @@ tasks:
     cmds:
       - >
         cd "{{.REPO_ROOT}}" && 
-        task middleware:delegate-to-operator
+        task middleware:ecdsa:delegate-to-operator
         PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
         OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
