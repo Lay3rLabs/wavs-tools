@@ -28,6 +28,11 @@ tasks:
         vars:
           OPERATORS: "{{.OPERATORS}}"
       - task: start-telemetry
+    cmds:
+      - task: configure-local-chains
+        vars:
+          CHAINS: "{{.CHAINS}}"
+          OPERATORS: "{{.OPERATORS}}"
 
   stop:
     desc: "Stops all backend services"
@@ -181,6 +186,15 @@ tasks:
         sh: task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
     cmds:
       - echo "http://localhost:{{.ANVIL_PORT}}"
+
+  get-local-evm-ws-url-*:
+    desc: "Get the local Anvil WebSocket URL for a chain number"
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      ANVIL_PORT:
+        sh: task -s backend:get-anvil-port-{{.CHAIN_NUMBER}}
+    cmds:
+      - echo "ws://localhost:{{.ANVIL_PORT}}"
 
   get-chain-name-*:
     desc: "Get the chain name for a chain number"
@@ -374,6 +388,98 @@ tasks:
       ENV_VAR_NAME: "WAVS_SUBMISSION_MNEMONIC_{{.WAVS_INSTANCE}}"
     cmds:
       - echo "${{.ENV_VAR_NAME}}"
+
+  ###################################################################
+  ##################### CHAIN CONFIGURATION ##########################
+  ###################################################################
+  # Only for local evm instances
+  # Eventually need to refactor entire codebase to allow for local <=> testnet
+  # Since everything is heavily dependent on DEPLOY_ENV atm
+  configure-local-chains:
+    status:
+      - '[ "{{.DEPLOY_ENV}}" != "LOCAL" ]'
+    desc: "Configure chains across all active WAVS operators"
+    requires:
+      vars: [CHAINS, OPERATORS]
+    vars:
+      CHAIN_RANGE:
+        sh: seq 1 {{.CHAINS}}
+    deps:
+      - for: { var: CHAIN_RANGE }
+        task: configure-local-evm-chain-{{.ITEM}}
+        vars:
+          OPERATORS: "{{.OPERATORS}}"
+
+  configure-local-evm-chain-*:
+    desc: "Configure a single chain across all active WAVS operators"
+    requires:
+      vars: [CHAIN_NUMBER, OPERATORS]
+    vars:
+      CHAIN_NUMBER: "{{index .MATCH 0}}"
+      CHAIN_NAME:
+        sh: task backend:get-local-chain-name-{{.CHAIN_NUMBER}}
+      RPC_URL:
+        sh: task backend:get-local-evm-rpc-url-{{.CHAIN_NUMBER}}
+      WS_ENDPOINT:
+        sh: task backend:get-local-evm-ws-url-{{.CHAIN_NUMBER}}
+      WAVS_RANGE:
+        sh: seq 1 {{.OPERATORS}}
+      POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS | default 7000}}"
+    deps:
+      - for: { var: WAVS_RANGE }
+        task: add-evm-chain
+        vars:
+          ENDPOINT:
+            sh: task backend:get-wavs-endpoint-{{.ITEM}}
+          CHAIN_NAME: "{{.CHAIN_NAME}}"
+          HTTP_ENDPOINT: "{{.RPC_URL}}"
+          WS_ENDPOINT: "{{.WS_ENDPOINT}}"
+          POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
+      - task: add-evm-chain
+        vars:
+          ENDPOINT: "{{.WAVS_AGGREGATOR_ENDPOINT}}"
+          CHAIN_NAME: "{{.CHAIN_NAME}}"
+          HTTP_ENDPOINT: "{{.RPC_URL}}"
+          WS_ENDPOINT: "{{.WS_ENDPOINT}}"
+          POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
+
+  add-evm-chain:
+    desc: "Add a new EVM chain to WAVS via POST /dev/chains endpoint"
+    requires:
+      vars: [ENDPOINT, NAMESPACE, CHAIN_NAME]
+    vars:
+      HTTP_ENDPOINT: "{{.HTTP_ENDPOINT}}"
+      NAMESPACE: '{{ index (.CHAIN_NAME | splitList ":") 0 }}'
+      CHAIN_ID: '{{ index (.CHAIN_NAME | splitList ":") 1 }}'
+      WS_ENDPOINT: "{{.WS_ENDPOINT}}"
+      FAUCET_ENDPOINT: "{{.FAUCET_ENDPOINT}}"
+      POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
+    preconditions:
+      - sh: "command -v curl"
+        msg: "curl is required but not installed"
+    cmds:
+      - >
+        curl --fail-with-body -X POST "{{.ENDPOINT}}/dev/chains" \
+          -H "Content-Type: application/json" \
+          -d '{
+            "chain": "{{.NAMESPACE}}:{{.CHAIN_ID}}",
+            "config": {
+              "type": "evm",
+              "chain_id": "{{.CHAIN_ID}}"
+              {{- if .WS_ENDPOINT}},
+              "ws_endpoint": "{{.WS_ENDPOINT}}"
+              {{- end}}
+              {{- if .HTTP_ENDPOINT}},
+              "http_endpoint": "{{.HTTP_ENDPOINT}}"
+              {{- end}}
+              {{- if .FAUCET_ENDPOINT}},
+              "faucet_endpoint": "{{.FAUCET_ENDPOINT}}"
+              {{- end}}
+              {{- if .POLL_INTERVAL_MS}},
+              "poll_interval_ms": {{.POLL_INTERVAL_MS}}
+              {{- end}}
+            }
+          }'
 
   ###################################################################
   ##################### TELEMETRY ###################################
