@@ -103,6 +103,7 @@ jobs:
           MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
           JAEGER_IMAGE=$(grep 'JAEGER_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
           PROMETHEUS_IMAGE=$(grep 'PROMETHEUS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
+          POA_MIDDLEWARE_IMAGE=$(grep 'POA_MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
 
           # Create cache directory
           mkdir -p /tmp/docker-cache
@@ -114,6 +115,7 @@ jobs:
           docker pull $MIDDLEWARE_IMAGE
           docker pull $JAEGER_IMAGE
           docker pull $PROMETHEUS_IMAGE
+          docker pull $POA_MIDDLEWARE_IMAGE
 
           # Save images to cache
           docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
@@ -121,6 +123,7 @@ jobs:
           docker save $MIDDLEWARE_IMAGE -o /tmp/docker-cache/middleware.tar
           docker save $JAEGER_IMAGE -o /tmp/docker-cache/jaeger.tar
           docker save $PROMETHEUS_IMAGE -o /tmp/docker-cache/prometheus.tar
+          docker save $POA_MIDDLEWARE_IMAGE -o /tmp/docker-cache/poa_middleware.tar
 
       # Tool installations
       - name: Install Foundry
