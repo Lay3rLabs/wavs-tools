@@ -96,34 +96,39 @@ jobs:
 
       - name: Pull and cache Docker images
         if: steps.cache-docker.outputs.cache-hit != 'true'
+        shell: bash
         run: |
-          # Extract image versions from docker config
-          WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
-          FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-          MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
-          JAEGER_IMAGE=$(grep 'JAEGER_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-          PROMETHEUS_IMAGE=$(grep 'PROMETHEUS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-          POA_MIDDLEWARE_IMAGE=$(grep 'POA_MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-
-          # Create cache directory
+          set -euo pipefail
           mkdir -p /tmp/docker-cache
 
-          # Pull and save images
-          echo "Pulling and caching Docker images..."
-          docker pull $WAVS_IMAGE
-          docker pull $FOUNDRY_IMAGE  
-          docker pull $MIDDLEWARE_IMAGE
-          docker pull $JAEGER_IMAGE
-          docker pull $PROMETHEUS_IMAGE
-          docker pull $POA_MIDDLEWARE_IMAGE
+          # Map YAML vars -> output filenames
+          declare -A FILES=(
+            ["WAVS_DOCKER_IMAGE"]="wavs"
+            ["FOUNDRY_DOCKER_IMAGE"]="foundry"
+            ["MIDDLEWARE_DOCKER_IMAGE"]="middleware"
+            ["JAEGER_DOCKER_IMAGE"]="jaeger"
+            ["PROMETHEUS_DOCKER_IMAGE"]="prometheus"
+            ["POA_MIDDLEWARE_DOCKER_IMAGE"]="poa_middleware"
+          )
 
-          # Save images to cache
-          docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
-          docker save $FOUNDRY_IMAGE -o /tmp/docker-cache/foundry.tar
-          docker save $MIDDLEWARE_IMAGE -o /tmp/docker-cache/middleware.tar
-          docker save $JAEGER_IMAGE -o /tmp/docker-cache/jaeger.tar
-          docker save $PROMETHEUS_IMAGE -o /tmp/docker-cache/prometheus.tar
-          docker save $POA_MIDDLEWARE_IMAGE -o /tmp/docker-cache/poa_middleware.tar
+          YAML_FILE="taskfile/docker.yml"
+
+          echo "Pulling and caching Docker images..."
+          for VAR_NAME in "${!FILES[@]}"; do
+            FILE_NAME="${FILES[$VAR_NAME]}"
+
+            # Extract the value and remove the arm64 template (always blank on this runner)
+            IMAGE=$(yq -r ".vars.$VAR_NAME | sub(\"{{if eq .ARCH \\\"arm64\\\"}}-arm64{{end}}\"; \"\")" "$YAML_FILE")
+
+            if [[ -z "$IMAGE" || "$IMAGE" == "null" ]]; then
+              echo "ERROR: Could not resolve $VAR_NAME from $YAML_FILE" >&2
+              exit 1
+            fi
+
+            echo "Processing $VAR_NAME → $IMAGE"
+            docker pull "$IMAGE"
+            docker save "$IMAGE" -o "/tmp/docker-cache/$FILE_NAME.tar"
+          done
 
       # Tool installations
       - name: Install Foundry
