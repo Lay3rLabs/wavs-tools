@@ -79,6 +79,21 @@ tasks:
     cmds:
       - echo "{{.AVS_SIGNING_ADDRESS}}"
 
+  get-service-signing-key:
+    desc: "Get service signing address for WAVS instance"
+    vars:
+      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      HD_INDEX:
+        sh: task get-service-hd-index WAVS_INSTANCE={{.WAVS_INSTANCE}}
+      OPERATOR_MNEMONIC:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      AVS_SIGNING_KEY:
+        sh: cast wallet private-key "{{.OPERATOR_MNEMONIC}}" --mnemonic-index {{.HD_INDEX}}
+    requires:
+      vars: [REPO_ROOT]
+    cmds:
+      - echo "{{.AVS_SIGNING_KEY}}"
+
   get-operator-address:
     desc: "Get the operator's address"
     vars:

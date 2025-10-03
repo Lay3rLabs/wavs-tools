@@ -252,7 +252,11 @@ tasks:
             ;;
           "POA")
             OPERATOR=$(task get-operator-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}")
-            cd "{{.REPO_ROOT}}" && task middleware:poa:register-operator PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" OPERATOR_ADDRESS="${OPERATOR}" WEIGHT=1
+            SIGNING_KEY=$(task get-service-signing-key WAVS_INSTANCE="{{.WAVS_INSTANCE}}")
+            OPERATOR_KEY=$(task get-operator-private-key WAVS_INSTANCE="{{.WAVS_INSTANCE}}")
+            cd "{{.REPO_ROOT}}"
+            task middleware:poa:register-operator PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" OPERATOR_ADDRESS="${OPERATOR}" WEIGHT=100
+            task middleware:poa:update-signing-key PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" OPERATOR_KEY="${OPERATOR_KEY}" SIGNING_KEY="${SIGNING_KEY}"
             ;;
           *)
             cd "{{.REPO_ROOT}}" && task middleware:ecdsa:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
