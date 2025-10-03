@@ -32,12 +32,13 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
+      DEPLOY_FILE: '{{.DEPLOY_FILE | default "avs_deploy.json"}}'
       OUTPUT_DIR:
         sh: task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
-      - echo "{{.OUTPUT_DIR}}/avs_deploy.json"
+      - echo "{{.OUTPUT_DIR}}/{{.DEPLOY_FILE}}"
 
   get-mirror-json-filepath:
     desc: "Get the path to the middleware mirror JSON file"
@@ -54,23 +55,42 @@ tasks:
     desc: "Get the WAVS Service Manager address from the middleware deploy JSON file"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
+      DEPLOY_FILE: "avs_deploy.json"
       JSON_FILEPATH:
-        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME="{{.SERVICE_NAME}}" DEPLOY_FILE={{if eq .MIDDLEWARE_MODE "POA"}}poa_deploy.json{{else}}avs_deploy.json{{end}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
-      - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+      - |
+        case "{{.MIDDLEWARE_MODE}}" in
+          "POA")
+            sh -c 'jq -r ".addresses.POAStakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            ;;
+          *)
+            sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            ;;
+        esac
 
   get-stake-registry-address:
     desc: "Get the Stake Registry address from the middleware deploy JSON file"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
       JSON_FILEPATH:
-        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+        sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}" DEPLOY_FILE={{if eq .MIDDLEWARE_MODE "POA"}}poa_deploy.json{{else}}avs_deploy.json{{end}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:
-      - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+      - |
+        case "{{.MIDDLEWARE_MODE}}" in
+          "POA")
+            sh -c 'jq -r ".addresses.POAStakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            ;;
+          *)
+            sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            ;;
+        esac
 
   get-mirror-stake-registry-address:
     desc: "Get the Mirror Stake Registry address from the middleware JSON file"
@@ -91,6 +111,19 @@ tasks:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
       - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+
+  set-service-uri:
+    desc: "Set the service URI on the service manager contract"
+    vars:
+      CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
+      RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, SERVICE_MANAGER_ADDRESS, SERVICE_URI]
+    cmds:
+      - |
+        echo "Setting service URI on {{.SERVICE_MANAGER_ADDRESS}}"
+        cast send "{{.SERVICE_MANAGER_ADDRESS}}" "setServiceURI(string)" "{{.SERVICE_URI}}" --private-key "{{.DEPLOYER_PRIVATE_KEY}}" --rpc-url "{{.RPC_URL}}"
 
   get-strategy-manager-address:
     desc: "Get the strategy manager address from the deployments JSON file"

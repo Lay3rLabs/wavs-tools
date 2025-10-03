@@ -46,16 +46,13 @@ tasks:
       DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
       RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
-      SIGNING_ADDRESS:
-        sh: cd "{{.ROOT}}" && task get-service-signing-address
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e RPC_URL
-        -e OPERATOR_KEY
-        -e SIGNING_ADDRESS
+        -e FUNDED_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation registerOperator {{.OPERATOR_ADDRESS}} {{.WEIGHT}}
 
@@ -71,16 +68,13 @@ tasks:
       DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
       RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
-      SIGNING_ADDRESS:
-        sh: cd "{{.ROOT}}" && task get-service-signing-address
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e RPC_URL
-        -e OPERATOR_KEY
-        -e SIGNING_ADDRESS
+        -e FUNDED_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation updateOperatorWeight {{.OPERATOR_ADDRESS}} {{.WEIGHT}}
 
@@ -91,23 +85,22 @@ tasks:
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
-      vars: [PROJECT, SERVICE_NAME, OPERATOR_KEY, SIGNING_ADDRESS]
+      vars: [PROJECT, SERVICE_NAME, OPERATOR_KEY, SIGNING_KEY]
     env:
       DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
       RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
-      SIGNING_ADDRESS:
-        sh: cd "{{.ROOT}}" && task get-service-signing-address
+      OPERATOR_KEY: "{{.OPERATOR_KEY}}"
+      SIGNING_KEY: "{{.SIGNING_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e RPC_URL
         -e OPERATOR_KEY
-        -e SIGNING_ADDRESS
+        -e SIGNING_KEY
         -v {{.NODES_DIR}}:/root/.nodes
-        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} update_signing_key {{.OPERATOR_KEY}} {{.SIGNING_ADDRESS}}
+        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} update_signing_key
 
   deregister-operator:
     desc: "Deregister an operator from the POA stake registry"
@@ -121,18 +114,15 @@ tasks:
       DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
       RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
-      SIGNING_ADDRESS:
-        sh: cd "{{.ROOT}}" && task get-service-signing-address
-    cmds:
-      - >
-        {{.DOCKER_SUDO}} docker run --rm --network host
-        -e DEPLOY_ENV
-        -e RPC_URL
-        -e OPERATOR_KEY
-        -e SIGNING_ADDRESS
-        -v {{.NODES_DIR}}:/root/.nodes
-        {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation deregisterOperator {{.OPERATOR_ADDRESS}}
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+      cmds:
+        - >
+          {{.DOCKER_SUDO}} docker run --rm --network host
+          -e DEPLOY_ENV
+          -e RPC_URL
+          -e FUNDED_KEY
+          -v {{.NODES_DIR}}:/root/.nodes
+          {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation deregisterOperator {{.OPERATOR_ADDRESS}}
 
   update-stake-threshold:
     desc: "Update the minimum stake threshold required for validation"
@@ -146,16 +136,13 @@ tasks:
       DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
       RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
-      SIGNING_ADDRESS:
-        sh: cd "{{.ROOT}}" && task get-service-signing-address
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e RPC_URL
-        -e OPERATOR_KEY
-        -e SIGNING_ADDRESS
+        -e FUNDED_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation updateStakeThreshold {{.THRESHOLD}}
 
@@ -171,15 +158,12 @@ tasks:
       DEPLOY_ENV: '{{.DEPLOY_ENV | default "LOCAL"}}'
       RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      OPERATOR_KEY: "{{.OPERATOR_PRIVATE_KEY}}"
-      SIGNING_ADDRESS:
-        sh: cd "{{.ROOT}}" && task get-service-signing-address
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
         -e DEPLOY_ENV
         -e RPC_URL
-        -e OPERATOR_KEY
-        -e SIGNING_ADDRESS
+        -e FUNDED_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.POA_MIDDLEWARE_DOCKER_IMAGE}} owner_operation updateQuorum {{.QUORUM_NUMERATOR}} {{.QUORUM_DENOMINATOR}}

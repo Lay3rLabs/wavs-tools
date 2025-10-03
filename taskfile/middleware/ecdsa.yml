@@ -109,35 +109,7 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
-  set-service-uri:
-    desc: "Set the service URI on the service manager contract"
-    vars:
-      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
-      NODES_DIR:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
-      EVM_RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
-    requires:
-      vars: [PROJECT, SERVICE_NAME, SERVICE_URI]
-    env:
-      WAVS_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
-      SERVICE_URI: "{{.SERVICE_URI}}"
-      RPC_URL:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
-      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
-    cmds:
-      - >
-        {{.DOCKER_SUDO}} docker run --rm --network host
-        -e DEPLOY_ENV
-        -e RPC_URL
-        -e WAVS_SERVICE_MANAGER_ADDRESS
-        -e SERVICE_URI
-        -e FUNDED_KEY
-        -v {{.NODES_DIR}}:/root/.nodes
-        {{.MIDDLEWARE_DOCKER_IMAGE}} set_service_uri
-
+  
   deregister-operator:
     desc: "Deregister an operator on a given service"
     vars:

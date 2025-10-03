@@ -45,37 +45,50 @@ tasks:
       - cd "{{.REPO_ROOT}}" && task component:upload-aggregator PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
-    desc: "Deploys the middleware (mock or real based on USES_MOCK setting)"
+    desc: "Deploys the middleware (mock, ecdsa, or poa based on MIDDLEWARE_MODE setting)"
     vars:
-      USES_MOCK: '{{.USES_MOCK | default "false"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
       CHAIN_ARG: "{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}"
     requires:
       vars: [PROJECT, REPO_ROOT]
     cmds:
       - |
-        if [ "{{.USES_MOCK}}" = "true" ]; then
-          cd "{{.REPO_ROOT}}" && task middleware:mock:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
-        else
-          cd "{{.REPO_ROOT}}" && task middleware:ecdsa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
-        fi
+        case "{{.MIDDLEWARE_MODE}}" in
+          "MOCK")
+            cd "{{.REPO_ROOT}}" && task middleware:mock:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+            ;;
+          "POA")
+            cd "{{.REPO_ROOT}}" && task middleware:poa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+            ;;
+          *)
+            cd "{{.REPO_ROOT}}" && task middleware:ecdsa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+            ;;
+        esac
 
   middleware-transfer-ownership:
-    desc: "Transfer ownership of ECDSA proxy and AVS contracts (conditional on TRANSFER_OWNERSHIP)"
+    desc: "Transfer ownership of middleware contracts (conditional on TRANSFER_OWNERSHIP)"
     vars:
       TRANSFER_OWNERSHIP: '{{.TRANSFER_OWNERSHIP | default "false"}}'
-      USES_MOCK: '{{.USES_MOCK | default "false"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
       CHAIN_ARG: "{{if .SOURCE_CHAIN_NUMBER}}CHAIN_NUMBER={{.SOURCE_CHAIN_NUMBER}}{{end}}"
     requires:
       vars: [PROJECT, REPO_ROOT, PROXY_OWNER, AVS_OWNER]
     status:
       - '[ "{{.TRANSFER_OWNERSHIP}}" != "true" ]'
+      - '[ "{{.MIDDLEWARE_MODE}}" == "POA" ]'
     cmds:
       - |
-        if [ "{{.USES_MOCK}}" = "true" ]; then
-          cd "{{.REPO_ROOT}}" && task middleware:mock:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
-        else
-          cd "{{.REPO_ROOT}}" && task middleware:ecdsa:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
-        fi
+        case "{{.MIDDLEWARE_MODE}}" in
+          "MOCK")
+            cd "{{.REPO_ROOT}}" && task middleware:mock:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+            ;;
+          "POA")
+            echo "POA middleware does not support ownership transfer - skipping"
+            ;;
+          *)
+            cd "{{.REPO_ROOT}}" && task middleware:ecdsa:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+            ;;
+        esac
 
   build-mock-config:
     desc: "Build mock configuration JSON with all active operators"
@@ -182,11 +195,13 @@ tasks:
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
+      SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
       TEMP_SERVICE_HASH:
         sh: task get-temp-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:ecdsa:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_URI="{{.SERVICE_URI}}"
+      - cd "{{.REPO_ROOT}}" && task middleware:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}" SERVICE_URI="{{.SERVICE_URI}}"
 
   register-service:
     vars:
@@ -227,15 +242,22 @@ tasks:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       WAVS_SIGNING_KEY:
         sh: task get-service-signing-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-      USES_MOCK: '{{.USES_MOCK | default "false"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
     cmds:
       - |
-        if [ "{{.USES_MOCK}}" = "true" ]; then
-          task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
-          cd "{{.REPO_ROOT}}" && task middleware:mock:configure PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-        else
-          cd "{{.REPO_ROOT}}" && task middleware:ecdsa:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
-        fi
+        case "{{.MIDDLEWARE_MODE}}" in
+          "MOCK")
+            task bootstrap:build-mock-config PROJECT="{{.PROJECT}}"
+            cd "{{.REPO_ROOT}}" && task middleware:mock:configure PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+            ;;
+          "POA")
+            OPERATOR=$(task get-operator-address WAVS_INSTANCE="{{.WAVS_INSTANCE}}")
+            cd "{{.REPO_ROOT}}" && task middleware:poa:register-operator PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" OPERATOR_ADDRESS="${OPERATOR}" WEIGHT=1
+            ;;
+          *)
+            cd "{{.REPO_ROOT}}" && task middleware:ecdsa:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+            ;;
+        esac
 
   deploy-service-*:
     vars:
@@ -272,12 +294,12 @@ tasks:
   wavs-*:
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
-      USES_MOCK: '{{.USES_MOCK | default "false"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
     cmds:
       - task bootstrap:components-upload WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
       - task bootstrap:deploy-service-{{.WAVS_INSTANCE}}
       - |
-        if [ "{{.USES_MOCK}}" != "true" ]; then
+        if [ "{{.MIDDLEWARE_MODE}}" != "MOCK" ]; then
           task bootstrap:register-operator WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
         fi
 

@@ -22,28 +22,31 @@ tasks:
     desc: "Get service manager address with testnet support"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
     requires:
       vars: [REPO_ROOT, PROJECT]
     cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+      - cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}} MIDDLEWARE_MODE={{.MIDDLEWARE_MODE}}
 
   get-stake-registry-address:
     desc: "Get stake registry address with testnet support"
     vars:
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
     requires:
       vars: [REPO_ROOT, PROJECT]
     cmds:
-      - cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}}
+      - cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.PROJECT}} MIDDLEWARE_MODE={{.MIDDLEWARE_MODE}}
 
   get-service-hd-index:
     desc: "Get service HD index from WAVS endpoint"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
       SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
+        sh: task get-service-manager-address MIDDLEWARE_MODE={{.MIDDLEWARE_MODE}}
       CHAIN_NAME:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-1
     requires:
