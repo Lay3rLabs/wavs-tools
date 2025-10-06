@@ -109,7 +109,6 @@ tasks:
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} register {{.AMOUNT}}
 
-  
   deregister-operator:
     desc: "Deregister an operator on a given service"
     vars:
@@ -153,6 +152,7 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       QUORUM_DENOMINATOR: "{{.QUORUM_DENOMINATOR}}"
       QUORUM_NUMERATOR: "{{.QUORUM_NUMERATOR}}"
+      FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
@@ -161,6 +161,7 @@ tasks:
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e QUORUM_DENOMINATOR
         -e QUORUM_NUMERATOR
+        -e FUNDED_KEY
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} update_quorum
 
