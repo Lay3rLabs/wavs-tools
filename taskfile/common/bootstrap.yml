@@ -74,8 +74,7 @@ tasks:
     requires:
       vars: [PROJECT, REPO_ROOT, PROXY_OWNER, AVS_OWNER]
     status:
-      - '[ "{{.TRANSFER_OWNERSHIP}}" != "true" ]'
-      - '[ "{{.MIDDLEWARE_MODE}}" == "POA" ]'
+      - '[ "{{.TRANSFER_OWNERSHIP}}" != "true" ] || [ "{{.MIDDLEWARE_MODE}}" == "POA" ]'
     cmds:
       - |
         case "{{.MIDDLEWARE_MODE}}" in
