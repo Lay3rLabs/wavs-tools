@@ -7,3 +7,24 @@ vars:
   FOUNDRY_DOCKER_IMAGE: "ghcr.io/foundry-rs/foundry:latest"
   JAEGER_DOCKER_IMAGE: "jaegertracing/jaeger:2.5.0"
   PROMETHEUS_DOCKER_IMAGE: "prom/prometheus:v3.3.0"
+
+tasks:
+  cache-images:
+    desc: Pull and cache Docker images to /tmp/docker-cache
+      CACHE_DIR: /tmp/docker-cache
+      IMAGES:
+        map:
+          wavs: "{{.WAVS_DOCKER_IMAGE}}"
+          foundry: "{{.FOUNDRY_DOCKER_IMAGE}}"
+          middleware: "{{.MIDDLEWARE_DOCKER_IMAGE}}"
+          jaeger: "{{.JAEGER_DOCKER_IMAGE}}"
+          prometheus: "{{.PROMETHEUS_DOCKER_IMAGE}}"
+          poa_middleware: "{{.POA_MIDDLEWARE_DOCKER_IMAGE}}"
+    cmds:
+      - mkdir -p {{.CACHE_DIR}}
+      - for:
+          var: IMAGES
+        cmd: |
+          echo "Processing {{.KEY}} → {{.ITEM}}"
+          docker pull {{.ITEM}}
+          docker save {{.ITEM}} -o "{{.CACHE_DIR}}/{{.KEY}}.tar"

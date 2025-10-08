@@ -75,6 +75,12 @@ jobs:
             node_modules
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache Docker images
         id: cache-docker
         uses: actions/cache@v4
@@ -96,39 +102,7 @@ jobs:
 
       - name: Pull and cache Docker images
         if: steps.cache-docker.outputs.cache-hit != 'true'
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p /tmp/docker-cache
-
-          # Map YAML vars -> output filenames
-          declare -A FILES=(
-            ["WAVS_DOCKER_IMAGE"]="wavs"
-            ["FOUNDRY_DOCKER_IMAGE"]="foundry"
-            ["MIDDLEWARE_DOCKER_IMAGE"]="middleware"
-            ["JAEGER_DOCKER_IMAGE"]="jaeger"
-            ["PROMETHEUS_DOCKER_IMAGE"]="prometheus"
-            ["POA_MIDDLEWARE_DOCKER_IMAGE"]="poa_middleware"
-          )
-
-          YAML_FILE="taskfile/docker.yml"
-
-          echo "Pulling and caching Docker images..."
-          for VAR_NAME in "${!FILES[@]}"; do
-            FILE_NAME="${FILES[$VAR_NAME]}"
-
-            # Extract the value and remove the arm64 template (always blank on this runner)
-            IMAGE=$(yq -r ".vars.$VAR_NAME | sub(\"{{if eq .ARCH \\\"arm64\\\"}}-arm64{{end}}\"; \"\")" "$YAML_FILE")
-
-            if [[ -z "$IMAGE" || "$IMAGE" == "null" ]]; then
-              echo "ERROR: Could not resolve $VAR_NAME from $YAML_FILE" >&2
-              exit 1
-            fi
-
-            echo "Processing $VAR_NAME → $IMAGE"
-            docker pull "$IMAGE"
-            docker save "$IMAGE" -o "/tmp/docker-cache/$FILE_NAME.tar"
-          done
+        run: task backend:cache-images
 
       # Tool installations
       - name: Install Foundry
@@ -161,18 +135,16 @@ jobs:
       - name: Setup wkg
         run: wkg config --default-registry wa.dev
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       # Dependencies and environment
       - name: Setup dependencies
         run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env
+
+      # Build components
+      - name: Build components
+        run: cargo component build --release
 
       # Tests
       - name: Run tests with coverage
