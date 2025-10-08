@@ -65,10 +65,10 @@ tasks:
       - |
         case "{{.MIDDLEWARE_MODE}}" in
           "POA")
-            sh -c 'jq -r ".addresses.POAStakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            jq -r ".addresses.POAStakeRegistry" "{{.JSON_FILEPATH}}"
             ;;
           *)
-            sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            jq -r ".addresses.WavsServiceManager" "{{.JSON_FILEPATH}}"
             ;;
         esac
 
@@ -85,10 +85,10 @@ tasks:
       - |
         case "{{.MIDDLEWARE_MODE}}" in
           "POA")
-            sh -c 'jq -r ".addresses.POAStakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            jq -r ".addresses.POAStakeRegistry" "{{.JSON_FILEPATH}}"
             ;;
           *)
-            sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+            jq -r ".addresses.stakeRegistry" "{{.JSON_FILEPATH}}"
             ;;
         esac
 
@@ -100,7 +100,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
-      - sh -c 'jq -r ".addresses.stakeRegistry // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+      - jq -r ".addresses.stakeRegistry" "{{.JSON_FILEPATH}}"
 
   get-mirror-service-manager-address:
     desc: "Get the Mirror Service Manager address from the middleware JSON file"
@@ -110,7 +110,7 @@ tasks:
     requires:
       vars: [PROJECT, SERVICE_NAME, CHAIN_NUMBER]
     cmds:
-      - sh -c 'jq -r ".addresses.WavsServiceManager // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+      - jq -r ".addresses.WavsServiceManager" "{{.JSON_FILEPATH}}"
 
   set-service-uri:
     desc: "Set the service URI on the service manager contract"
@@ -130,4 +130,4 @@ tasks:
     vars:
       CHAIN_ID: "{{.CHAIN_ID | default .MIDDLEWARE_CHAIN_ID}}"
     cmds:
-      - sh -c 'jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json" 2>/dev/null || true'
+      - jq -r ".addresses.strategyManager" "node_modules/@wavs/solidity/contracts/deployments/eigenlayer-core/{{.CHAIN_ID}}.json"

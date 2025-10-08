@@ -10,7 +10,7 @@ tasks:
     requires:
       vars: [PROJECT]
     cmds:
-      - sh -c 'jq -r ".addresses.operatorUpdateHandler // empty" "{{.JSON_FILEPATH}}" 2>/dev/null || true'
+      - jq -r ".addresses.operatorUpdateHandler" "{{.JSON_FILEPATH}}"
 
   get-aggregator-simple-flags:
     desc: "Get --values flags with chain_name=address format"
