@@ -11,6 +11,7 @@ vars:
 tasks:
   cache-images:
     desc: Pull and cache Docker images to /tmp/docker-cache
+    vars:
       CACHE_DIR: /tmp/docker-cache
       IMAGES:
         map:
