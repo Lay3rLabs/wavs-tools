@@ -179,12 +179,17 @@ The system supports two global deployment modes controlled by the `DEPLOY_ENV` i
 - **`LOCAL`** (default): Full local deployment with middleware contracts
 - **`TESTNET`**: Skip middleware deployment (assumes contracts already deployed on testnet)
 
-Projects can optionally use **MOCK** middleware deployments to speed up development.  
+Projects can configure different middleware deployment modes to speed up development or use different authentication mechanisms.
 This configuration should be set in the project's **Taskfile** variables:
 
 ```yaml
-USES_MOCK: true
+MIDDLEWARE_MODE: POA    # Options: EIGEN_ECDSA (default), EIGEN_MOCK, POA
 ```
+
+Available modes:
+- **EIGEN_ECDSA**: Standard middleware with ECDSA signature verification (default)
+- **EIGEN_MOCK**: Mock middleware for development/testing (faster deployment)
+- **POA**: Proof of Authority middleware with alternative authentication mechanism
 
 ## Transfer Ownership
 

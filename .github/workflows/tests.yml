@@ -75,6 +75,12 @@ jobs:
             node_modules
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.x
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Cache Docker images
         id: cache-docker
         uses: actions/cache@v4
@@ -96,31 +102,7 @@ jobs:
 
       - name: Pull and cache Docker images
         if: steps.cache-docker.outputs.cache-hit != 'true'
-        run: |
-          # Extract image versions from docker config
-          WAVS_IMAGE=$(grep 'WAVS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
-          FOUNDRY_IMAGE=$(grep 'FOUNDRY_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-          MIDDLEWARE_IMAGE=$(grep 'MIDDLEWARE_DOCKER_IMAGE:' taskfile/docker.yml | cut -d"'" -f2 | cut -d'{' -f1)
-          JAEGER_IMAGE=$(grep 'JAEGER_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-          PROMETHEUS_IMAGE=$(grep 'PROMETHEUS_DOCKER_IMAGE:' taskfile/docker.yml | cut -d'"' -f2)
-
-          # Create cache directory
-          mkdir -p /tmp/docker-cache
-
-          # Pull and save images
-          echo "Pulling and caching Docker images..."
-          docker pull $WAVS_IMAGE
-          docker pull $FOUNDRY_IMAGE  
-          docker pull $MIDDLEWARE_IMAGE
-          docker pull $JAEGER_IMAGE
-          docker pull $PROMETHEUS_IMAGE
-
-          # Save images to cache
-          docker save $WAVS_IMAGE -o /tmp/docker-cache/wavs.tar
-          docker save $FOUNDRY_IMAGE -o /tmp/docker-cache/foundry.tar
-          docker save $MIDDLEWARE_IMAGE -o /tmp/docker-cache/middleware.tar
-          docker save $JAEGER_IMAGE -o /tmp/docker-cache/jaeger.tar
-          docker save $PROMETHEUS_IMAGE -o /tmp/docker-cache/prometheus.tar
+        run: task backend:cache-images
 
       # Tool installations
       - name: Install Foundry
@@ -153,18 +135,16 @@ jobs:
       - name: Setup wkg
         run: wkg config --default-registry wa.dev
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       # Dependencies and environment
       - name: Setup dependencies
         run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env
+
+      # Build components
+      - name: Build components
+        run: cargo component build --release
 
       # Tests
       - name: Run tests with coverage

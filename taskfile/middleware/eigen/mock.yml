@@ -1,0 +1,98 @@
+version: "3"
+
+includes:
+  utils:
+    taskfile: ../utils.yml
+    flatten: true
+
+tasks:
+  deploy:
+    desc: "Deploy mock middleware for a given service"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    deps:
+      - task: clean
+        vars:
+          PROJECT: "{{.PROJECT}}"
+          SERVICE_NAME: "{{.SERVICE_NAME}}"
+          CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    env:
+      MOCK_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      MOCK_DEPLOYER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+    cmds:
+      - mkdir -p {{.NODES_DIR}}
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e MOCK_DEPLOYER_KEY
+        -e DEPLOY_ENV
+        -e MOCK_RPC_URL
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock deploy
+      - mv {{.NODES_DIR}}/mock.json {{.NODES_DIR}}/avs_deploy.json
+
+  configure:
+    desc: "Configure mock middleware with operator details by calling setOperatorDetails for each operator in the pre-built JSON"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      EVM_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      STAKE_REGISTRY_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-stake-registry-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME]
+    env:
+      MOCK_SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
+      MOCK_RPC_URL: "{{.EVM_RPC_URL}}"
+      MOCK_DEPLOYER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e MOCK_RPC_URL
+        -e MOCK_SERVICE_MANAGER_ADDRESS
+        -e MOCK_DEPLOYER_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        -v {{.NODES_DIR}}:/wavs/contracts/deployments
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock configure
+
+  transfer-ownership:
+    desc: "Transfer ownership of mock ECDSA proxy and AVS contracts"
+    vars:
+      CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
+      NODES_DIR:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+    requires:
+      vars: [PROJECT, SERVICE_NAME, PROXY_OWNER, AVS_OWNER]
+    env:
+      MOCK_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      WAVS_SERVICE_MANAGER_ADDRESS:
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
+      PROXY_OWNER: "{{.PROXY_OWNER}}"
+      AVS_OWNER: "{{.AVS_OWNER}}"
+      MOCK_DEPLOYER_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+    preconditions:
+      - sh: cast to-checksum {{.AVS_OWNER}}
+        msg: AVS_OWNER is not a valid address
+      - sh: cast to-checksum {{.PROXY_OWNER}}
+        msg: PROXY_OWNER is not a valid address
+    cmds:
+      - >
+        {{.DOCKER_SUDO}} docker run --rm --network host
+        -e DEPLOY_ENV
+        -e MOCK_RPC_URL
+        -e WAVS_SERVICE_MANAGER_ADDRESS
+        -e PROXY_OWNER
+        -e AVS_OWNER
+        -e MOCK_DEPLOYER_KEY
+        -v {{.NODES_DIR}}:/root/.nodes
+        {{.MIDDLEWARE_DOCKER_IMAGE}} -m mock transfer_ownership

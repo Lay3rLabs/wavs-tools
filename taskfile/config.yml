@@ -52,3 +52,8 @@ vars:
   # Aggregator config
   AGGREGATOR_PROJECT: "aggregator-simple"
   AGGREGATOR_COMPONENT_NAME: "aggregator_simple"
+
+tasks:
+  get-signing-address:
+    cmds:
+      - cast wallet addr --private-key "{{.SIGNING_PRIVATE_KEY}}"
