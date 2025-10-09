@@ -183,12 +183,12 @@ Projects can configure different middleware deployment modes to speed up develop
 This configuration should be set in the project's **Taskfile** variables:
 
 ```yaml
-MIDDLEWARE_MODE: MOCK    # Options: ECDSA (default), MOCK, POA
+MIDDLEWARE_MODE: POA    # Options: EIGEN_ECDSA (default), EIGEN_MOCK, POA
 ```
 
 Available modes:
-- **ECDSA**: Standard middleware with ECDSA signature verification (default)
-- **MOCK**: Mock middleware for development/testing (faster deployment)
+- **EIGEN_ECDSA**: Standard middleware with ECDSA signature verification (default)
+- **EIGEN_MOCK**: Mock middleware for development/testing (faster deployment)
 - **POA**: Proof of Authority middleware with alternative authentication mechanism
 
 ## Transfer Ownership

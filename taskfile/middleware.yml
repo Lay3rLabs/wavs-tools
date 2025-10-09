@@ -57,7 +57,7 @@ tasks:
     desc: "Get the WAVS Service Manager address from the middleware deploy JSON file"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
-      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "EIGEN_ECDSA"}}'
       DEPLOY_FILE: "avs_deploy.json"
       JSON_FILEPATH:
         sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME="{{.SERVICE_NAME}}" DEPLOY_FILE={{if eq .MIDDLEWARE_MODE "POA"}}poa_deploy.json{{else}}avs_deploy.json{{end}}
@@ -78,7 +78,7 @@ tasks:
     desc: "Get the Stake Registry address from the middleware deploy JSON file"
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
-      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "ECDSA"}}'
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "EIGEN_ECDSA"}}'
       JSON_FILEPATH:
         sh: task middleware:get-json-filepath CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}} DEPLOY_FILE={{if eq .MIDDLEWARE_MODE "POA"}}poa_deploy.json{{else}}avs_deploy.json{{end}}
     requires:
