@@ -8,10 +8,12 @@ includes:
     taskfile: ./docker.yml
     flatten: true
   backend: ./backend.yml
-  ecdsa:
-    taskfile: ./middleware/ecdsa.yml
-  mock:
-    taskfile: ./middleware/mock.yml
+  eigen:ecdsa:
+    taskfile: ./middleware/eigen/ecdsa.yml
+  eigen:mock:
+    taskfile: ./middleware/eigen/mock.yml
+  eigen:mirror:
+    taskfile: ./middleware/eigen/mirror.yml
   poa:
     taskfile: ./middleware/poa.yml
 

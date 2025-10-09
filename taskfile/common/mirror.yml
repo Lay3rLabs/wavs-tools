@@ -30,7 +30,7 @@ tasks:
       vars: [REPO_ROOT, PROJECT, SOURCE_CHAIN_NUMBER]
     cmds:
       - >
-        cd "{{.REPO_ROOT}}" && task middleware:ecdsa:deploy-mirror
+        cd "{{.REPO_ROOT}}" && task middleware:eigen:mirror:deploy-mirror
         CHAIN_NUMBER="{{.CHAIN_NUMBER}}"
         PROJECT="{{.PROJECT}}" 
         SERVICE_NAME="{{.PROJECT}}" 

@@ -34,7 +34,7 @@ tasks:
         echo "Step 3: Adding weight to operator..."
       - >
         cd "{{.REPO_ROOT}}" && 
-        task middleware:ecdsa:delegate-to-operator
+        task middleware:eigen:ecdsa:delegate-to-operator
         PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
         OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"

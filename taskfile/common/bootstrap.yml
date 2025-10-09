@@ -55,13 +55,13 @@ tasks:
       - |
         case "{{.MIDDLEWARE_MODE}}" in
           "MOCK")
-            cd "{{.REPO_ROOT}}" && task middleware:mock:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+            cd "{{.REPO_ROOT}}" && task middleware:eigen:mock:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
             ;;
           "POA")
             cd "{{.REPO_ROOT}}" && task middleware:poa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
             ;;
           *)
-            cd "{{.REPO_ROOT}}" && task middleware:ecdsa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
+            cd "{{.REPO_ROOT}}" && task middleware:eigen:ecdsa:deploy PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" {{.CHAIN_ARG}}
             ;;
         esac
 
@@ -85,7 +85,7 @@ tasks:
             echo "POA middleware does not support ownership transfer - skipping"
             ;;
           *)
-            cd "{{.REPO_ROOT}}" && task middleware:ecdsa:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
+            cd "{{.REPO_ROOT}}" && task middleware:eigen:ecdsa:transfer-ownership PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" PROXY_OWNER="{{.PROXY_OWNER}}" AVS_OWNER="{{.AVS_OWNER}}" {{.CHAIN_ARG}}
             ;;
         esac
 
@@ -258,7 +258,7 @@ tasks:
             task middleware:poa:update-signing-key PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" OPERATOR_KEY="${OPERATOR_KEY}" SIGNING_KEY="${SIGNING_KEY}"
             ;;
           *)
-            cd "{{.REPO_ROOT}}" && task middleware:ecdsa:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
+            cd "{{.REPO_ROOT}}" && task middleware:eigen:ecdsa:register-operator WAVS_SIGNING_KEY="{{.WAVS_SIGNING_KEY}}" AMOUNT="0.001ether" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" WAVS_INSTANCE="{{.WAVS_INSTANCE}}"
             ;;
         esac
 

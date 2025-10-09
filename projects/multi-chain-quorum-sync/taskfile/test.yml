@@ -19,7 +19,7 @@ tasks:
     cmds:
       - >
         cd "{{.REPO_ROOT}}" && 
-        task middleware:ecdsa:update-quorum
+        task middleware:eigen:ecdsa:update-quorum
         PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
         QUORUM_NUMERATOR="{{.QUORUM_NUMERATOR}}"
