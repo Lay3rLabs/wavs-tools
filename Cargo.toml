@@ -5,6 +5,7 @@ members = [
     "projects/multi-chain-quorum-sync/component",
     "projects/wavs-drand/component",
     "projects/aggregator-simple/component",
+    "packages/*"
 ]
 resolver = "2"
 
