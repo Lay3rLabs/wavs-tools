@@ -10,7 +10,7 @@ sol!(
 sol!(
     #![sol(extra_derives(serde::Serialize, serde::Deserialize))]
     #![sol(rpc)]
-    "../../src/interfaces/IWavsIndexer.sol"
+    "src/interfaces/IWavsIndexer.sol"
 );
 
 // Re-export the types for convenience
