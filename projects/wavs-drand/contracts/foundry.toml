@@ -1,15 +1,18 @@
 [profile.default]
 src = 'src'
 out = 'out'
-libs = ['../../../submodules']
+libs = ['../../../node_modules']
 solidity_version = '0.8.27'
 evm_version = 'cancun'
 via_ir = true
 fs_permissions = [{ access = "read-write", path = "./" }]
 
 remappings = [
-    "@eigenlayer-middleware/=../../../submodules/eigenlayer-middleware/",
-    "forge-std/=../../../submodules/forge-std/src/",
+    "@eigenlayer-middleware/=../../../node_modules/@eigenlayer-middleware/contracts/",
+    "forge-std/=../../../node_modules/forge-std/src/",
     "@wavs=../../../node_modules/@wavs/solidity/contracts/src",
-    "@openzeppelin/=../../../submodules/openzeppelin-contracts/",
+    "@openzeppelin/contracts/=../../../node_modules/@openzeppelin/contracts/",
+    "@openzeppelin/contracts-upgradeable/=../../../node_modules/@openzeppelin/contracts-upgradeable/",
+    "@openzeppelin/contracts-v4.9/=../../../node_modules/@openzeppelin/contracts-v4.9/",
+    "@openzeppelin/contracts-upgradeable-v4.9/=../../../node_modules/@openzeppelin/contracts-upgradeable-v4.9/",
 ]

@@ -45,7 +45,7 @@ tasks:
   build-eigenlayer-abi:
     desc: "Build EigenLayer middleware ABI files"
     internal: true
-    dir: "./submodules/eigenlayer-middleware"
+    dir: "./node_modules/@eigenlayer-middleware/contracts"
     preconditions:
       - sh: "command -v forge"
         msg: "Foundry forge is required but not installed"
