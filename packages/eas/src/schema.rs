@@ -182,20 +182,28 @@ impl SchemaEncoder {
     /// Encode bytes32 value
     pub fn encode_bytes32(value: &str) -> Result<Bytes, String> {
         // Handle hex string input
-        let hex_str =
-            if value.starts_with("0x") || value.starts_with("0X") { &value[2..] } else { value };
+        let hex_str = if value.starts_with("0x") || value.starts_with("0X") {
+            &value[2..]
+        } else {
+            value
+        };
 
         // Parse hex string to bytes
         let bytes =
             hex::decode(hex_str).map_err(|e| format!("Failed to decode hex string: {}", e))?;
 
         if bytes.len() != 32 {
-            return Err(format!("bytes32 requires exactly 32 bytes, got {}", bytes.len()));
+            return Err(format!(
+                "bytes32 requires exactly 32 bytes, got {}",
+                bytes.len()
+            ));
         }
 
         let mut arr = [0u8; 32];
         arr.copy_from_slice(&bytes);
-        Ok(Bytes::from(alloy_primitives::FixedBytes::<32>::from(arr).abi_encode()))
+        Ok(Bytes::from(
+            alloy_primitives::FixedBytes::<32>::from(arr).abi_encode(),
+        ))
     }
 
     /// Encode multiple values according to a schema
@@ -250,7 +258,10 @@ impl SchemaEncoder {
                 let bytes = hex::decode(hex_str)
                     .map_err(|e| format!("Failed to decode hex string: {}", e))?;
                 if bytes.len() != 32 {
-                    return Err(format!("bytes32 requires exactly 32 bytes, got {}", bytes.len()));
+                    return Err(format!(
+                        "bytes32 requires exactly 32 bytes, got {}",
+                        bytes.len()
+                    ));
                 }
                 let mut arr = [0u8; 32];
                 arr.copy_from_slice(&bytes);
@@ -312,7 +323,10 @@ mod tests {
         let schema = Schema::parse("string statement").unwrap();
         assert_eq!(schema.fields.len(), 1);
         assert_eq!(schema.fields.get(0).unwrap().name, "statement");
-        assert!(matches!(schema.fields.get(0).unwrap().field_type, SchemaFieldType::String));
+        assert!(matches!(
+            schema.fields.get(0).unwrap().field_type,
+            SchemaFieldType::String
+        ));
     }
 
     #[test]
@@ -320,7 +334,10 @@ mod tests {
         let schema = Schema::parse("bool like").unwrap();
         assert_eq!(schema.fields.len(), 1);
         assert_eq!(schema.fields.get(0).unwrap().name, "like");
-        assert!(matches!(schema.fields.get(0).unwrap().field_type, SchemaFieldType::Bool));
+        assert!(matches!(
+            schema.fields.get(0).unwrap().field_type,
+            SchemaFieldType::Bool
+        ));
     }
 
     #[test]

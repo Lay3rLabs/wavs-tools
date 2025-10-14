@@ -21,7 +21,10 @@ pub struct Erc721Source {
 impl Erc721Source {
     pub fn new(address: &str, points_per_token: U256) -> Self {
         let nft_contract = Address::from_str(address).unwrap();
-        Self { address: nft_contract, points_per_token }
+        Self {
+            address: nft_contract,
+            points_per_token,
+        }
     }
 }
 
@@ -73,7 +76,10 @@ impl Erc721Source {
         let balance_call = IERC721::balanceOfCall { owner };
         let tx = alloy_rpc_types::eth::TransactionRequest {
             to: Some(TxKind::Call(self.address)),
-            input: TransactionInput { input: Some(balance_call.abi_encode().into()), data: None },
+            input: TransactionInput {
+                input: Some(balance_call.abi_encode().into()),
+                data: None,
+            },
             ..Default::default()
         };
 
@@ -86,7 +92,10 @@ impl Erc721Source {
         let holders_call = IRewardSourceNft::getAllHoldersCall {};
         let tx = alloy_rpc_types::eth::TransactionRequest {
             to: Some(TxKind::Call(self.address)),
-            input: TransactionInput { input: Some(holders_call.abi_encode().into()), data: None },
+            input: TransactionInput {
+                input: Some(holders_call.abi_encode().into()),
+                data: None,
+            },
             ..Default::default()
         };
 

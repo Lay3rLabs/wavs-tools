@@ -39,7 +39,11 @@ pub struct QueryConfig {
 impl QueryConfig {
     /// Creates a new QueryConfig with the provided parameters
     pub fn new(eas_address: Address, indexer_address: Address, rpc_endpoint: String) -> Self {
-        Self { eas_address, indexer_address, rpc_endpoint }
+        Self {
+            eas_address,
+            indexer_address,
+            rpc_endpoint,
+        }
     }
 
     /// Creates a QueryConfig from string addresses
@@ -167,7 +171,11 @@ pub async fn query_received_attestation_uids(
         )
         .await?;
 
-    println!("Retrieved {} received attestation UIDs for recipient {}", uids.len(), recipient);
+    println!(
+        "Retrieved {} received attestation UIDs for recipient {}",
+        uids.len(),
+        recipient
+    );
 
     Ok(uids)
 }
@@ -184,8 +192,9 @@ pub async fn query_sent_attestation_count(
 ) -> Result<U256, String> {
     let config = config.unwrap_or_default();
     let indexer_querier = config.indexer_querier().await?;
-    let attestation_count =
-        indexer_querier.get_attestation_count_by_schema_and_attester(schema_uid, &attester).await?;
+    let attestation_count = indexer_querier
+        .get_attestation_count_by_schema_and_attester(schema_uid, &attester)
+        .await?;
 
     println!(
         "Found {} sent attestations for attester {} and schema {}",
@@ -216,7 +225,11 @@ pub async fn query_sent_attestation_uids(
         )
         .await?;
 
-    println!("Retrieved {} sent attestation UIDs for attester {}", uids.len(), attester);
+    println!(
+        "Retrieved {} sent attestation UIDs for attester {}",
+        uids.len(),
+        attester
+    );
 
     Ok(uids)
 }
@@ -232,9 +245,14 @@ pub async fn query_schema_attestation_count(
 ) -> Result<U256, String> {
     let config = config.unwrap_or_default();
     let indexer_querier = config.indexer_querier().await?;
-    let attestation_count = indexer_querier.get_attestation_count_by_schema(schema_uid).await?;
+    let attestation_count = indexer_querier
+        .get_attestation_count_by_schema(schema_uid)
+        .await?;
 
-    println!("Found {} total attestations for schema {}", attestation_count, schema_uid);
+    println!(
+        "Found {} total attestations for schema {}",
+        attestation_count, schema_uid
+    );
 
     Ok(attestation_count)
 }
@@ -258,7 +276,11 @@ pub async fn query_schema_attestation_uids(
         )
         .await?;
 
-    println!("Retrieved {} attestation UIDs for schema {}", uids.len(), schema_uid);
+    println!(
+        "Retrieved {} attestation UIDs for schema {}",
+        uids.len(),
+        schema_uid
+    );
 
     Ok(uids)
 }
@@ -333,9 +355,15 @@ pub async fn is_attestation_indexed(
 ) -> Result<bool, String> {
     let config = config.unwrap_or_default();
     let indexer_querier = config.indexer_querier().await?;
-    let is_indexed = indexer_querier.is_attestation_indexed(attestation_uid).await?;
+    let is_indexed = indexer_querier
+        .is_attestation_indexed(attestation_uid)
+        .await?;
 
-    println!("Attestation {} is {}indexed", attestation_uid, if is_indexed { "" } else { "not " });
+    println!(
+        "Attestation {} is {}indexed",
+        attestation_uid,
+        if is_indexed { "" } else { "not " }
+    );
 
     Ok(is_indexed)
 }
@@ -348,7 +376,9 @@ pub async fn query_attestation(
     let config = config.unwrap_or_default();
     let provider = create_provider(&config.rpc_endpoint).await?;
 
-    let attestation_call = IEAS::getAttestationCall { uid: attestation_uid };
+    let attestation_call = IEAS::getAttestationCall {
+        uid: attestation_uid,
+    };
 
     let result = execute_call(&provider, config.eas_address, attestation_call.abi_encode()).await?;
     let decoded = IEAS::getAttestationCall::abi_decode_returns(&result)
@@ -445,7 +475,11 @@ pub struct QueryConfigBuilder {
 
 impl QueryConfigBuilder {
     pub fn new() -> Self {
-        Self { eas_address: None, indexer_address: None, rpc_endpoint: None }
+        Self {
+            eas_address: None,
+            indexer_address: None,
+            rpc_endpoint: None,
+        }
     }
 
     pub fn eas_address(mut self, address: Address) -> Self {
@@ -454,8 +488,9 @@ impl QueryConfigBuilder {
     }
 
     pub fn eas_address_str(mut self, address: &str) -> Result<Self, String> {
-        let addr =
-            address.parse::<Address>().map_err(|e| format!("Invalid EAS address format: {}", e))?;
+        let addr = address
+            .parse::<Address>()
+            .map_err(|e| format!("Invalid EAS address format: {}", e))?;
         self.eas_address = Some(addr);
         Ok(self)
     }

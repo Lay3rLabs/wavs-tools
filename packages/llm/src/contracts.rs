@@ -76,9 +76,13 @@ impl Contract {
     pub fn find_function(&self, function_name: &str) -> Result<Function, AgentError> {
         let json_abi = self.parse_abi()?;
 
-        json_abi.functions().find(|f| f.name == function_name).cloned().ok_or_else(|| {
-            AgentError::Contract(format!("Function '{}' not found in ABI", function_name))
-        })
+        json_abi
+            .functions()
+            .find(|f| f.name == function_name)
+            .cloned()
+            .ok_or_else(|| {
+                AgentError::Contract(format!("Function '{}' not found in ABI", function_name))
+            })
     }
 
     /// Validate function arguments against the ABI
@@ -144,7 +148,9 @@ impl Transaction {
     pub fn validate_transaction(tx: &Transaction) -> Result<(), AgentError> {
         // Basic validation
         if tx.to.len() != 42 || !tx.to.starts_with("0x") {
-            return Err(AgentError::Transaction("Invalid destination address".to_string()));
+            return Err(AgentError::Transaction(
+                "Invalid destination address".to_string(),
+            ));
         }
 
         // Ensure value is a valid number
@@ -224,7 +230,10 @@ mod tests {
         );
 
         assert_eq!(contract.name, "TestContract");
-        assert_eq!(contract.address, "0x1234567890123456789012345678901234567890");
+        assert_eq!(
+            contract.address,
+            "0x1234567890123456789012345678901234567890"
+        );
         assert_eq!(
             contract.abi,
             "[{\"name\":\"test\",\"type\":\"function\",\"inputs\":[],\"outputs\":[]}]"
@@ -240,8 +249,14 @@ mod tests {
         );
 
         assert_eq!(contract_with_desc.name, "TestContract");
-        assert_eq!(contract_with_desc.address, "0x1234567890123456789012345678901234567890");
-        assert_eq!(contract_with_desc.description.unwrap(), "Test contract description");
+        assert_eq!(
+            contract_with_desc.address,
+            "0x1234567890123456789012345678901234567890"
+        );
+        assert_eq!(
+            contract_with_desc.description.unwrap(),
+            "Test contract description"
+        );
     }
 
     #[test]
@@ -401,7 +416,10 @@ mod tests {
         let invalid_call_tx = Transaction {
             to: "0x1234567890123456789012345678901234567890".to_string(),
             value: "0".to_string(),
-            contract_call: Some(ContractCall { function: "".to_string(), args: vec![] }),
+            contract_call: Some(ContractCall {
+                function: "".to_string(),
+                args: vec![],
+            }),
             data: "0x".to_string(),
             description: "Invalid contract call transaction".to_string(),
         };

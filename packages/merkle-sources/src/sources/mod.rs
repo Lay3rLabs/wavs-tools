@@ -109,7 +109,9 @@ pub struct SourceRegistry {
 impl SourceRegistry {
     /// Create a new empty registry.
     pub fn new() -> Self {
-        Self { sources: Vec::new() }
+        Self {
+            sources: Vec::new(),
+        }
     }
 
     /// Add a new source to the registry.
@@ -121,7 +123,13 @@ impl SourceRegistry {
     pub async fn get_accounts(&self, ctx: &SourceContext) -> Result<Vec<String>> {
         let mut accounts = HashSet::new();
         for source in &self.sources {
-            accounts.extend(source.get_accounts(ctx).await?.iter().map(|a| a.to_lowercase()));
+            accounts.extend(
+                source
+                    .get_accounts(ctx)
+                    .await?
+                    .iter()
+                    .map(|a| a.to_lowercase()),
+            );
         }
         Ok(accounts.into_iter().collect())
     }
@@ -153,7 +161,12 @@ impl SourceRegistry {
             })?;
 
             if !source_value.is_zero() {
-                println!("💰 {} from '{}': {}", account, source.get_name(), source_value);
+                println!(
+                    "💰 {} from '{}': {}",
+                    account,
+                    source.get_name(),
+                    source_value
+                );
             }
         }
 

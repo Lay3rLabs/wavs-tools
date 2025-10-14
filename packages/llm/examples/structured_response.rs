@@ -155,7 +155,10 @@ fn example_sentiment_analysis(client: &LLMClient) -> Result<(), LlmError> {
     let analysis: SentimentAnalysis = client.chat_structured(messages).send()?;
 
     println!("Sentiment Analysis Results:");
-    println!("  Text: \"{}...\"", &analysis.text[..50.min(analysis.text.len())]);
+    println!(
+        "  Text: \"{}...\"",
+        &analysis.text[..50.min(analysis.text.len())]
+    );
     println!("  Sentiment: {}", analysis.sentiment);
     println!("  Confidence: {:.2}%", analysis.confidence * 100.0);
     println!("  Keywords: {}", analysis.keywords.join(", "));

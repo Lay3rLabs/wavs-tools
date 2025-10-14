@@ -79,8 +79,11 @@ async fn configuration_examples() -> Result<(), String> {
 
     // Method 4: Direct construction
     println!("\n4. Direct construction:");
-    let _direct_config =
-        QueryConfig::new(eas_addr, indexer_addr, "https://another-rpc.com".to_string());
+    let _direct_config = QueryConfig::new(
+        eas_addr,
+        indexer_addr,
+        "https://another-rpc.com".to_string(),
+    );
     println!("   ✓ Config created directly\n");
 
     Ok(())
@@ -167,9 +170,15 @@ async fn batch_query_examples() -> Result<(), String> {
     println!("1. Batch querying attestations:");
     match query_attestations_batch(example_uids.clone(), Some(config.clone())).await {
         Ok(attestations) => {
-            println!("   ✓ Successfully queried {} attestations", attestations.len());
+            println!(
+                "   ✓ Successfully queried {} attestations",
+                attestations.len()
+            );
             for attestation in attestations.iter().take(2) {
-                println!("     - {} -> {}", attestation.attester, attestation.recipient);
+                println!(
+                    "     - {} -> {}",
+                    attestation.attester, attestation.recipient
+                );
             }
         }
         Err(e) => {
@@ -190,9 +199,15 @@ async fn batch_query_examples() -> Result<(), String> {
     .await
     {
         Ok(recent_attestations) => {
-            println!("   ✓ Found {} recent attestations", recent_attestations.len());
+            println!(
+                "   ✓ Found {} recent attestations",
+                recent_attestations.len()
+            );
             for attestation in recent_attestations {
-                println!("     - Time: {}, From: {}", attestation.time, attestation.attester);
+                println!(
+                    "     - Time: {}, From: {}",
+                    attestation.time, attestation.attester
+                );
             }
         }
         Err(e) => {
@@ -256,18 +271,30 @@ async fn voting_power_example() -> Result<(), String> {
         Ok(voting_power) => {
             println!("✅ Voting power calculation complete:");
             println!("   🎯 User has {} voting tokens", voting_power.tokens);
-            println!("   📊 Based on {} attestations received", voting_power.attestation_count);
-            println!("   ⭐ Reputation score: {}/100", voting_power.reputation_score);
+            println!(
+                "   📊 Based on {} attestations received",
+                voting_power.attestation_count
+            );
+            println!(
+                "   ⭐ Reputation score: {}/100",
+                voting_power.reputation_score
+            );
 
             // Determine voting eligibility
             if voting_power.tokens >= 10 {
                 println!("   ✅ User is eligible to vote on governance proposals");
             } else {
-                println!("   ❌ User needs {} more tokens to vote", 10 - voting_power.tokens);
+                println!(
+                    "   ❌ User needs {} more tokens to vote",
+                    10 - voting_power.tokens
+                );
             }
         }
         Err(e) => {
-            println!("⚠️  Voting power calculation failed (expected in example): {}", e);
+            println!(
+                "⚠️  Voting power calculation failed (expected in example): {}",
+                e
+            );
         }
     }
 

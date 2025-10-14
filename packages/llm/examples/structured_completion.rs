@@ -149,14 +149,22 @@ fn detailed_evaluation(client: &LLMClient) -> Result<(), LlmError> {
     // Use the new API with system message
     let messages = vec![Message::system(system_prompt), Message::user(user_prompt)];
 
-    match client.chat_structured::<DetailedEvaluation>(messages).send() {
+    match client
+        .chat_structured::<DetailedEvaluation>(messages)
+        .send()
+    {
         Ok(response) => {
             println!("    ✅ Detailed Evaluation:");
             println!("       Like: {}", response.like);
-            println!("       Confidence: {:.2}", response.confidence.unwrap_or(0.0));
+            println!(
+                "       Confidence: {:.2}",
+                response.confidence.unwrap_or(0.0)
+            );
             println!(
                 "       Reasoning: {}",
-                response.reasoning.unwrap_or_else(|| "No reasoning provided".to_string())
+                response
+                    .reasoning
+                    .unwrap_or_else(|| "No reasoning provided".to_string())
             );
             println!("       Categories: {:?}", response.categories);
         }
@@ -185,7 +193,11 @@ fn sentiment_analysis(client: &LLMClient) -> Result<(), LlmError> {
         );
 
         // Use the new API with retry logic
-        match client.chat_structured::<SentimentAnalysis>(prompt).with_retries(5).send() {
+        match client
+            .chat_structured::<SentimentAnalysis>(prompt)
+            .with_retries(5)
+            .send()
+        {
             Ok(response) => {
                 println!(
                     "    ✅ Sentiment: {:?}, Confidence: {:.2}",
@@ -211,7 +223,11 @@ fn error_handling_examples(client: &LLMClient) -> Result<(), LlmError> {
 
     println!("  Attempting potentially problematic request...");
 
-    match client.chat_structured::<LikeResponse>(tricky_prompt).with_retries(3).send() {
+    match client
+        .chat_structured::<LikeResponse>(tricky_prompt)
+        .with_retries(3)
+        .send()
+    {
         Ok(response) => {
             println!("    ✅ Successfully handled complex prompt");
             println!(
@@ -254,7 +270,12 @@ fn batch_evaluation(client: &LLMClient) -> Result<(), LlmError> {
     let mut results = Vec::new();
 
     for (i, statement) in statements.iter().enumerate() {
-        println!("  [{}/{}] Processing: {}", i + 1, statements.len(), statement);
+        println!(
+            "  [{}/{}] Processing: {}",
+            i + 1,
+            statements.len(),
+            statement
+        );
 
         let prompt = format!(
             "Quickly evaluate this statement: '{}'
@@ -309,7 +330,10 @@ mod tests {
 
     #[test]
     fn test_response_serialization() {
-        let response = LikeResponse { like: true, confidence: Some(0.85) };
+        let response = LikeResponse {
+            like: true,
+            confidence: Some(0.85),
+        };
 
         let json = serde_json::to_string(&response).unwrap();
         let deserialized: LikeResponse = serde_json::from_str(&json).unwrap();

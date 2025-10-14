@@ -20,7 +20,10 @@ impl HyperstitionSource {
     pub fn new(market_maker: &str, points_pool: U256) -> Result<Self, String> {
         let market_maker = Address::from_str(market_maker)
             .map_err(|e| format!("Failed to parse market maker address: {e}"))?;
-        Ok(Self { market_maker, points_pool })
+        Ok(Self {
+            market_maker,
+            points_pool,
+        })
     }
 }
 
@@ -59,7 +62,10 @@ impl Source for HyperstitionSource {
             )
             .await
             .map_err(|e| anyhow::anyhow!(e))?;
-        println!("📊 Total successful hyperstition redemptions: {}", total_redeems);
+        println!(
+            "📊 Total successful hyperstition redemptions: {}",
+            total_redeems
+        );
 
         if total_redeems == 0 {
             return Ok(vec![]);
@@ -71,7 +77,11 @@ impl Source for HyperstitionSource {
 
         while start < total_redeems {
             let length = std::cmp::min(batch_size, total_redeems - start);
-            println!("🔄 Fetching redemptions batch: {} to {}", start, start + length - 1);
+            println!(
+                "🔄 Fetching redemptions batch: {} to {}",
+                start,
+                start + length - 1
+            );
 
             let events = ctx
                 .indexer_querier

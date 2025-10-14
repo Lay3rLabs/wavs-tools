@@ -37,7 +37,11 @@ impl WavsIndexerQuerier {
     pub async fn new(indexer_address: Address, rpc_endpoint: String) -> Result<Self, String> {
         let provider = new_evm_provider::<Ethereum>(rpc_endpoint.clone());
         let contract = IWavsIndexer::new(indexer_address, provider);
-        Ok(Self { indexer_address, rpc_endpoint, contract })
+        Ok(Self {
+            indexer_address,
+            rpc_endpoint,
+            contract,
+        })
     }
 
     pub async fn from_str(indexer_address: &str, rpc_endpoint: &str) -> Result<Self, String> {
@@ -252,11 +256,19 @@ impl WavsIndexerQuerier {
     ) -> Result<U256, String> {
         self.getEventCountByTypeAndTag(
             "attestation".to_string(),
-            format!("schema:{}/attester:{}/recipient:{}", schema_uid, attester, recipient),
+            format!(
+                "schema:{}/attester:{}/recipient:{}",
+                schema_uid, attester, recipient
+            ),
         )
         .call()
         .await
-        .map_err(|e| format!("Failed to get schema/attester/recipient attestation count: {}", e))
+        .map_err(|e| {
+            format!(
+                "Failed to get schema/attester/recipient attestation count: {}",
+                e
+            )
+        })
     }
 
     pub async fn get_indexed_attestations_by_schema_and_attester_and_recipient(
@@ -270,14 +282,22 @@ impl WavsIndexerQuerier {
     ) -> Result<Vec<IndexedAttestation>, String> {
         self.getEventsByTypeAndTag(
             "attestation".to_string(),
-            format!("schema:{}/attester:{}/recipient:{}", schema_uid, attester, recipient),
+            format!(
+                "schema:{}/attester:{}/recipient:{}",
+                schema_uid, attester, recipient
+            ),
             U256::from(start),
             U256::from(length),
             reverse_order,
         )
         .call()
         .await
-        .map_err(|e| format!("Failed to get schema/attester/recipient attestation UIDs: {}", e))?
+        .map_err(|e| {
+            format!(
+                "Failed to get schema/attester/recipient attestation UIDs: {}",
+                e
+            )
+        })?
         .into_iter()
         .map(|event| self.get_indexed_attestation(event))
         .collect::<Result<Vec<_>, _>>()
@@ -288,10 +308,16 @@ impl WavsIndexerQuerier {
             .tags
             .iter()
             .find(|tag| tag.starts_with("uid:"))
-            .ok_or(format!("No `uid` tag found in event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `uid` tag found in event with ID {:?}",
+                event.eventId
+            ))?
             .split(":")
             .nth(1)
-            .ok_or(format!("No `uid` found in tags for event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `uid` found in tags for event with ID {:?}",
+                event.eventId
+            ))?
             .parse::<FixedBytes<32>>()
             .map_err(|e| format!("Failed to parse uid: {}", e))?;
 
@@ -299,10 +325,16 @@ impl WavsIndexerQuerier {
             .tags
             .iter()
             .find(|tag| tag.starts_with("schema:"))
-            .ok_or(format!("No `schema` tag found in event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `schema` tag found in event with ID {:?}",
+                event.eventId
+            ))?
             .split(":")
             .nth(1)
-            .ok_or(format!("No `schema` found in tags for event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `schema` found in tags for event with ID {:?}",
+                event.eventId
+            ))?
             .parse::<FixedBytes<32>>()
             .map_err(|e| format!("Failed to parse schema uid: {}", e))?;
 
@@ -310,10 +342,16 @@ impl WavsIndexerQuerier {
             .tags
             .iter()
             .find(|tag| tag.starts_with("attester:"))
-            .ok_or(format!("No `attester` tag found in event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `attester` tag found in event with ID {:?}",
+                event.eventId
+            ))?
             .split(":")
             .nth(1)
-            .ok_or(format!("No `attester` found in tags for event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `attester` found in tags for event with ID {:?}",
+                event.eventId
+            ))?
             .parse::<Address>()
             .map_err(|e| format!("Failed to parse attester: {}", e))?;
 
@@ -321,14 +359,26 @@ impl WavsIndexerQuerier {
             .tags
             .iter()
             .find(|tag| tag.starts_with("recipient:"))
-            .ok_or(format!("No `recipient` tag found in event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `recipient` tag found in event with ID {:?}",
+                event.eventId
+            ))?
             .split(":")
             .nth(1)
-            .ok_or(format!("No `recipient` found in tags for event with ID {:?}", event.eventId))?
+            .ok_or(format!(
+                "No `recipient` found in tags for event with ID {:?}",
+                event.eventId
+            ))?
             .parse::<Address>()
             .map_err(|e| format!("Failed to parse recipient: {}", e))?;
 
-        Ok(IndexedAttestation { uid, schema_uid, attester, recipient, event })
+        Ok(IndexedAttestation {
+            uid,
+            schema_uid,
+            attester,
+            recipient,
+            event,
+        })
     }
 }
 
@@ -424,7 +474,12 @@ impl WavsIndexerQuerier {
             )
             .call()
             .await
-            .map_err(|e| format!("Failed to get interaction count by contract and type: {}", e))?
+            .map_err(|e| {
+                format!(
+                    "Failed to get interaction count by contract and type: {}",
+                    e
+                )
+            })?
             .to::<u64>())
     }
 

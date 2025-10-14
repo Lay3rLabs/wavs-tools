@@ -76,7 +76,9 @@ pub struct LlmOptionsBuilder {
 impl LlmOptionsBuilder {
     /// Create a new builder
     pub fn new() -> Self {
-        Self { config: LlmOptions::default() }
+        Self {
+            config: LlmOptions::default(),
+        }
     }
 
     /// Set temperature
@@ -206,7 +208,8 @@ impl Config {
             })?;
 
             // Add appropriate headers for JSON content
-            req.headers_mut().insert("Accept", HeaderValue::from_static("application/json"));
+            req.headers_mut()
+                .insert("Accept", HeaderValue::from_static("application/json"));
 
             println!("Sending HTTP request...");
 
@@ -252,7 +255,9 @@ impl Config {
 
     /// Get a smart contract by name
     pub fn get_contract_by_name(&self, name: &str) -> Option<&Contract> {
-        self.contracts.iter().find(|c| c.name.to_lowercase() == name.to_lowercase())
+        self.contracts
+            .iter()
+            .find(|c| c.name.to_lowercase() == name.to_lowercase())
     }
 
     /// Validate the Config for required fields and logical consistency
@@ -355,7 +360,10 @@ mod tests {
         // Verify loaded values
         assert_eq!(config.contracts.len(), 1);
         assert_eq!(config.contracts[0].name, "TestContract");
-        assert_eq!(config.contracts[0].address, "0x1234567890123456789012345678901234567890");
+        assert_eq!(
+            config.contracts[0].address,
+            "0x1234567890123456789012345678901234567890"
+        );
         assert_eq!(config.model, "test-model");
         assert_eq!(config.llm_config.temperature, Some(0.7));
         assert_eq!(config.llm_config.top_p, Some(0.9));
@@ -363,7 +371,10 @@ mod tests {
         assert_eq!(config.llm_config.max_tokens, Some(500));
         assert_eq!(config.messages.len(), 1);
         assert_eq!(config.messages[0].role, "system");
-        assert_eq!(config.messages[0].content.as_ref().unwrap(), "Test system message");
+        assert_eq!(
+            config.messages[0].content.as_ref().unwrap(),
+            "Test system message"
+        );
         assert_eq!(config.config.get("test_key").unwrap(), "test_value");
     }
 

@@ -136,7 +136,10 @@ pub struct LLMClient {
 impl LLMClient {
     /// Creates a new LLM client with the specified model
     pub fn new(model: impl Into<String>) -> Self {
-        Self { model: model.into(), config: LlmOptions::default() }
+        Self {
+            model: model.into(),
+            config: LlmOptions::default(),
+        }
     }
 
     /// Creates a new LLM client from JSON configuration
@@ -168,12 +171,18 @@ impl LLMClient {
             llm_config = llm_config.with_seed(seed as u32);
         }
 
-        Ok(Self { model, config: llm_config })
+        Ok(Self {
+            model,
+            config: llm_config,
+        })
     }
 
     /// Creates a new LLM client with custom configuration
     pub fn with_config(model: impl Into<String>, config: LlmOptions) -> Self {
-        Self { model: model.into(), config }
+        Self {
+            model: model.into(),
+            config,
+        }
     }
 
     /// Get the model name
@@ -211,7 +220,13 @@ pub struct ChatRequest<'a> {
 
 impl<'a> ChatRequest<'a> {
     fn new(client: &'a LLMClient, messages: Vec<Message>) -> Self {
-        Self { client, messages, tools: None, retries: 0, custom_handlers: Vec::new() }
+        Self {
+            client,
+            messages,
+            tools: None,
+            retries: 0,
+            custom_handlers: Vec::new(),
+        }
     }
 
     /// Add tools to the request
@@ -273,7 +288,10 @@ impl<'a> ChatRequest<'a> {
                 Ok(response) => return Ok(response),
                 Err(e) if attempts < max_attempts - 1 => {
                     attempts += 1;
-                    eprintln!("Request failed (attempt {}/{}): {}", attempts, max_attempts, e);
+                    eprintln!(
+                        "Request failed (attempt {}/{}): {}",
+                        attempts, max_attempts, e
+                    );
                     continue;
                 }
                 Err(e) => return Err(e),
@@ -284,7 +302,9 @@ impl<'a> ChatRequest<'a> {
     /// Convenience method for just getting text content
     pub fn text(self) -> Result<String, LlmError> {
         let message = self.send()?;
-        message.content.ok_or_else(|| LlmError::ApiError("No text content in response".to_string()))
+        message
+            .content
+            .ok_or_else(|| LlmError::ApiError("No text content in response".to_string()))
     }
 
     /// Execute tool calls automatically and return final response
@@ -346,7 +366,9 @@ impl<'a> ChatRequest<'a> {
     fn try_send(&self) -> Result<Message, LlmError> {
         // Validate messages
         if self.messages.is_empty() {
-            return Err(LlmError::InvalidInput("Messages cannot be empty".to_string()));
+            return Err(LlmError::InvalidInput(
+                "Messages cannot be empty".to_string(),
+            ));
         }
 
         // Build the request body
@@ -398,14 +420,21 @@ impl<'a> ChatRequest<'a> {
                 .map_err(|e| LlmError::RequestError(format!("HTTP request failed: {}", e)))?;
 
             let mut body = Vec::new();
-            http_response.body_mut().read_to_end(&mut body).await.map_err(|e| {
-                LlmError::RequestError(format!("Failed to read response body: {}", e))
-            })?;
+            http_response
+                .body_mut()
+                .read_to_end(&mut body)
+                .await
+                .map_err(|e| {
+                    LlmError::RequestError(format!("Failed to read response body: {}", e))
+                })?;
 
             Ok::<_, LlmError>(
-                Response::builder().status(http_response.status()).body(body).map_err(|e| {
-                    LlmError::RequestError(format!("Failed to build response: {}", e))
-                })?,
+                Response::builder()
+                    .status(http_response.status())
+                    .body(body)
+                    .map_err(|e| {
+                        LlmError::RequestError(format!("Failed to build response: {}", e))
+                    })?,
             )
         })?;
 
@@ -518,7 +547,10 @@ where
                 Ok(response) => return Ok(response),
                 Err(e) if attempts < max_attempts - 1 => {
                     attempts += 1;
-                    eprintln!("Request failed (attempt {}/{}): {}", attempts, max_attempts, e);
+                    eprintln!(
+                        "Request failed (attempt {}/{}): {}",
+                        attempts, max_attempts, e
+                    );
                     continue;
                 }
                 Err(e) => return Err(e),
@@ -529,7 +561,9 @@ where
     fn try_send(&self) -> Result<T, LlmError> {
         // Validate messages
         if self.messages.is_empty() {
-            return Err(LlmError::InvalidInput("Messages cannot be empty".to_string()));
+            return Err(LlmError::InvalidInput(
+                "Messages cannot be empty".to_string(),
+            ));
         }
 
         // Generate JSON schema for the type
@@ -587,14 +621,21 @@ where
                 .map_err(|e| LlmError::RequestError(format!("HTTP request failed: {}", e)))?;
 
             let mut body = Vec::new();
-            http_response.body_mut().read_to_end(&mut body).await.map_err(|e| {
-                LlmError::RequestError(format!("Failed to read response body: {}", e))
-            })?;
+            http_response
+                .body_mut()
+                .read_to_end(&mut body)
+                .await
+                .map_err(|e| {
+                    LlmError::RequestError(format!("Failed to read response body: {}", e))
+                })?;
 
             Ok::<_, LlmError>(
-                Response::builder().status(http_response.status()).body(body).map_err(|e| {
-                    LlmError::RequestError(format!("Failed to build response: {}", e))
-                })?,
+                Response::builder()
+                    .status(http_response.status())
+                    .body(body)
+                    .map_err(|e| {
+                        LlmError::RequestError(format!("Failed to build response: {}", e))
+                    })?,
             )
         })?;
 
@@ -699,7 +740,9 @@ where
             }
         }
 
-        Err(LlmError::ParseError("No valid JSON found in response".to_string()))
+        Err(LlmError::ParseError(
+            "No valid JSON found in response".to_string(),
+        ))
     }
 }
 
@@ -736,8 +779,11 @@ mod tests {
         assert_eq!(assistant_msg.role, "assistant");
         assert_eq!(assistant_msg.content, Some("Hi there!".to_string()));
 
-        let tool_msg =
-            Message::tool_result("123".to_string(), "weather".to_string(), "Sunny".to_string());
+        let tool_msg = Message::tool_result(
+            "123".to_string(),
+            "weather".to_string(),
+            "Sunny".to_string(),
+        );
         assert_eq!(tool_msg.role, "tool");
         assert_eq!(tool_msg.content, Some("Sunny".to_string()));
         assert_eq!(tool_msg.tool_call_id, Some("123".to_string()));
@@ -842,7 +888,10 @@ mod tests {
         let request = client.chat("What's the weather?").with_tools(tools.clone());
         assert!(request.tools.is_some());
         assert_eq!(request.tools.as_ref().unwrap().len(), 1);
-        assert_eq!(request.tools.as_ref().unwrap()[0].function.name, "get_weather");
+        assert_eq!(
+            request.tools.as_ref().unwrap()[0].function.name,
+            "get_weather"
+        );
     }
 
     #[test]
@@ -863,7 +912,9 @@ mod tests {
             }]"#,
         );
 
-        let request = client.chat("Transfer tokens").with_contract_tools(&[contract]);
+        let request = client
+            .chat("Transfer tokens")
+            .with_contract_tools(&[contract]);
         assert!(request.tools.is_some());
         // Contract tools generation tested in tools module
     }
@@ -884,12 +935,16 @@ mod tests {
         assert_eq!(request.retries, 0);
 
         // With retries
-        let request = client.chat_structured::<TestResponse>("Give me a person").with_retries(2);
+        let request = client
+            .chat_structured::<TestResponse>("Give me a person")
+            .with_retries(2);
         assert_eq!(request.retries, 2);
 
         // With system message
-        let messages =
-            vec![Message::system("You generate person data"), Message::user("Give me a person")];
+        let messages = vec![
+            Message::system("You generate person data"),
+            Message::user("Give me a person"),
+        ];
         let request = client.chat_structured::<TestResponse>(messages);
         assert_eq!(request.messages.len(), 2);
     }
@@ -946,7 +1001,10 @@ mod tests {
         // System message should be prepended
         assert!(request.messages.len() >= 2);
         assert_eq!(request.messages[0].role, "system");
-        assert_eq!(request.messages[0].content, Some("You are a helpful assistant".to_string()));
+        assert_eq!(
+            request.messages[0].content,
+            Some("You are a helpful assistant".to_string())
+        );
     }
 
     #[test]

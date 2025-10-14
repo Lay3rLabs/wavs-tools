@@ -23,7 +23,10 @@ pub enum EasSourceType {
         trusted_attesters: Option<Vec<Address>>,
     },
     /// Points based on sent attestations count for a specific schema.
-    SentAttestations { schema_uid: String, allow_self_attestations: bool },
+    SentAttestations {
+        schema_uid: String,
+        allow_self_attestations: bool,
+    },
 }
 
 /// Compute points from EAS attestations.
@@ -61,7 +64,11 @@ impl EasSource {
         summary_computation: EasSummaryComputation,
         points_computation: EasPointsComputation,
     ) -> Self {
-        Self { source_type, summary_computation, points_computation }
+        Self {
+            source_type,
+            summary_computation,
+            points_computation,
+        }
     }
 }
 
@@ -73,7 +80,11 @@ impl Source for EasSource {
 
     async fn get_accounts(&self, ctx: &super::SourceContext) -> Result<Vec<String>> {
         match &self.source_type {
-            EasSourceType::ReceivedAttestations { schema_uid, trusted_attesters, .. } => {
+            EasSourceType::ReceivedAttestations {
+                schema_uid,
+                trusted_attesters,
+                ..
+            } => {
                 if let Some(trusted_attesters) = trusted_attesters {
                     self.get_accounts_with_received_attestations_from_trusted_attesters(
                         ctx,
@@ -82,11 +93,13 @@ impl Source for EasSource {
                     )
                     .await
                 } else {
-                    self.get_accounts_with_received_attestations(ctx, schema_uid).await
+                    self.get_accounts_with_received_attestations(ctx, schema_uid)
+                        .await
                 }
             }
             EasSourceType::SentAttestations { schema_uid, .. } => {
-                self.get_accounts_with_sent_attestations(ctx, schema_uid).await
+                self.get_accounts_with_sent_attestations(ctx, schema_uid)
+                    .await
             }
         }
     }
@@ -99,11 +112,13 @@ impl Source for EasSource {
         let (schema_uid, attestation_count) = match &self.source_type {
             EasSourceType::ReceivedAttestations { schema_uid, .. } => (
                 self.parse_schema_uid(schema_uid)?,
-                self.query_received_attestation_count(ctx, account, schema_uid).await?,
+                self.query_received_attestation_count(ctx, account, schema_uid)
+                    .await?,
             ),
             EasSourceType::SentAttestations { schema_uid, .. } => (
                 self.parse_schema_uid(schema_uid)?,
-                self.query_sent_attestation_count(ctx, account, schema_uid).await?,
+                self.query_sent_attestation_count(ctx, account, schema_uid)
+                    .await?,
             ),
         };
 
@@ -187,7 +202,10 @@ impl Source for EasSource {
                     *allow_self_attestations,
                     trusted_attesters.clone(),
                 ),
-                EasSourceType::SentAttestations { allow_self_attestations, .. } => (
+                EasSourceType::SentAttestations {
+                    allow_self_attestations,
+                    ..
+                } => (
                     ctx.indexer_querier
                         .get_indexed_attestations_by_schema_and_attester(
                             schema_uid,
@@ -387,7 +405,10 @@ impl EasSource {
         let call = IEAS::getAttestationCall { uid };
         let tx = alloy_rpc_types::eth::TransactionRequest {
             to: Some(TxKind::Call(ctx.eas_address)),
-            input: TransactionInput { input: Some(call.abi_encode().into()), data: None },
+            input: TransactionInput {
+                input: Some(call.abi_encode().into()),
+                data: None,
+            },
             ..Default::default()
         };
 
@@ -405,7 +426,10 @@ impl EasSource {
         ctx: &super::SourceContext,
         schema_uid: &str,
     ) -> Result<Vec<String>> {
-        println!("🔍 Querying accounts with received attestations for schema: {}", schema_uid);
+        println!(
+            "🔍 Querying accounts with received attestations for schema: {}",
+            schema_uid
+        );
 
         let total_attestations = self.get_total_schema_attestations(ctx, schema_uid).await?;
         println!("📊 Total attestations for schema: {}", total_attestations);
@@ -420,10 +444,15 @@ impl EasSource {
 
         while start < total_attestations {
             let length = std::cmp::min(batch_size, total_attestations - start);
-            println!("🔄 Fetching attestation batch: {} to {}", start, start + length - 1);
+            println!(
+                "🔄 Fetching attestation batch: {} to {}",
+                start,
+                start + length - 1
+            );
 
-            let attestations =
-                self.get_indexed_attestations(ctx, schema_uid, start, length).await?;
+            let attestations = self
+                .get_indexed_attestations(ctx, schema_uid, start, length)
+                .await?;
 
             for attestation in attestations {
                 recipients.insert(attestation.recipient.to_string());
@@ -442,7 +471,10 @@ impl EasSource {
         ctx: &super::SourceContext,
         schema_uid: &str,
     ) -> Result<Vec<String>> {
-        println!("🔍 Querying accounts with sent attestations for schema: {}", schema_uid);
+        println!(
+            "🔍 Querying accounts with sent attestations for schema: {}",
+            schema_uid
+        );
 
         let total_attestations = self.get_total_schema_attestations(ctx, schema_uid).await?;
         println!("📊 Total attestations for schema: {}", total_attestations);
@@ -457,10 +489,15 @@ impl EasSource {
 
         while start < total_attestations {
             let length = std::cmp::min(batch_size, total_attestations - start);
-            println!("🔄 Fetching attestation batch: {} to {}", start, start + length - 1);
+            println!(
+                "🔄 Fetching attestation batch: {} to {}",
+                start,
+                start + length - 1
+            );
 
-            let attestations =
-                self.get_indexed_attestations(ctx, schema_uid, start, length).await?;
+            let attestations = self
+                .get_indexed_attestations(ctx, schema_uid, start, length)
+                .await?;
 
             for attestation in attestations {
                 attesters.insert(attestation.attester.to_string());
@@ -489,8 +526,9 @@ impl EasSource {
         let mut recipients: HashSet<String> = HashSet::new();
 
         for attester in trusted_attesters {
-            let total_sent_by_attester =
-                self.query_sent_attestation_count(ctx, attester, schema_uid).await?;
+            let total_sent_by_attester = self
+                .query_sent_attestation_count(ctx, attester, schema_uid)
+                .await?;
 
             println!(
                 "📊 Total attestations for schema from attester {}: {}",
@@ -528,7 +566,10 @@ impl EasSource {
         }
 
         let result: Vec<String> = recipients.into_iter().collect();
-        println!("✅ Found {} unique recipients from trusted attesters", result.len());
+        println!(
+            "✅ Found {} unique recipients from trusted attesters",
+            result.len()
+        );
         Ok(result)
     }
 }

@@ -13,7 +13,10 @@ pub fn encode_image_to_base64(image_path: &str) -> Result<String, LlmError> {
     // Check if the file exists
     let path = Path::new(image_path);
     if !path.exists() {
-        return Err(LlmError::ImageError(format!("Image file not found: {}", image_path)));
+        return Err(LlmError::ImageError(format!(
+            "Image file not found: {}",
+            image_path
+        )));
     }
 
     // Read the file
@@ -66,9 +69,9 @@ pub fn json_to_sol_value(
         }
         DynSolType::Bytes => {
             // Convert hex string to DynSolValue::Bytes
-            let bytes_str = value
-                .as_str()
-                .ok_or(AgentError::Contract("Bytes must be a hex string".to_string()))?;
+            let bytes_str = value.as_str().ok_or(AgentError::Contract(
+                "Bytes must be a hex string".to_string(),
+            ))?;
             if !bytes_str.starts_with("0x") {
                 return Err(AgentError::Contract("Bytes must start with 0x".to_string()));
             }
@@ -79,9 +82,9 @@ pub fn json_to_sol_value(
         }
         DynSolType::FixedBytes(size) => {
             // Convert hex string to fixed-size bytes
-            let bytes_str = value
-                .as_str()
-                .ok_or(AgentError::Contract("Bytes must be a hex string".to_string()))?;
+            let bytes_str = value.as_str().ok_or(AgentError::Contract(
+                "Bytes must be a hex string".to_string(),
+            ))?;
             if !bytes_str.starts_with("0x") {
                 return Err(AgentError::Contract("Bytes must start with 0x".to_string()));
             }
@@ -90,7 +93,10 @@ pub fn json_to_sol_value(
                 .map_err(|_| AgentError::Contract("Invalid hex string".to_string()))?;
 
             if bytes.len() > *size {
-                return Err(AgentError::Contract(format!("Hex string too long for bytes{}", size)));
+                return Err(AgentError::Contract(format!(
+                    "Hex string too long for bytes{}",
+                    size
+                )));
             }
 
             // For bytes32, create a FixedBytes<32>
@@ -137,7 +143,10 @@ pub fn encode_function_args(
         match json_to_sol_value(arg, ty) {
             Ok(value) => values.push(value),
             Err(e) => {
-                return Err(AgentError::Contract(format!("Error converting argument {}: {}", i, e)))
+                return Err(AgentError::Contract(format!(
+                    "Error converting argument {}: {}",
+                    i, e
+                )))
             }
         }
     }
@@ -234,7 +243,9 @@ mod tests {
         // Test dynamic types
         assert!(is_dynamic_type(&DynSolType::String));
         assert!(is_dynamic_type(&DynSolType::Bytes));
-        assert!(is_dynamic_type(&DynSolType::Array(Box::new(DynSolType::Uint(256)))));
+        assert!(is_dynamic_type(&DynSolType::Array(Box::new(
+            DynSolType::Uint(256)
+        ))));
         assert!(is_dynamic_type(&DynSolType::Tuple(vec![
             DynSolType::Uint(256),
             DynSolType::Address

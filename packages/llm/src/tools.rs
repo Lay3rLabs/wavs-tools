@@ -311,9 +311,15 @@ impl Tools {
         // Create a Transaction from the arguments with default values for optional fields
         let transaction = Transaction {
             to: args["to"].as_str().ok_or("Missing 'to' field")?.to_string(),
-            value: args["value"].as_str().ok_or("Missing 'value' field")?.to_string(),
+            value: args["value"]
+                .as_str()
+                .ok_or("Missing 'value' field")?
+                .to_string(),
             data: args["data"].as_str().unwrap_or("0x").to_string(),
-            description: args["description"].as_str().unwrap_or("ETH transfer").to_string(),
+            description: args["description"]
+                .as_str()
+                .unwrap_or("ETH transfer")
+                .to_string(),
             contract_call: None,
         };
 
@@ -330,7 +336,10 @@ impl Tools {
         // Format is "contract_{contract_name}_{function_name}"
         let parts: Vec<&str> = tool_call.function.name.splitn(3, '_').collect();
         if parts.len() < 3 {
-            return Err(format!("Invalid contract tool name: {}", tool_call.function.name));
+            return Err(format!(
+                "Invalid contract tool name: {}",
+                tool_call.function.name
+            ));
         }
 
         let contract_name = parts[1];
@@ -347,7 +356,9 @@ impl Tools {
             .ok_or_else(|| format!("Unknown contract: {}", contract_name))?;
 
         // Check if this function is payable by examining the ABI
-        let is_payable = contract.abi.contains(&format!("\"name\":\"{}\",", function_name))
+        let is_payable = contract
+            .abi
+            .contains(&format!("\"name\":\"{}\",", function_name))
             && contract.abi.contains("\"stateMutability\":\"payable\"");
 
         // Extract args for the function call
@@ -371,8 +382,10 @@ impl Tools {
         }
 
         // Create contract call
-        let contract_call =
-            Some(ContractCall { function: function_name.to_string(), args: function_args });
+        let contract_call = Some(ContractCall {
+            function: function_name.to_string(),
+            args: function_args,
+        });
 
         // Create a Transaction targeting the contract
         let transaction = Transaction {
@@ -455,7 +468,10 @@ impl Tools {
                 // Call OpenAI to get final response, but we don't use it for parsing
                 // It's mainly for human readable confirmation
                 let final_response = client.chat(tool_messages.clone()).text();
-                println!("OpenAI final response (for logs only): {:?}", final_response);
+                println!(
+                    "OpenAI final response (for logs only): {:?}",
+                    final_response
+                );
 
                 // Return the original tool result which contains valid JSON
                 // Only handle the first tool result for now since we expect a single transaction
@@ -533,7 +549,10 @@ mod tests {
         let deserialized: Tool = serde_json::from_str(&serialized).unwrap();
 
         assert_eq!(deserialized.function.name, "test_tool");
-        assert_eq!(deserialized.function.description, Some("A test tool".to_string()));
+        assert_eq!(
+            deserialized.function.description,
+            Some("A test tool".to_string())
+        );
         assert!(deserialized.function.parameters.is_some());
         assert_eq!(deserialized.tool_type, "function");
     }
@@ -606,11 +625,18 @@ mod tests {
             }),
         );
         assert_eq!(weather_tool.function.name, "get_weather");
-        assert_eq!(weather_tool.function.description, Some("Get weather information".to_string()));
+        assert_eq!(
+            weather_tool.function.description,
+            Some("Get weather information".to_string())
+        );
 
         // Safely unwrap and check parameters
         if let Some(weather_params) = &weather_tool.function.parameters {
-            let properties = weather_params.as_object().unwrap().get("properties").unwrap();
+            let properties = weather_params
+                .as_object()
+                .unwrap()
+                .get("properties")
+                .unwrap();
             assert!(properties.as_object().unwrap().contains_key("location"));
         } else {
             panic!("Expected parameters to be Some");
@@ -645,7 +671,10 @@ mod tests {
         let contract_tools = Tools::tools_from_contract(&contract);
 
         // Now we should have tools since we added stateMutability
-        assert!(!contract_tools.is_empty(), "Expected contract tools to be non-empty");
+        assert!(
+            !contract_tools.is_empty(),
+            "Expected contract tools to be non-empty"
+        );
         assert_eq!(contract_tools.len(), 2, "Expected 2 contract functions");
 
         // Debug: print all tool names
@@ -665,7 +694,11 @@ mod tests {
 
             // Safely unwrap and check parameters
             if let Some(transfer_params) = &transfer_tool.function.parameters {
-                let properties = transfer_params.as_object().unwrap().get("properties").unwrap();
+                let properties = transfer_params
+                    .as_object()
+                    .unwrap()
+                    .get("properties")
+                    .unwrap();
                 assert!(properties.as_object().unwrap().contains_key("to"));
                 assert!(properties.as_object().unwrap().contains_key("amount"));
             } else {
@@ -682,7 +715,11 @@ mod tests {
 
             // Safely unwrap and check parameters
             if let Some(balance_params) = &balance_tool.function.parameters {
-                let properties = balance_params.as_object().unwrap().get("properties").unwrap();
+                let properties = balance_params
+                    .as_object()
+                    .unwrap()
+                    .get("properties")
+                    .unwrap();
                 assert!(properties.as_object().unwrap().contains_key("account"));
             } else {
                 panic!("Expected parameters to be Some");
