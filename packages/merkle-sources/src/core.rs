@@ -78,8 +78,14 @@ mod tests {
     #[test]
     fn test_create_merkle_tree() {
         let values = vec![
-            vec!["0x1111111111111111111111111111111111111111".to_string(), "100".to_string()],
-            vec!["0x2222222222222222222222222222222222222222".to_string(), "200".to_string()],
+            vec![
+                "0x1111111111111111111111111111111111111111".to_string(),
+                "100".to_string(),
+            ],
+            vec![
+                "0x2222222222222222222222222222222222222222".to_string(),
+                "200".to_string(),
+            ],
         ];
 
         let tree = create_merkle_tree(values).unwrap();
@@ -89,8 +95,14 @@ mod tests {
     #[test]
     fn test_build_merkle_ipfs_data() {
         let values = vec![
-            vec!["0x1111111111111111111111111111111111111111".to_string(), "100".to_string()],
-            vec!["0x2222222222222222222222222222222222222222".to_string(), "200".to_string()],
+            vec![
+                "0x1111111111111111111111111111111111111111".to_string(),
+                "100".to_string(),
+            ],
+            vec![
+                "0x2222222222222222222222222222222222222222".to_string(),
+                "200".to_string(),
+            ],
         ];
 
         let metadata = serde_json::json!({

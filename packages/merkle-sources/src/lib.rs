@@ -1,2 +1,2 @@
-pub mod sources;
 pub mod core;
+pub mod sources;
