@@ -26,6 +26,8 @@ thiserror = { workspace = true }
 async-trait = { workspace = true }
 wavs-indexer-api = { workspace = true }
 futures = { workspace = true }
+merkle-tree-rs ={ workspace = true }
+
 
 [dev-dependencies]
 mockall = { workspace = true }
