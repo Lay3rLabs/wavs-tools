@@ -14,7 +14,6 @@ use wavs_wasi_utils::evm::{
 
 pub mod direct;
 pub mod eas;
-pub mod eas_pagerank;
 pub mod erc721;
 pub mod hyperstition;
 pub mod interactions;
