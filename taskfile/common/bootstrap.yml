@@ -234,7 +234,7 @@ tasks:
         sh: task get-temp-service-hash
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
-      - task cli:wavs -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+      - task cli:wavs -- deploy-service --home /wavs-home --service-uri {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
   register-operator:
     vars:
@@ -274,7 +274,7 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.FIRST_OPERATOR}}
       SERVICE_URI: "{{.SOURCE_WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
-      - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-url {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
+      - task cli:wavs WAVS_INSTANCE={{.WAVS_INSTANCE}} -- deploy-service --home /wavs-home --service-uri {{.SERVICE_URI}} --wavs-endpoint {{.WAVS_ENDPOINT}}
 
   get-aggregator-config-values:
     desc: "Get the aggregators config values"
