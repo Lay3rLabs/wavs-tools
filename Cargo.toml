@@ -31,6 +31,7 @@ wavs-llm = { path = "./packages/llm" }
 wavs-eas = { path = "./packages/eas" }
 wavs-indexer-api = { path = "./packages/indexer-api" }
 wavs-merkle-sources = { path = "./packages/merkle-sources" }
+wavs-ipfs = { path = "./packages/ipfs" }
 # Other
 schemars = "1.0.4"
 serde = { version = "1.0.219", features = ["derive"] }
