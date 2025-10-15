@@ -6,6 +6,9 @@ authors.workspace = true
 rust-version.workspace = true
 repository.workspace = true
 
+[lib]
+doctest = false
+
 [dependencies]
 wavs-wasi-utils = { workspace = true }
 wit-bindgen = { workspace = true }

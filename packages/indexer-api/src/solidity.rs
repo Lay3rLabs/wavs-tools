@@ -1,4 +1,9 @@
 #![allow(clippy::too_many_arguments)]
+//! Solidity type bindings
+//!
+//! This module contains auto-generated bindings from Solidity interfaces.
+//! Doc tests are disabled for this module as the generated documentation
+//! contains Solidity natspec comments that are not valid Rust code.
 
 use alloy_sol_macro::sol;
 
