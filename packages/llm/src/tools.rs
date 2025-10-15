@@ -475,7 +475,7 @@ impl Tools {
 
                 // Return the original tool result which contains valid JSON
                 // Only handle the first tool result for now since we expect a single transaction
-                if tool_results.len() >= 1 {
+                if !tool_results.is_empty() {
                     Ok(tool_results[0].clone())
                 } else {
                     Err("No tool results available".to_string())

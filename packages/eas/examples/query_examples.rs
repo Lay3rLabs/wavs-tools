@@ -341,6 +341,7 @@ async fn calculate_user_voting_power(
 }
 
 /// Example showing how to use in a WASI component context
+#[allow(dead_code)]
 fn component_integration_example() -> Result<(), String> {
     println!("🔧 Component Integration Example");
     println!("================================\n");
@@ -374,6 +375,7 @@ fn component_integration_example() -> Result<(), String> {
 }
 
 /// Mock function to parse trigger data
+#[allow(dead_code)]
 fn parse_mock_trigger_data(data: &[u8]) -> Result<FixedBytes<32>, String> {
     if data.len() < 4 {
         return Err("Invalid trigger data".to_string());
@@ -383,6 +385,7 @@ fn parse_mock_trigger_data(data: &[u8]) -> Result<FixedBytes<32>, String> {
 }
 
 /// Mock function to process attestation data
+#[allow(dead_code)]
 fn process_attestation_for_component(
     attestation: &wavs_eas::query::IEAS::Attestation,
 ) -> Result<(), String> {

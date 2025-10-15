@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_arguments)]
+
 use alloy_sol_macro::sol;
 
 // First import the WAVS service handler types

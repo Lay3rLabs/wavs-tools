@@ -129,7 +129,7 @@ impl Source for EasSource {
         let value_for_attestation: Box<dyn Fn(&IndexedAttestation) -> Result<U256>> = match &self
             .points_computation
         {
-            EasPointsComputation::Constant(value) => Box::new(move |_| Ok(value.clone())),
+            EasPointsComputation::Constant(value) => Box::new(move |_| Ok(*value)),
             EasPointsComputation::UintAbiDataField { schema, index } => {
                 let parsed_schema = DynSolType::parse(schema)
                     .map_err(|e| anyhow::anyhow!("Failed to parse schema: {e}"))?;
@@ -396,6 +396,7 @@ impl EasSource {
         Ok(count.to::<u64>())
     }
 
+    #[allow(dead_code)]
     async fn get_attestation_details(
         &self,
         ctx: &super::SourceContext,

@@ -188,8 +188,9 @@ pub fn is_dynamic_type(ty: &DynSolType) -> bool {
     )
 }
 
+#[cfg(test)]
 mod tests {
-    use super::{is_dynamic_type, json_to_sol_value};
+    use super::*;
     use alloy_dyn_abi::DynSolType;
     use serde_json::json;
 

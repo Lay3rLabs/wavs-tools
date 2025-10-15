@@ -73,6 +73,12 @@ pub struct LlmOptionsBuilder {
     config: LlmOptions,
 }
 
+impl Default for LlmOptionsBuilder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl LlmOptionsBuilder {
     /// Create a new builder
     pub fn new() -> Self {

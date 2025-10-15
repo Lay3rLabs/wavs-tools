@@ -105,6 +105,12 @@ pub struct SourceRegistry {
     sources: Vec<Box<dyn Source>>,
 }
 
+impl Default for SourceRegistry {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl SourceRegistry {
     /// Create a new empty registry.
     pub fn new() -> Self {
@@ -183,7 +189,7 @@ impl SourceRegistry {
     pub async fn get_accounts_events_and_value_for_source(
         &self,
         ctx: &SourceContext,
-        source: &Box<dyn Source>,
+        source: &dyn Source,
     ) -> Result<HashMap<String, (Vec<SourceEvent>, U256)>> {
         let mut data: HashMap<String, (Vec<SourceEvent>, U256)> = HashMap::from_iter(
             source
@@ -224,7 +230,7 @@ impl SourceRegistry {
         let accounts_events_and_values = futures::future::join_all(
             self.sources
                 .iter()
-                .map(|source| self.get_accounts_events_and_value_for_source(ctx, source)),
+                .map(|source| self.get_accounts_events_and_value_for_source(ctx, source.as_ref())),
         )
         .await
         .into_iter()

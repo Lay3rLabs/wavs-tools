@@ -299,7 +299,7 @@ impl SchemaEncoder {
                 SchemaFieldType::BytesFixed(32) => Self::encode_bytes32(data),
                 _ => {
                     // Try generic encoding for other single-field types
-                    Self::encode_field_value(&field.field_type, data).map(|v| Bytes::from(v))
+                    Self::encode_field_value(&field.field_type, data).map(Bytes::from)
                 }
             }
         } else {
@@ -322,9 +322,9 @@ mod tests {
     fn test_parse_simple_schema() {
         let schema = Schema::parse("string statement").unwrap();
         assert_eq!(schema.fields.len(), 1);
-        assert_eq!(schema.fields.get(0).unwrap().name, "statement");
+        assert_eq!(schema.fields.first().unwrap().name, "statement");
         assert!(matches!(
-            schema.fields.get(0).unwrap().field_type,
+            schema.fields.first().unwrap().field_type,
             SchemaFieldType::String
         ));
     }
@@ -333,9 +333,9 @@ mod tests {
     fn test_parse_bool_schema() {
         let schema = Schema::parse("bool like").unwrap();
         assert_eq!(schema.fields.len(), 1);
-        assert_eq!(schema.fields.get(0).unwrap().name, "like");
+        assert_eq!(schema.fields.first().unwrap().name, "like");
         assert!(matches!(
-            schema.fields.get(0).unwrap().field_type,
+            schema.fields.first().unwrap().field_type,
             SchemaFieldType::Bool
         ));
     }
@@ -345,7 +345,7 @@ mod tests {
         let schema = Schema::parse("bytes32 triggerId,string data,uint256 timestamp").unwrap();
         assert_eq!(schema.fields.len(), 3);
 
-        let field0 = schema.fields.get(0).unwrap();
+        let field0 = schema.fields.first().unwrap();
         assert_eq!(field0.name, "triggerId");
         assert!(matches!(field0.field_type, SchemaFieldType::BytesFixed(32)));
 
@@ -373,11 +373,11 @@ mod tests {
         let encoded_true = SchemaEncoder::encode_bool(true);
         assert!(!encoded_true.is_empty());
         let decoded_true = bool::abi_decode(&encoded_true).unwrap();
-        assert_eq!(decoded_true, true);
+        assert!(decoded_true);
 
         let encoded_false = SchemaEncoder::encode_bool(false);
         let decoded_false = bool::abi_decode(&encoded_false).unwrap();
-        assert_eq!(decoded_false, false);
+        assert!(!decoded_false);
     }
 
     #[test]
@@ -386,19 +386,19 @@ mod tests {
         let encoded = SchemaEncoder::encode_by_pattern("bool like", "true").unwrap();
         assert!(!encoded.is_empty());
         let decoded = bool::abi_decode(&encoded).unwrap();
-        assert_eq!(decoded, true);
+        assert!(decoded);
 
         let encoded = SchemaEncoder::encode_by_pattern("bool vote", "false").unwrap();
         let decoded = bool::abi_decode(&encoded).unwrap();
-        assert_eq!(decoded, false);
+        assert!(!decoded);
 
         let encoded = SchemaEncoder::encode_by_pattern("bool active", "1").unwrap();
         let decoded = bool::abi_decode(&encoded).unwrap();
-        assert_eq!(decoded, true);
+        assert!(decoded);
 
         let encoded = SchemaEncoder::encode_by_pattern("bool enabled", "0").unwrap();
         let decoded = bool::abi_decode(&encoded).unwrap();
-        assert_eq!(decoded, false);
+        assert!(!decoded);
     }
 
     #[test]

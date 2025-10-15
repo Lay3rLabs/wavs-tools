@@ -318,6 +318,7 @@ impl<'a> ChatRequest<'a> {
         let tools = self.tools.clone();
         let retries = self.retries;
 
+        #[allow(clippy::never_loop)]
         loop {
             iterations += 1;
             if iterations > MAX_ITERATIONS {
@@ -348,7 +349,7 @@ impl<'a> ChatRequest<'a> {
                         tool_calls.clone(),
                         None, // Custom handlers not available after first iteration
                     )
-                    .map_err(|e| LlmError::ApiError(e))?;
+                    .map_err(LlmError::ApiError)?;
 
                     // The tool_results is a single String containing the final result
                     // We can return it directly
@@ -428,14 +429,12 @@ impl<'a> ChatRequest<'a> {
                     LlmError::RequestError(format!("Failed to read response body: {}", e))
                 })?;
 
-            Ok::<_, LlmError>(
-                Response::builder()
+            Response::builder()
                     .status(http_response.status())
                     .body(body)
                     .map_err(|e| {
                         LlmError::RequestError(format!("Failed to build response: {}", e))
-                    })?,
-            )
+                    })
         })?;
 
         if response.status() != 200 {
@@ -629,14 +628,12 @@ where
                     LlmError::RequestError(format!("Failed to read response body: {}", e))
                 })?;
 
-            Ok::<_, LlmError>(
-                Response::builder()
+            Response::builder()
                     .status(http_response.status())
                     .body(body)
                     .map_err(|e| {
                         LlmError::RequestError(format!("Failed to build response: {}", e))
-                    })?,
-            )
+                    })
         })?;
 
         if response.status() != 200 {
@@ -678,11 +675,10 @@ where
 
     fn extract_json_from_response(response: &str) -> Result<String, LlmError> {
         // Try to parse as-is first
-        if response.trim_start().starts_with('{') || response.trim_start().starts_with('[') {
-            if serde_json::from_str::<Value>(response).is_ok() {
+        if (response.trim_start().starts_with('{') || response.trim_start().starts_with('['))
+            && serde_json::from_str::<Value>(response).is_ok() {
                 return Ok(response.to_string());
             }
-        }
 
         // Look for JSON between ```json and ``` markers
         if let Some(start) = response.find("```json") {
@@ -700,11 +696,10 @@ where
             let json_start = start + 3;
             if let Some(end) = response[json_start..].find("```") {
                 let json_str = &response[json_start..json_start + end].trim();
-                if json_str.starts_with('{') || json_str.starts_with('[') {
-                    if serde_json::from_str::<Value>(json_str).is_ok() {
+                if (json_str.starts_with('{') || json_str.starts_with('['))
+                    && serde_json::from_str::<Value>(json_str).is_ok() {
                         return Ok(json_str.to_string());
                     }
-                }
             }
         }
 
@@ -922,6 +917,7 @@ mod tests {
     #[test]
     fn test_structured_chat_request_builder() {
         #[derive(Deserialize, JsonSchema)]
+        #[allow(dead_code)]
         struct TestResponse {
             name: String,
             age: u32,
@@ -994,8 +990,10 @@ mod tests {
     fn test_chat_request_with_config() {
         let client = LLMClient::new("test-model");
 
-        let mut config = Config::default();
-        config.messages = vec![Message::system("You are a helpful assistant")];
+        let config = Config {
+            messages: vec![Message::system("You are a helpful assistant")],
+            ..Default::default()
+        };
 
         let request = client.chat("Hello").with_config(&config);
         // System message should be prepended
