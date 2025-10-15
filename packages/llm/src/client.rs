@@ -430,11 +430,9 @@ impl<'a> ChatRequest<'a> {
                 })?;
 
             Response::builder()
-                    .status(http_response.status())
-                    .body(body)
-                    .map_err(|e| {
-                        LlmError::RequestError(format!("Failed to build response: {}", e))
-                    })
+                .status(http_response.status())
+                .body(body)
+                .map_err(|e| LlmError::RequestError(format!("Failed to build response: {}", e)))
         })?;
 
         if response.status() != 200 {
@@ -629,11 +627,9 @@ where
                 })?;
 
             Response::builder()
-                    .status(http_response.status())
-                    .body(body)
-                    .map_err(|e| {
-                        LlmError::RequestError(format!("Failed to build response: {}", e))
-                    })
+                .status(http_response.status())
+                .body(body)
+                .map_err(|e| LlmError::RequestError(format!("Failed to build response: {}", e)))
         })?;
 
         if response.status() != 200 {
@@ -676,9 +672,10 @@ where
     fn extract_json_from_response(response: &str) -> Result<String, LlmError> {
         // Try to parse as-is first
         if (response.trim_start().starts_with('{') || response.trim_start().starts_with('['))
-            && serde_json::from_str::<Value>(response).is_ok() {
-                return Ok(response.to_string());
-            }
+            && serde_json::from_str::<Value>(response).is_ok()
+        {
+            return Ok(response.to_string());
+        }
 
         // Look for JSON between ```json and ``` markers
         if let Some(start) = response.find("```json") {
@@ -697,9 +694,10 @@ where
             if let Some(end) = response[json_start..].find("```") {
                 let json_str = &response[json_start..json_start + end].trim();
                 if (json_str.starts_with('{') || json_str.starts_with('['))
-                    && serde_json::from_str::<Value>(json_str).is_ok() {
-                        return Ok(json_str.to_string());
-                    }
+                    && serde_json::from_str::<Value>(json_str).is_ok()
+                {
+                    return Ok(json_str.to_string());
+                }
             }
         }
 

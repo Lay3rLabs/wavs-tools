@@ -260,9 +260,11 @@ fn error_handling_examples(client: &LLMClient) -> Result<(), LlmError> {
 fn batch_evaluation(client: &LLMClient) -> Result<(), LlmError> {
     println!("  Processing multiple statements in batch...");
 
-    let statements = ["Clean water access is a fundamental human right",
+    let statements = [
+        "Clean water access is a fundamental human right",
         "Space exploration is worth the investment",
-        "Remote work improves work-life balance"];
+        "Remote work improves work-life balance",
+    ];
 
     // Process each statement individually for better error isolation
     let mut results = Vec::new();

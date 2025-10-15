@@ -47,7 +47,10 @@ async fn upload_to_ipfs(
             boundary
         );
         request_body.extend_from_slice(network_part.as_bytes());
-        (request_body, format!("multipart/form-data; boundary={}", boundary))
+        (
+            request_body,
+            format!("multipart/form-data; boundary={}", boundary),
+        )
     } else {
         // Local IPFS format - simpler multipart form
         let body = format!(
@@ -60,7 +63,10 @@ async fn upload_to_ipfs(
         let mut request_body = body.into_bytes();
         request_body.extend_from_slice(&file_bytes);
         request_body.extend_from_slice(format!("\r\n--{}--\r\n", boundary).as_bytes());
-        (request_body, format!("multipart/form-data; boundary={}", boundary))
+        (
+            request_body,
+            format!("multipart/form-data; boundary={}", boundary),
+        )
     };
 
     let mut request_builder = Request::post(ipfs_url).header("Content-Type", &content_type);
@@ -178,7 +184,9 @@ pub fn decode_ipfs_cid(cid_str: &str) -> Result<Cid, String> {
     // Check if the string is a v0 CID (starts with "Qm" and has length 46).
     if cid_str.starts_with("Qm") && cid_str.len() == 46 {
         // Decode as base58
-        let decoded = bs58::decode(cid_str).into_vec().map_err(|e| e.to_string())?;
+        let decoded = bs58::decode(cid_str)
+            .into_vec()
+            .map_err(|e| e.to_string())?;
         // Attempt to construct a Cid from the decoded bytes
         let cid = Cid::try_from(decoded).map_err(|e| e.to_string())?;
         Ok(cid)
