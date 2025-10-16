@@ -467,7 +467,7 @@ tasks:
               "type": "evm",
               "chain_id": "{{.CHAIN_ID}}"
               {{- if .WS_ENDPOINT}},
-              "ws_endpoint": "{{.WS_ENDPOINT}}"
+              "ws_endpoints": ["{{.WS_ENDPOINT}}"]
               {{- end}}
               {{- if .HTTP_ENDPOINT}},
               "http_endpoint": "{{.HTTP_ENDPOINT}}"
