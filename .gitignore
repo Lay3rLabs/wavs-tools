@@ -20,7 +20,6 @@ aggregator/
 tests/.test-reports
 infra/
 .claude
-abi/
 .project-output/
 .DS_Store
 .task/
