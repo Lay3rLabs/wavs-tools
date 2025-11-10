@@ -12,7 +12,7 @@ crate-type = ["cdylib"]
 
 [package.metadata.component]
 package = "component:operator-updater"
-target = "wavs:operator@=1.3.0"
+target = "wavs:operator@=2.0.0"
 
 [dependencies]
 wavs-wasi-utils = { workspace = true }
