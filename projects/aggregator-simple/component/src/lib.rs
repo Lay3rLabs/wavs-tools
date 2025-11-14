@@ -10,7 +10,7 @@ use wavs_wasi_utils::impl_u128_conversions;
 use crate::bindings::{
     export, host,
     wavs::{
-        aggregator::aggregator::{EvmAddress, SubmitAction, TimerAction, U128},
+        aggregator::aggregator::{EvmAddress, EvmSubmitAction, SubmitAction, TimerAction, U128},
         types::{core::Duration, service::Submit},
     },
     AggregatorAction, AnyTxHash, Guest, Packet,
@@ -89,13 +89,13 @@ fn process_submission(packet: Packet, validate_tx: bool) -> Result<Vec<Aggregato
                 // will fail the entire operation if API key is configured but fetching fails
                 let gas_price = gas_oracle::get_gas_price()?;
 
-                let submit_action = SubmitAction {
+                let submit_action = SubmitAction::Evm(EvmSubmitAction {
                     chain: chain_key.to_string(),
-                    contract_address: EvmAddress {
+                    address: EvmAddress {
                         raw_bytes: address.to_vec(),
                     },
                     gas_price: gas_price.map(|x| x.into()),
-                };
+                });
 
                 actions.push(AggregatorAction::Submit(submit_action));
             } else if host::get_cosmos_chain_config(&chain_key).is_some() {
