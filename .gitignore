@@ -26,4 +26,3 @@ abi/
 dist/
 Cargo-component.lock
 .temp-clone
-**/wit/deps
