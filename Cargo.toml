@@ -22,7 +22,7 @@ wit-bindgen-rt = { version = "0.44.0", features = ["bitflags"] }
 wit-bindgen = "0.47.0"
 wstd = "0.5.3"
 wavs-wasi-utils = "=2.2.0"
-wavs-types = "2.0.0-rc.4"
+wavs-types = { version = "2.0.0-rc.4", features = ["full"] }
 wasip2 = "1.0.1"
 
 # Other
