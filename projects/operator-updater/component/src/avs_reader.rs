@@ -1,4 +1,4 @@
-use crate::bindings::host::{self, LogLevel};
+use crate::host::{self, LogLevel};
 use alloy_network::Ethereum;
 use alloy_primitives::Address;
 use alloy_provider::Provider;

@@ -29,7 +29,6 @@ A WASI component that provides deterministic event-based randomness by combining
 * [JQ](https://jqlang.org/download/)
 * [Bun](https://bun.sh/docs/installation)
 * [Rust](https://www.rust-lang.org/tools/install)
-* [Cargo Components](https://github.com/bytecodealliance/cargo-component#installation)
 * [wkg](https://crates.io/crates/wkg)
 * [Foundry](https://getfoundry.sh/introduction/installation#using-foundryup)
 
@@ -37,6 +36,14 @@ A WASI component that provides deterministic event-based randomness by combining
 
 <details>
 <summary>System configuration</summary>
+
+### Add the wasm32-wasip2 target
+
+```bash docci-ignore
+rustup target add wasm32-wasip2
+```
+
+</details>
 
 ### Setup default wkg registry 
 

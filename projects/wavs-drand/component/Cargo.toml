@@ -24,7 +24,5 @@ alloy-provider = { workspace = true }
 alloy-transport-http = { workspace = true }
 alloy-rpc-types = { workspace = true }
 wavs-wasi-utils = { workspace = true }
-
-[package.metadata.component]
-package = "component:wavs-drand"
-target = "wavs:operator@=2.0.0"
+wit-bindgen = { workspace = true }
+wasip2 = { workspace = true }
