@@ -19,6 +19,7 @@ use crate::{
     AllocationManager::{AllocationManagerInstance, OperatorSet},
     ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
     IMirrorOperatorSyncHandler::UpdateWithId,
+    POAStakeRegistry::POAStakeRegistryInstance,
 };
 
 wit_bindgen::generate!({
@@ -68,8 +69,8 @@ struct Component;
 impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
-            // Register + Deregister
             TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
+                let is_poa = host::config_var("is_poa").map(|_| true).unwrap_or_default();
                 let chain_config = get_evm_chain_config(&chain)
                     .ok_or(format!("Could not get chain config for {chain}"))?;
                 let endpoint = chain_config
@@ -77,48 +78,95 @@ impl Guest for Component {
                     .ok_or(format!("No http endpoint configured for {chain}"))?;
 
                 let provider = new_evm_provider::<Ethereum>(endpoint);
-                let stake_registry =
-                    ECDSAStakeRegistryInstance::new(log.address.clone().into(), provider);
 
-                block_on(async move {
-                    let maybe_register_event: anyhow::Result<
-                        ECDSAStakeRegistry::OperatorRegistered,
-                    > = decode_event_log_data!(log.data.clone());
-                    let maybe_deregister_event: anyhow::Result<
-                        ECDSAStakeRegistry::OperatorDeregistered,
-                    > = decode_event_log_data!(log.data.clone());
-                    if let Ok(ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ }) =
-                        maybe_register_event
-                    {
-                        let result =
-                            handle_register_event(stake_registry, operator, log.block_number)
-                                .await
-                                .map_err(|e: anyhow::Error| e.to_string())?;
+                if is_poa {
+                    // OperatorWeightUpdated
+                    let stake_registry =
+                        POAStakeRegistryInstance::new(log.address.clone().into(), provider);
+
+                    block_on(async move {
+                        let POAStakeRegistry::OperatorWeightUpdated {
+                            operator,
+                            newWeight,
+                            ..
+                        } = decode_event_log_data!(log.data).map_err(|x| x.to_string())?;
+                        let threshold_weight = stake_registry
+                            .getLastCheckpointThresholdWeight()
+                            .call()
+                            .await
+                            .map_err(|e| {
+                                format!("Could not get last checkpoint threshold weight: {e}")
+                            })?;
+
+                        let signing_key_address = stake_registry
+                            .getLatestOperatorSigningKey(operator)
+                            .call()
+                            .await
+                            .map_err(|e| {
+                                format!("Could not get latest operator for signing key: {e}")
+                            })?;
+
+                        // TODO: How do we handle multiple operator weight updated events per block if we use the block number as the trigger id?
+                        // Same goes below in register + deregister
+                        let result = UpdateWithId {
+                            triggerId: log.block_number,
+                            thresholdWeight: threshold_weight,
+                            operators: vec![operator],
+                            weights: vec![newWeight],
+                            signingKeyAddresses: vec![signing_key_address],
+                        };
 
                         Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
                             event_id_salt: None,
                         }))
-                    } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
-                        operator,
-                        avs: _,
-                    }) = maybe_deregister_event
-                    {
-                        let result =
-                            handle_deregister_event(stake_registry, operator, log.block_number)
-                                .await
-                                .map_err(|e| e.to_string())?;
+                    })
+                } else {
+                    // Register + Deregister
+                    let stake_registry =
+                        ECDSAStakeRegistryInstance::new(log.address.clone().into(), provider);
 
-                        Ok(Some(WasmResponse {
-                            payload: result.abi_encode(),
-                            ordering: None,
-                            event_id_salt: None,
-                        }))
-                    } else {
-                        Err(format!("Could not decode the event {log:?}"))
-                    }
-                })
+                    block_on(async move {
+                        let maybe_register_event: anyhow::Result<
+                            ECDSAStakeRegistry::OperatorRegistered,
+                        > = decode_event_log_data!(log.data.clone());
+                        let maybe_deregister_event: anyhow::Result<
+                            ECDSAStakeRegistry::OperatorDeregistered,
+                        > = decode_event_log_data!(log.data.clone());
+                        if let Ok(ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ }) =
+                            maybe_register_event
+                        {
+                            let result =
+                                handle_register_event(stake_registry, operator, log.block_number)
+                                    .await
+                                    .map_err(|e: anyhow::Error| e.to_string())?;
+
+                            Ok(Some(WasmResponse {
+                                payload: result.abi_encode(),
+                                ordering: None,
+                                event_id_salt: None,
+                            }))
+                        } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
+                            operator,
+                            avs: _,
+                        }) = maybe_deregister_event
+                        {
+                            let result =
+                                handle_deregister_event(stake_registry, operator, log.block_number)
+                                    .await
+                                    .map_err(|e| e.to_string())?;
+
+                            Ok(Some(WasmResponse {
+                                payload: result.abi_encode(),
+                                ordering: None,
+                                event_id_salt: None,
+                            }))
+                        } else {
+                            Err(format!("Could not decode the event {log:?}"))
+                        }
+                    })
+                }
             }
             // Update
             TriggerData::BlockInterval(TriggerDataBlockInterval {
