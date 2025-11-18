@@ -3,7 +3,7 @@ use alloy_provider::Provider;
 use wavs_wasi_utils::evm::new_evm_provider;
 use wstd::runtime::block_on;
 
-use crate::bindings::{
+use crate::{
     host,
     wavs::{aggregator::aggregator::TriggerData, types::events::TriggerDataEvmContractEvent},
 };

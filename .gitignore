@@ -14,7 +14,6 @@ internal/
 wavs:worker*.wit
 wavs:worker*.wasm
 .nodes
-aggregator/
 .wavs/
 .wavs-cli-data/
 tests/.test-reports
@@ -26,3 +25,4 @@ abi/
 .task/
 dist/
 Cargo-component.lock
+.temp-clone

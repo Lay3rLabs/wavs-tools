@@ -120,7 +120,7 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          target: wasm32-wasip1
+          target: wasm32-wasip2
           override: true
 
       - name: Install cargo binstall
@@ -144,7 +144,7 @@ jobs:
 
       # Build components
       - name: Build components
-        run: cargo component build --release
+        run: cargo build --release --target wasm32-wasip2
 
       # Tests
       - name: Run tests with coverage

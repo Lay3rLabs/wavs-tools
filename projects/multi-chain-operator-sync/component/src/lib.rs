@@ -1,6 +1,3 @@
-#[allow(warnings)]
-#[rustfmt::skip]
-mod bindings;
 mod utils;
 
 use alloy_network::Ethereum;
@@ -9,23 +6,30 @@ use alloy_provider::RootProvider;
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use anyhow::anyhow;
-use bindings::{export, wavs::operator::output::WasmResponse, Guest, TriggerAction};
 use wavs_wasi_utils::{decode_event_log_data, evm::new_evm_provider};
 use wstd::runtime::block_on;
 
 use crate::{
-    bindings::{
-        host::{self, get_evm_chain_config, LogLevel},
-        wavs::{
-            operator::input::TriggerData,
-            types::events::{TriggerDataBlockInterval, TriggerDataEvmContractEvent},
-        },
+    host::{get_evm_chain_config, LogLevel},
+    wavs::{
+        operator::input::TriggerData,
+        types::events::{TriggerDataBlockInterval, TriggerDataEvmContractEvent},
     },
     wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
     AllocationManager::{AllocationManagerInstance, OperatorSet},
     ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
     IMirrorUpdateTypes::UpdateWithId,
 };
+
+wit_bindgen::generate!({
+    path: "../../../wit-definitions/operator/wit",
+    world: "wavs-world",
+    generate_all,
+    with: {
+        "wasi:io/poll@0.2.0": wasip2::io::poll
+    },
+    features: ["tls"]
+});
 
 sol!(interface IMirrorUpdateTypes {
     error InvalidTriggerId(uint64 expectedTriggerId);
@@ -97,6 +101,7 @@ impl Guest for Component {
                         Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
+                            event_id_salt: None,
                         }))
                     } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
                         operator,
@@ -111,6 +116,7 @@ impl Guest for Component {
                         Ok(Some(WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
+                            event_id_salt: None,
                         }))
                     } else {
                         Err(format!("Could not decode the event {log:?}"))
@@ -135,6 +141,7 @@ impl Guest for Component {
                     Ok(Some(WasmResponse {
                         payload: result.abi_encode(),
                         ordering: None,
+                        event_id_salt: None,
                     }))
                 })
             }
@@ -297,4 +304,4 @@ async fn handle_update_event(
     })
 }
 
-export!(Component with_types_in bindings);
+export!(Component);

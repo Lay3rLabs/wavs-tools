@@ -1,7 +1,4 @@
 mod avs_reader;
-#[allow(warnings)]
-#[rustfmt::skip]
-mod bindings;
 
 use alloy_network::Ethereum;
 use alloy_primitives::Address;
@@ -9,22 +6,28 @@ use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
 use anyhow::{anyhow, Result};
 use avs_reader::AvsReader;
-use bindings::{export, Guest, TriggerAction};
 use serde::{Deserialize, Serialize};
 use wavs_wasi_utils::evm::new_evm_provider;
 use wstd::runtime::block_on;
 
 use crate::{
-    bindings::{
-        host::{self, get_evm_chain_config, LogLevel},
-        wavs::{
-            operator::input::TriggerData,
-            types::{chain::ChainKey, events::TriggerDataBlockInterval},
-        },
-        WasmResponse,
+    host::{get_evm_chain_config, LogLevel},
+    wavs::{
+        operator::input::TriggerData,
+        types::{chain::ChainKey, events::TriggerDataBlockInterval},
     },
     IWavsServiceManager::IWavsServiceManagerInstance,
 };
+
+wit_bindgen::generate!({
+    path: "../../../wit-definitions/operator/wit",
+    world: "wavs-world",
+    generate_all,
+    with: {
+        "wasi:io/poll@0.2.0": wasip2::io::poll
+    },
+    features: ["tls"]
+});
 
 sol!(
     "../../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IWavsOperatorUpdateHandler.sol"
@@ -94,6 +97,7 @@ impl Guest for Component {
             Ok(Some(WasmResponse {
                 payload: avs_writer_payload.abi_encode(),
                 ordering: None,
+                event_id_salt: None,
             }))
         })
     }
@@ -152,4 +156,4 @@ async fn perform_operator_update(
     })
 }
 
-export!(Component with_types_in bindings);
+export!(Component);
