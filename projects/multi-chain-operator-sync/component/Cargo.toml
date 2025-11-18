@@ -21,6 +21,7 @@ alloy-primitives = { workspace = true }
 alloy-sol-macro = { workspace = true }
 alloy-sol-types = { workspace = true }
 alloy-contract = { workspace = true }
+alloy-rpc-types = { workspace = true }
 
 wit-bindgen-rt = { workspace = true }
 wit-bindgen = { workspace = true }

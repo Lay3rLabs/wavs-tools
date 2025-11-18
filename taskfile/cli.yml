@@ -34,6 +34,7 @@ tasks:
     cmds:
       - task: build-eigenlayer-abi
       - task: build-wavs-abi
+      - task: build-poa-abi
 
   build-abi:
     desc: "Build all ABI files from smart contracts"
@@ -41,6 +42,7 @@ tasks:
     deps:
       - task: build-eigenlayer-abi
       - task: build-wavs-abi
+      - task: build-poa-abi
 
   build-eigenlayer-abi:
     desc: "Build EigenLayer middleware ABI files"
@@ -74,3 +76,20 @@ tasks:
       - forge build -C eigenlayer/ecdsa
       - for: ["IWavsServiceManager.sol"]
         cmd: cp -r "out/{{.ITEM}}" "{{.ABI_WAVS_MIDDLEWARE_DIR}}/"
+
+  build-poa-abi:
+    desc: "Build POA middleware ABI files"
+    internal: true
+    dir: "./submodules/poa-middleware/contracts"
+    preconditions:
+      - sh: "command -v forge"
+        msg: "Foundry forge is required but not installed"
+    sources: ["src/**/*.sol"]
+    generates:
+      - "{{.ABI_POA_MIDDLEWARE_DIR}}/POAStakeRegistry.sol/**"
+    cmds:
+      - cd ../ && bun install
+      - mkdir -p {{.ABI_POA_MIDDLEWARE_DIR}}
+      - forge build
+      - for: ["POAStakeRegistry.sol"]
+        cmd: cp -r "out/{{.ITEM}}" "{{.ABI_POA_MIDDLEWARE_DIR}}/"
