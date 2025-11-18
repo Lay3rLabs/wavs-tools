@@ -70,7 +70,6 @@ impl Guest for Component {
     fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
         match action.data {
             TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
-                let is_poa = host::config_var("is_poa").map(|_| true).unwrap_or_default();
                 let chain_config = get_evm_chain_config(&chain)
                     .ok_or(format!("Could not get chain config for {chain}"))?;
                 let endpoint = chain_config
@@ -79,17 +78,21 @@ impl Guest for Component {
 
                 let provider = new_evm_provider::<Ethereum>(endpoint);
 
-                if is_poa {
+                let maybe_operator_weight_updated_event: anyhow::Result<
+                    POAStakeRegistry::OperatorWeightUpdated,
+                > = decode_event_log_data!(log.data.clone());
+                // If Ok, then we are targeting POA middleware
+                if let Ok(POAStakeRegistry::OperatorWeightUpdated {
+                    operator,
+                    newWeight,
+                    ..
+                }) = maybe_operator_weight_updated_event
+                {
                     // OperatorWeightUpdated
                     let stake_registry =
                         POAStakeRegistryInstance::new(log.address.clone().into(), provider);
 
                     block_on(async move {
-                        let POAStakeRegistry::OperatorWeightUpdated {
-                            operator,
-                            newWeight,
-                            ..
-                        } = decode_event_log_data!(log.data).map_err(|x| x.to_string())?;
                         let threshold_weight = stake_registry
                             .getLastCheckpointThresholdWeight()
                             .call()
