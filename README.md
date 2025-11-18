@@ -63,6 +63,12 @@ Copy and edit your environment variables
 cp .env.example .env
 ```
 
+Initialize and update git submodules
+
+```bash
+git submodule update --init --recursive
+```
+
 Install dependencies, compile core contracts, etc.
 This may take a while on first run.
 ```bash

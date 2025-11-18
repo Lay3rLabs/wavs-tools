@@ -18,7 +18,7 @@ use crate::{
     wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
     AllocationManager::{AllocationManagerInstance, OperatorSet},
     ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
-    IMirrorUpdateTypes::UpdateWithId,
+    IMirrorOperatorSyncHandler::UpdateWithId,
 };
 
 wit_bindgen::generate!({
@@ -31,18 +31,9 @@ wit_bindgen::generate!({
     features: ["tls"]
 });
 
-sol!(interface IMirrorUpdateTypes {
-    error InvalidTriggerId(uint64 expectedTriggerId);
-
-    /// @notice DataWithId is a struct containing a trigger ID and updated operator info
-    struct UpdateWithId {
-        uint64 triggerId;
-        uint256 thresholdWeight;
-        address[] operators;
-        address[] signingKeyAddresses;
-        uint256[] weights;
-    }
-});
+sol!(
+    "../../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IMirrorOperatorSyncHandler.sol"
+);
 
 mod wavs_service_manager {
     use alloy_sol_macro::sol;
@@ -64,6 +55,12 @@ sol!(
     #[sol(rpc)]
     AllocationManager,
     "../../../abi/eigenlayer-middleware/AllocationManager.sol/AllocationManager.json"
+);
+
+sol!(
+    #[sol(rpc)]
+    POAStakeRegistry,
+    "../../../abi/poa-middleware/POAStakeRegistry.sol/POAStakeRegistry.json"
 );
 
 struct Component;
