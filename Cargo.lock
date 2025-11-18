@@ -4988,8 +4988,9 @@ dependencies = [
 
 [[package]]
 name = "wavs-types"
-version = "2.0.0-rc.4"
-source = "git+https://github.com/Lay3rLabs/WAVS?branch=cargo-wasip2#859257296559701bb611aa7481f25cc2ef3a59f8"
+version = "2.0.0-rc.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "5cf5a7e1680a0556cae2d92da221b0e9829a0253e6b5b53aa68421671eb77e1d"
 dependencies = [
  "alloy-contract",
  "alloy-primitives",
