@@ -30,7 +30,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock', 'submodules/poa-middleware/package-lock.json') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -48,15 +48,6 @@ jobs:
           path: |
             target/
           key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            ~/.bun/install/global
-            node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
       - name: Install Foundry
         if: steps.cache-forge.outputs.cache-hit != 'true'
