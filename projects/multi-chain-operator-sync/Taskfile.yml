@@ -81,3 +81,10 @@ tasks:
       - task test:trigger-update-1
       - task test:trigger-register
       - task test:trigger-deregister
+
+  run-tests-poa:
+    desc: "Run all POA test cases"
+    cmds:
+      - task test:trigger-poa-update-1
+      - task test:trigger-register-poa
+      - task test:trigger-deregister-poa

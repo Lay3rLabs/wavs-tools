@@ -12,6 +12,7 @@ tasks:
   build-service:
     desc: "Build service configuration"
     vars:
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "EIGEN_ECDSA"}}'
       SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
       SOURCE_CHAIN:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
@@ -26,8 +27,18 @@ tasks:
       AGGREGATOR_COMPONENT_CONFIG:
         sh: task bootstrap:get-aggregator-config-values AGGREGATOR_PROJECT="{{.AGGREGATOR_PROJECT}}"
     cmds:
+      - task: build-poa-workflow
+        vars:
+          MIDDLEWARE_MODE: "{{.MIDDLEWARE_MODE}}"
+          SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
+          SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
+          STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
+          COMPONENT_DIGEST: "{{.COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_DIGEST: "{{.AGGREGATOR_COMPONENT_DIGEST}}"
+          AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
       - task: build-register-workflow
         vars:
+          MIDDLEWARE_MODE: "{{.MIDDLEWARE_MODE}}"
           SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
           SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
@@ -36,6 +47,7 @@ tasks:
           AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
       - task: build-deregister-workflow
         vars:
+          MIDDLEWARE_MODE: "{{.MIDDLEWARE_MODE}}"
           SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
           SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
@@ -44,6 +56,7 @@ tasks:
           AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
       - task: build-update-workflow
         vars:
+          MIDDLEWARE_MODE: "{{.MIDDLEWARE_MODE}}"
           SERVICE_JSON_CMD: "{{.SERVICE_JSON_CMD}}"
           SOURCE_CHAIN: "{{.SOURCE_CHAIN}}"
           STAKE_REGISTRY_ADDRESS: "{{.STAKE_REGISTRY_ADDRESS}}"
@@ -51,6 +64,40 @@ tasks:
           SERVICE_MANAGER_ADDRESS: "{{.SERVICE_MANAGER_ADDRESS}}"
           AGGREGATOR_COMPONENT_DIGEST: "{{.AGGREGATOR_COMPONENT_DIGEST}}"
           AGGREGATOR_COMPONENT_CONFIG: "{{.AGGREGATOR_COMPONENT_CONFIG}}"
+
+  build-poa-workflow:
+    requires:
+      vars:
+        [
+          SERVICE_JSON_CMD,
+          SOURCE_CHAIN,
+          STAKE_REGISTRY_ADDRESS,
+          COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_DIGEST,
+          AGGREGATOR_COMPONENT_CONFIG,
+          MIDDLEWARE_MODE,
+        ]
+    vars:
+      OPERATOR_WEIGHT_UPDATED_EVENT_HASH:
+        sh: cast keccak "OperatorWeightUpdated(address,uint256,uint256)"
+      WORKFLOW_ID: "poa"
+    status:
+      - '[ "{{.MIDDLEWARE_MODE}}" != "POA" ]'
+    cmds:
+      - |
+        cd "{{.REPO_ROOT}}"
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id {{.WORKFLOW_ID}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_WEIGHT_UPDATED_EVENT_HASH}}
+
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component set-source-digest --digest {{.AGGREGATOR_COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component config {{.AGGREGATOR_COMPONENT_CONFIG}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} component permissions --http-hosts '*' --file-system true
+
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} set-source-digest --digest {{.COMPONENT_DIGEST}}
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow component --id {{.WORKFLOW_ID}} permissions --http-hosts '*' --file-system true
+
+        echo "Workflow registered"
 
   build-register-workflow:
     desc: "Configure and register a workflow"
@@ -63,15 +110,18 @@ tasks:
           COMPONENT_DIGEST,
           AGGREGATOR_COMPONENT_DIGEST,
           AGGREGATOR_COMPONENT_CONFIG,
+          MIDDLEWARE_MODE,
         ]
     vars:
       OPERATOR_REGISTERED_EVENT_HASH:
         sh: cast keccak "OperatorRegistered(address,address)"
-      WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id register | jq -r .workflow_id
+      WORKFLOW_ID: "register"
+    status:
+      - '[ "{{.MIDDLEWARE_MODE}}" != "EIGEN_ECDSA" ]'
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id {{.WORKFLOW_ID}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_REGISTERED_EVENT_HASH}}
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
@@ -95,15 +145,18 @@ tasks:
           COMPONENT_DIGEST,
           AGGREGATOR_COMPONENT_DIGEST,
           AGGREGATOR_COMPONENT_CONFIG,
+          MIDDLEWARE_MODE,
         ]
     vars:
       OPERATOR_DEREGISTERED_EVENT_HASH:
         sh: cast keccak "OperatorDeregistered(address,address)"
-      WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id deregister | jq -r .workflow_id
+      WORKFLOW_ID: "deregister"
+    status:
+      - '[ "{{.MIDDLEWARE_MODE}}" != "EIGEN_ECDSA" ]'
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id {{.WORKFLOW_ID}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-evm --chain {{.SOURCE_CHAIN}} --address {{.STAKE_REGISTRY_ADDRESS}} --event-hash {{.OPERATOR_DEREGISTERED_EVENT_HASH}}
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
@@ -128,13 +181,16 @@ tasks:
           SERVICE_MANAGER_ADDRESS,
           AGGREGATOR_COMPONENT_DIGEST,
           AGGREGATOR_COMPONENT_CONFIG,
+          MIDDLEWARE_MODE,
         ]
     vars:
-      WORKFLOW_ID:
-        sh: cd "{{.REPO_ROOT}}" && task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id update | jq -r .workflow_id
+      WORKFLOW_ID: "update"
+    status:
+      - '[ "{{.MIDDLEWARE_MODE}}" != "EIGEN_ECDSA" ]'
     cmds:
       - |
         cd "{{.REPO_ROOT}}"
+        task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow add --id {{.WORKFLOW_ID}}
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow trigger --id {{.WORKFLOW_ID}} set-block-interval --chain {{.SOURCE_CHAIN}} --n-blocks {{.UPDATE_INTERVAL_BLOCKS}}
 
         task cli:wavs -- {{.SERVICE_JSON_CMD}} workflow submit --id {{.WORKFLOW_ID}} set-aggregator --url {{.WAVS_AGGREGATOR_ENDPOINT}}
