@@ -12,19 +12,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       # Caches
-      - name: Cache Git submodules
-        id: cache-submodules
-        uses: actions/cache@v4
-        with:
-          path: submodules
-          key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
-
-      - name: Checkout submodules
-        if: steps.cache-submodules.outputs.cache-hit != 'true'
-        run: git submodule update --init --recursive
-
       - name: Cache Forge build
         id: cache-forge
         uses: actions/cache@v4
