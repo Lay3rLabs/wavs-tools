@@ -3,6 +3,8 @@ version: "3"
 tasks:
   mirror-deploy:
     desc: "Deploys the mirror contracts for all chains"
+    vars:
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "EIGEN_ECDSA"}}'
     requires:
       vars: [ACTIVE_CHAIN_COUNT, SOURCE_CHAIN_NUMBER]
     cmds:
@@ -14,7 +16,7 @@ tasks:
 
         for i in $(seq 1 {{.ACTIVE_CHAIN_COUNT}}); do
           if [ "$i" -ne {{.SOURCE_CHAIN_NUMBER}} ]; then
-            task bootstrap:mirror-deploy-$i
+            task bootstrap:mirror-deploy-$i MIDDLEWARE_MODE="{{.MIDDLEWARE_MODE}}"
           fi
         done
 
@@ -27,7 +29,7 @@ tasks:
       MIRROR_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
     requires:
-      vars: [REPO_ROOT, PROJECT, SOURCE_CHAIN_NUMBER]
+      vars: [REPO_ROOT, PROJECT, SOURCE_CHAIN_NUMBER, MIDDLEWARE_MODE]
     cmds:
       - >
         cd "{{.REPO_ROOT}}" && task middleware:eigen:mirror:deploy-mirror
@@ -36,3 +38,4 @@ tasks:
         SERVICE_NAME="{{.PROJECT}}" 
         SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" 
         MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}"
+        MIDDLEWARE_MODE="{{.MIDDLEWARE_MODE}}"
