@@ -44,7 +44,7 @@ tasks:
     cmds:
       - bun install
       - cd tests && bun install
-      - cd submodules/poa-middleware && npm i --frozen-lockfile
+      - cd submodules/poa-middleware && npm i
       - task: cli:build-abi
 
   setup-ci:

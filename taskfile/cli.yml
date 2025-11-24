@@ -88,7 +88,6 @@ tasks:
     generates:
       - "{{.ABI_POA_MIDDLEWARE_DIR}}/POAStakeRegistry.sol/**"
     cmds:
-      - cd ../ && bun install
       - mkdir -p {{.ABI_POA_MIDDLEWARE_DIR}}
       - forge build
       - for: ["POAStakeRegistry.sol"]
