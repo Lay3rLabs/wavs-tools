@@ -15,6 +15,7 @@ tasks:
           SERVICE_NAME: "{{.SERVICE_NAME}}"
           CHAIN_NUMBER: "{{.CHAIN_NUMBER}}"
     vars:
+      MIDDLEWARE_MODE: '{{.MIDDLEWARE_MODE | default "EIGEN_ECDSA"}}'
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
     requires:
@@ -23,7 +24,7 @@ tasks:
       SOURCE_RPC_URL: "{{.SOURCE_RPC_URL}}"
       MIRROR_RPC_URL: "{{.MIRROR_RPC_URL}}"
       WAVS_SERVICE_MANAGER_ADDRESS:
-        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}"
+        sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}" MIDDLEWARE_MODE="{{.MIDDLEWARE_MODE}}"
       FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
     cmds:
       - mkdir -p {{.NODES_DIR}}

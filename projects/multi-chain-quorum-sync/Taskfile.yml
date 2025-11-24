@@ -72,7 +72,7 @@ tasks:
   clean-output:
     desc: "Cleans up the output directory but not contracts or components"
     cmds:
-      - rm -rf "{{.PROJECT_OUTPUT_DIRNAME}}"
+      - rm -rf "{{.PROJECT_OUTPUT_DIR}}"
 
   run-tests:
     desc: "Run all test cases"

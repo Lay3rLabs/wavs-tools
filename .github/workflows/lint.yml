@@ -12,24 +12,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Cache Git submodules
-        id: cache-submodules
-        uses: actions/cache@v4
         with:
-          path: submodules
-          key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
-
-      - name: Checkout submodules
-        if: steps.cache-submodules.outputs.cache-hit != 'true'
-        run: git submodule update --init --recursive
+          submodules: recursive
 
       - name: Cache Forge build
         id: cache-forge
         uses: actions/cache@v4
         with:
           path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock', 'submodules/poa-middleware/package-lock.json') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -51,15 +42,6 @@ jobs:
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            ~/.bun/install/global
-            node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
       - name: Install Task
         uses: arduino/setup-task@v2
