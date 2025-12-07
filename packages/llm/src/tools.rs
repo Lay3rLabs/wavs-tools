@@ -2,7 +2,6 @@ use crate::client::{LLMClient, Message};
 use crate::contracts::{Contract, ContractCall, Transaction};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
-use wstd::runtime::block_on;
 
 /// Function parameter for tool calls
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -411,77 +410,75 @@ impl Tools {
         tool_calls: Vec<ToolCall>,
         custom_handlers: Option<&[Box<dyn CustomToolHandler>]>,
     ) -> Result<String, String> {
-        block_on(async {
-            println!("Processing tool calls...");
+        // No block_on needed - all operations are sync or handle their own async
+        println!("Processing tool calls...");
 
-            // Check if we're using Ollama based on the model name
-            let model = client.get_model();
-            // TODO: This is a hack and could be improved
-            let is_ollama = model.starts_with("llama")
-                || model.starts_with("mistral")
-                || !model.contains("gpt");
+        // Check if we're using Ollama based on the model name
+        let model = client.get_model();
+        // TODO: This is a hack and could be improved
+        let is_ollama =
+            model.starts_with("llama") || model.starts_with("mistral") || !model.contains("gpt");
 
-            // Process each tool call and collect the results
-            let mut tool_results = Vec::new();
-            for tool_call in &tool_calls {
-                let tool_result = Self::execute_tool_call(tool_call, custom_handlers)?;
-                println!("Tool result: {}", tool_result);
-                tool_results.push(tool_result);
-            }
+        // Process each tool call and collect the results
+        let mut tool_results = Vec::new();
+        for tool_call in &tool_calls {
+            let tool_result = Self::execute_tool_call(tool_call, custom_handlers)?;
+            println!("Tool result: {}", tool_result);
+            tool_results.push(tool_result);
+        }
 
-            if is_ollama {
-                // For Ollama: Don't make a second call, just use the tool result directly
-                println!("Using direct tool result handling for Ollama");
+        if is_ollama {
+            // For Ollama: Don't make a second call, just use the tool result directly
+            println!("Using direct tool result handling for Ollama");
 
-                if tool_results.len() == 1 {
-                    Ok(tool_results[0].clone())
-                } else {
-                    // For multiple tool calls, combine the results
-                    Ok(tool_results.join("\n"))
-                }
+            if tool_results.len() == 1 {
+                Ok(tool_results[0].clone())
             } else {
-                // For OpenAI: Use the standard tool calls protocol
-                println!("Using OpenAI-compatible tool call handling");
-                let mut tool_messages = initial_messages.clone();
-
-                // Add the assistant's response with tool calls, ensuring content is not null
-                // When we're sending tool calls, OpenAI requires content to be a string (even if empty)
-                // We MUST preserve the original tool_calls so OpenAI can match the tool responses
-                let sanitized_response = Message {
-                    role: response.role,
-                    content: Some(response.content.unwrap_or_default()),
-                    tool_calls: Some(tool_calls.clone()), // Important: preserve the tool_calls!
-                    tool_call_id: response.tool_call_id,
-                    name: response.name,
-                };
-                tool_messages.push(sanitized_response);
-
-                // Process each tool call and add the results
-                for (i, tool_call) in tool_calls.iter().enumerate() {
-                    tool_messages.push(Message::tool_result(
-                        tool_call.id.clone(),
-                        tool_call.function.name.clone(),
-                        tool_results[i].clone(),
-                    ));
-                }
-
-                // Call OpenAI to get final response, but we don't use it for parsing
-                // It's mainly for human readable confirmation
-                let final_response = client.chat(tool_messages.clone()).text();
-                println!(
-                    "OpenAI final response (for logs only): {:?}",
-                    final_response
-                );
-
-                // Return the original tool result which contains valid JSON
-                // Only handle the first tool result for now since we expect a single transaction
-                if !tool_results.is_empty() {
-                    Ok(tool_results[0].clone())
-                } else {
-                    Err("No tool results available".to_string())
-                }
+                // For multiple tool calls, combine the results
+                Ok(tool_results.join("\n"))
             }
-        })
+        } else {
+            // For OpenAI: Use the standard tool calls protocol
+            println!("Using OpenAI-compatible tool call handling");
+            let mut tool_messages = initial_messages.clone();
+
+            // Add the assistant's response with tool calls, ensuring content is not null
+            // When we're sending tool calls, OpenAI requires content to be a string (even if empty)
+            // We MUST preserve the original tool_calls so OpenAI can match the tool responses
+            let sanitized_response = Message {
+                role: response.role,
+                content: Some(response.content.unwrap_or_default()),
+                tool_calls: Some(tool_calls.clone()), // Important: preserve the tool_calls!
+                tool_call_id: response.tool_call_id,
+                name: response.name,
+            };
+            tool_messages.push(sanitized_response);
+
+            // Process each tool call and add the results
+            for (i, tool_call) in tool_calls.iter().enumerate() {
+                tool_messages.push(Message::tool_result(
+                    tool_call.id.clone(),
+                    tool_call.function.name.clone(),
+                    tool_results[i].clone(),
+                ));
+            }
+
+            // Call OpenAI to get final response, but we don't use it for parsing
+            // It's mainly for human readable confirmation
+            let final_response = client.chat(tool_messages.clone()).text();
+            println!(
+                "OpenAI final response (for logs only): {:?}",
+                final_response
+            );
+
+            // Return the original tool result which contains valid JSON
+            // Only handle the first tool result for now since we expect a single transaction
+            if !tool_results.is_empty() {
+                Ok(tool_results[0].clone())
+            } else {
+                Err("No tool results available".to_string())
+            }
+        }
     }
 }
 

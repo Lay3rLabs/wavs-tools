@@ -151,7 +151,8 @@ impl Config {
 
     /// Load Config from a URI
     pub fn load_from_uri(uri: &str) -> Result<Self, String> {
-        block_on(async {
+        let uri = uri.to_string();
+        block_on(async move {
             // Strip any quotation marks from the URI
             let clean_uri = uri.trim_matches('"');
 
@@ -173,7 +174,8 @@ impl Config {
 
     /// Load configuration from IPFS
     fn load_from_ipfs(cid: &str) -> Result<Self, String> {
-        block_on(async {
+        let cid = cid.to_string();
+        block_on(async move {
             let gateway_url = std::env::var("WAVS_ENV_IPFS_GATEWAY_URL").unwrap_or_else(|_| {
                 println!("WAVS_ENV_IPFS_GATEWAY_URL not set, using default");
                 "https://gateway.lighthouse.storage/ipfs".to_string()
@@ -200,7 +202,8 @@ impl Config {
 
     /// Fetch configuration from a HTTP/HTTPS URI
     fn fetch_from_uri(uri: &str) -> Result<Self, String> {
-        block_on(async {
+        let uri = uri.to_string();
+        block_on(async move {
             // Strip any quotation marks from the URI
             let clean_uri = uri.trim_matches('"');
 
