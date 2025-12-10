@@ -10,10 +10,6 @@ rust-version.workspace = true
 [lib]
 crate-type = ["cdylib"]
 
-[package.metadata.component]
-package = "component:aggregator-simple"
-target = "wavs:aggregator@=1.2.1"
-
 [dependencies]
 alloy-primitives = { workspace = true }
 wit-bindgen-rt = { workspace = true }
@@ -24,3 +20,5 @@ wstd = { workspace = true }
 alloy-network = { workspace = true }
 alloy-provider = { workspace = true }
 wavs-types = { workspace = true }
+wit-bindgen = { workspace = true }
+wasip2 = { workspace = true }

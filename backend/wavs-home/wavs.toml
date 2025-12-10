@@ -15,11 +15,11 @@ prometheus = "http://localhost:9090"
 # Testnet
 
 [default.chains.evm.11155111]
-ws_endpoint = "wss://ethereum-sepolia-rpc.publicnode.com"
+ws_endpoints = ["wss://ethereum-sepolia-rpc.publicnode.com"]
 http_endpoint = "https://ethereum-sepolia-rpc.publicnode.com"
 
 [default.chains.evm.17000]
-ws_endpoint = "wss://ethereum-holesky-rpc.publicnode.com"
+ws_endpoints = ["wss://ethereum-holesky-rpc.publicnode.com"]
 http_endpoint = "https://ethereum-holesky-rpc.publicnode.com"
 
 # ----------------------------

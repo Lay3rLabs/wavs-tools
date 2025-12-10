@@ -1,21 +1,24 @@
-#[allow(warnings)]
-#[rustfmt::skip]
-mod bindings;
 mod utils;
 
 use crate::{
-    bindings::{
-        wavs::{operator::input::TriggerData, types::events::TriggerDataEvmContractEvent},
-        WasmResponse,
-    },
+    wavs::{operator::input::TriggerData, types::events::TriggerDataEvmContractEvent},
     IManagerUpdateTypes::UpdateWithId,
     IWavsServiceManager::QuorumThresholdUpdated,
 };
 use alloy_sol_macro::sol;
 use alloy_sol_types::SolValue;
-use bindings::{export, Guest, TriggerAction};
 use wavs_wasi_utils::decode_event_log_data;
 use wstd::runtime::block_on;
+
+wit_bindgen::generate!({
+    path: "../../../wit-definitions/operator/wit",
+    world: "wavs-world",
+    generate_all,
+    with: {
+        "wasi:io/poll@0.2.0": wasip2::io::poll
+    },
+    features: ["tls"]
+});
 
 sol!(interface IManagerUpdateTypes {
     error InvalidTriggerId(uint64 expectedTriggerId);
@@ -55,6 +58,7 @@ impl Guest for Component {
                     Ok(Some(WasmResponse {
                         payload: result.abi_encode(),
                         ordering: None,
+                        event_id_salt: None,
                     }))
                 })
             }
@@ -65,4 +69,4 @@ impl Guest for Component {
     }
 }
 
-export!(Component with_types_in bindings);
+export!(Component);

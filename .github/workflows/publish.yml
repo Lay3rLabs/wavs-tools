@@ -81,14 +81,11 @@ jobs:
         with:
           profile: minimal
           toolchain: stable
-          target: wasm32-wasip1
+          target: wasm32-wasip2
           override: true
 
       - name: Install cargo binstall
         uses: cargo-bins/cargo-binstall@main
-
-      - name: Install cargo component
-        run: cargo binstall cargo-component
 
       - name: Install wkg
         run: cargo binstall wkg

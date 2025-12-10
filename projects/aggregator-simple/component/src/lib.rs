@@ -1,22 +1,24 @@
-#[allow(warnings)]
-#[rustfmt::skip]
-mod bindings;
-
 mod gas_oracle;
 mod utils;
 
-use wavs_wasi_utils::impl_u128_conversions;
-
-use crate::bindings::{
-    export, host,
-    wavs::{
-        aggregator::aggregator::{EvmAddress, SubmitAction, TimerAction, U128},
-        types::{core::Duration, service::Submit},
+use crate::wavs::{
+    aggregator::aggregator::{
+        Duration, EvmAddress, EvmSubmitAction, SubmitAction, TimerAction, U128,
     },
-    AggregatorAction, AnyTxHash, Guest, Packet,
+    types::service::Submit,
 };
-
+use wavs_wasi_utils::impl_u128_conversions;
 impl_u128_conversions!(U128);
+
+wit_bindgen::generate!({
+    path: "../../../wit-definitions/aggregator/wit",
+    world: "aggregator-world",
+    generate_all,
+    with: {
+        "wasi:io/poll@0.2.0": wasip2::io::poll
+    },
+    features: ["tls"]
+});
 
 struct Component;
 
@@ -89,13 +91,13 @@ fn process_submission(packet: Packet, validate_tx: bool) -> Result<Vec<Aggregato
                 // will fail the entire operation if API key is configured but fetching fails
                 let gas_price = gas_oracle::get_gas_price()?;
 
-                let submit_action = SubmitAction {
+                let submit_action = SubmitAction::Evm(EvmSubmitAction {
                     chain: chain_key.to_string(),
-                    contract_address: EvmAddress {
+                    address: EvmAddress {
                         raw_bytes: address.to_vec(),
                     },
                     gas_price: gas_price.map(|x| x.into()),
-                };
+                });
 
                 actions.push(AggregatorAction::Submit(submit_action));
             } else if host::get_cosmos_chain_config(&chain_key).is_some() {
@@ -109,4 +111,4 @@ fn process_submission(packet: Packet, validate_tx: bool) -> Result<Vec<Aggregato
     Ok(actions)
 }
 
-export!(Component with_types_in bindings);
+export!(Component);

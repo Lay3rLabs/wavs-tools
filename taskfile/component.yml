@@ -21,8 +21,6 @@ tasks:
       - test -f "{{.COMPONENT_SOURCE_DIR}}/Cargo.toml"
       - sh: "command -v cargo"
         msg: "Rust cargo is required but not installed"
-      - sh: "cargo component --version"
-        msg: "cargo-component is required but not installed"
     sources:
       - "{{.COMPONENT_SOURCE_DIR}}/src/**/*.rs"
       - "{{.COMPONENT_SOURCE_DIR}}/Cargo.toml"
@@ -32,7 +30,7 @@ tasks:
       - |
         echo "Building component: {{.COMPONENT_NAME}} for {{.PROJECT}}"
         cd "{{.COMPONENT_SOURCE_DIR}}"
-        cargo component build --release
+        cargo build --release --target wasm32-wasip2
         mkdir -p {{.COMPONENT_OUTPUT_DIR}}
         cp "{{.COMPONENTS_CARGO_RELEASE_DIR}}/{{.COMPONENT_NAME}}.wasm" {{.COMPONENT_OUTPUT_DIR}}/
 
@@ -55,6 +53,33 @@ tasks:
       vars: [PROJECT]
     cmds:
       - rm -rf "{{.COMPONENT_OUTPUT_DIR}}"
+
+  clean-wit:
+    cmds:
+      - echo "Cleaning WIT"
+      - rm -rf "wit-worlds"
+
+  fetch-wit:
+    cmds:
+      - task: download-wit
+      - cd "{{.WIT_DEFINITIONS_DIR}}/operator" && wkg wit fetch
+      - cd "{{.WIT_DEFINITIONS_DIR}}/aggregator" && wkg wit fetch
+
+  download-wit:
+    internal: true
+    deps: [clean-wit]
+    vars:
+      BRANCH: '{{.BRANCH | default "main"}}'
+      TEMP_CLONE_PATH: ".temp-clone"
+    cmds:
+      - echo "Downloading WIT worlds from {{.BRANCH}} branch"
+      - rm -rf "{{.TEMP_CLONE_PATH}}"
+      - mkdir -p "{{.TEMP_CLONE_PATH}}"
+      - rm -rf "{{.WIT_DEFINITIONS_DIR}}"
+      - mkdir -p "{{.WIT_DEFINITIONS_DIR}}"
+      - git -C "{{.TEMP_CLONE_PATH}}" clone --depth=1 --branch {{.BRANCH}} --single-branch https://github.com/Lay3rLabs/wavs-wasi.git
+      - cp -R "{{.TEMP_CLONE_PATH}}"/wavs-wasi/wit-definitions/* "{{.WIT_DEFINITIONS_DIR}}/"
+      - rm -rf "{{.TEMP_CLONE_PATH}}"
 
   upload:
     desc: "Upload a WASI component to the WAVS endpoint"

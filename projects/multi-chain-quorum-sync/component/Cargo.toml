@@ -10,10 +10,6 @@ rust-version.workspace = true
 [lib]
 crate-type = ["cdylib"]
 
-[package.metadata.component]
-package = "component:multi-chain-quorum-sync"
-target = "wavs:operator@=1.2.1"
-
 [dependencies]
 wavs-wasi-utils = { workspace = true }
 wstd = { workspace = true }
@@ -27,7 +23,10 @@ alloy-sol-types = { workspace = true }
 alloy-contract = { workspace = true }
 
 wit-bindgen-rt = { workspace = true }
+wit-bindgen = { workspace = true }
+wasip2 = { workspace = true }
 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
+bincode = { workspace = true }

@@ -1,4 +1,4 @@
-use crate::bindings;
+use crate::host;
 
 /// Configuration for the VRF service
 #[derive(Debug, Clone)]
@@ -26,16 +26,16 @@ impl Config {
     pub fn from_host() -> Self {
         let defaults = Self::default();
 
-        let drand_url = bindings::host::config_var("DRAND_URL").unwrap_or(defaults.drand_url);
+        let drand_url = host::config_var("DRAND_URL").unwrap_or(defaults.drand_url);
 
         let drand_chain_hash =
-            bindings::host::config_var("DRAND_CHAIN_HASH").unwrap_or(defaults.drand_chain_hash);
+            host::config_var("DRAND_CHAIN_HASH").unwrap_or(defaults.drand_chain_hash);
 
-        let drand_genesis_time = bindings::host::config_var("DRAND_GENESIS_TIME")
+        let drand_genesis_time = host::config_var("DRAND_GENESIS_TIME")
             .and_then(|s| s.parse().ok())
             .unwrap_or(defaults.drand_genesis_time);
 
-        let drand_period = bindings::host::config_var("DRAND_PERIOD")
+        let drand_period = host::config_var("DRAND_PERIOD")
             .and_then(|s| s.parse().ok())
             .unwrap_or(defaults.drand_period);
 

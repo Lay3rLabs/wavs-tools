@@ -6,12 +6,11 @@ use anyhow::{anyhow, Result};
 use wavs_wasi_utils::decode_event_log_data;
 use wavs_wasi_utils::evm::new_evm_provider;
 
-use crate::bindings::host::{get_cosmos_chain_config, get_evm_chain_config};
-use crate::bindings::wavs::operator::input::TriggerData;
-use crate::bindings::wavs::types::events::{TriggerDataBlockInterval, TriggerDataEvmContractEvent};
-use crate::bindings::TriggerAction;
 use crate::config::Config;
-use crate::RandomnessRequested;
+use crate::host::{get_cosmos_chain_config, get_evm_chain_config};
+use crate::wavs::operator::input::TriggerData;
+use crate::wavs::types::events::{TriggerDataBlockInterval, TriggerDataEvmContractEvent};
+use crate::{RandomnessRequested, TriggerAction};
 
 /// Extracted trigger information
 #[derive(Debug, Clone)]

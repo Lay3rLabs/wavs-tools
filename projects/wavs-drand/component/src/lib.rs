@@ -4,9 +4,6 @@
 //! drand randomness with trigger-specific data to generate deterministic but
 //! unpredictable random values.
 
-#[rustfmt::skip]
-#[allow(clippy::all)]
-mod bindings;
 mod config;
 mod drand;
 mod random_derivation;
@@ -17,11 +14,20 @@ use alloy_sol_types::{sol, SolValue};
 use anyhow::Result;
 use wstd::runtime::block_on;
 
-use crate::bindings::{export, Guest, TriggerAction, WasmResponse};
 use crate::config::Config;
 use crate::drand::DrandClient;
 use crate::random_derivation::RandomDerivation;
 use crate::trigger::TriggerInfo;
+
+wit_bindgen::generate!({
+    path: "../../../wit-definitions/operator/wit",
+    world: "wavs-world",
+    generate_all,
+    with: {
+        "wasi:io/poll@0.2.0": wasip2::io::poll
+    },
+    features: ["tls"]
+});
 
 sol!("../contracts/src/Types.sol");
 
@@ -73,7 +79,8 @@ async fn process_trigger(trigger_action: TriggerAction) -> Result<WasmResponse> 
     Ok(WasmResponse {
         payload,
         ordering: None,
+        event_id_salt: None,
     })
 }
 
-export!(Component with_types_in bindings);
+export!(Component);
