@@ -20,7 +20,7 @@ use crate::random_derivation::RandomDerivation;
 use crate::trigger::TriggerInfo;
 
 wit_bindgen::generate!({
-    path: "../../../wit-definitions/operator/wit",
+    path: "../../wit-definitions/operator/wit",
     world: "wavs-world",
     generate_all,
     with: {
@@ -29,7 +29,7 @@ wit_bindgen::generate!({
     features: ["tls"]
 });
 
-sol!("../contracts/src/Types.sol");
+sol!("../../contracts/wavs-drand/src/Types.sol");
 
 struct Component;
 

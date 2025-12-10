@@ -10,7 +10,7 @@ use AllocationManager::OperatorSet;
 sol!(
     #[sol(rpc)]
     AllocationManager,
-    "../../../abi/eigenlayer-middleware/AllocationManager.sol/AllocationManager.json"
+    "../../abi/eigenlayer-middleware/AllocationManager.sol/AllocationManager.json"
 );
 
 pub struct AvsReader<P> {

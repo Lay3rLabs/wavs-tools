@@ -1,12 +1,5 @@
 [workspace]
-members = [
-    "projects/operator-updater/component",
-    "projects/multi-chain-operator-sync/component",
-    "projects/multi-chain-quorum-sync/component",
-    "projects/wavs-drand/component",
-    "projects/aggregator-simple/component",
-    "packages/*",
-]
+members = ["packages/*"]
 resolver = "2"
 
 [workspace.package]

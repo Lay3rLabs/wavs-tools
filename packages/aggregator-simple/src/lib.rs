@@ -11,7 +11,7 @@ use wavs_wasi_utils::impl_u128_conversions;
 impl_u128_conversions!(U128);
 
 wit_bindgen::generate!({
-    path: "../../../wit-definitions/aggregator/wit",
+    path: "../../wit-definitions/aggregator/wit",
     world: "aggregator-world",
     generate_all,
     with: {

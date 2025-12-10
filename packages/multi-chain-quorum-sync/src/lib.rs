@@ -11,7 +11,7 @@ use wavs_wasi_utils::decode_event_log_data;
 use wstd::runtime::block_on;
 
 wit_bindgen::generate!({
-    path: "../../../wit-definitions/operator/wit",
+    path: "../../wit-definitions/operator/wit",
     world: "wavs-world",
     generate_all,
     with: {
@@ -34,7 +34,7 @@ sol!(interface IManagerUpdateTypes {
 sol!(
     #[sol(rpc)]
     IWavsServiceManager,
-    "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
+    "../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
 );
 
 struct Component;

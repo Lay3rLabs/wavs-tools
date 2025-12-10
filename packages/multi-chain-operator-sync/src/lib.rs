@@ -22,7 +22,7 @@ use crate::{
 };
 
 wit_bindgen::generate!({
-    path: "../../../wit-definitions/operator/wit",
+    path: "../../wit-definitions/operator/wit",
     world: "wavs-world",
     generate_all,
     with: {
@@ -50,20 +50,20 @@ mod wavs_service_manager {
     sol!(
         #[sol(rpc)]
         IWavsServiceManager,
-        "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
+        "../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
     );
 }
 
 sol!(
     #[sol(rpc)]
     ECDSAStakeRegistry,
-    "../../../abi/eigenlayer-middleware/ECDSAStakeRegistry.sol/ECDSAStakeRegistry.json"
+    "../../abi/eigenlayer-middleware/ECDSAStakeRegistry.sol/ECDSAStakeRegistry.json"
 );
 
 sol!(
     #[sol(rpc)]
     AllocationManager,
-    "../../../abi/eigenlayer-middleware/AllocationManager.sol/AllocationManager.json"
+    "../../abi/eigenlayer-middleware/AllocationManager.sol/AllocationManager.json"
 );
 
 struct Component;

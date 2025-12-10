@@ -20,7 +20,7 @@ use crate::{
 };
 
 wit_bindgen::generate!({
-    path: "../../../wit-definitions/operator/wit",
+    path: "../../wit-definitions/operator/wit",
     world: "wavs-world",
     generate_all,
     with: {
@@ -30,14 +30,14 @@ wit_bindgen::generate!({
 });
 
 sol!(
-    "../../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IWavsOperatorUpdateHandler.sol"
+    "../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IWavsOperatorUpdateHandler.sol"
 );
 use IWavsOperatorUpdateHandler::OperatorUpdatePayload;
 
 sol!(
     #[sol(rpc)]
     IWavsServiceManager,
-    "../../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
+    "../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
 );
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
