@@ -24,13 +24,6 @@ jobs:
         if: steps.cache-submodules.outputs.cache-hit != 'true'
         run: git submodule update --init --recursive
 
-      - name: Cache Forge build
-        id: cache-forge
-        uses: actions/cache@v4
-        with:
-          path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
-
       - name: Cache Cargo
         uses: actions/cache@v4
         with:
@@ -40,12 +33,6 @@ jobs:
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Install Foundry
-        if: steps.cache-forge.outputs.cache-hit != 'true'
-        uses: foundry-rs/foundry-toolchain@v1
-        with:
-          version: stable
 
       - name: Install Bun
         uses: oven-sh/setup-bun@v2
@@ -61,12 +48,6 @@ jobs:
             node_modules
           key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
 
-      - name: Install Task
-        uses: arduino/setup-task@v2
-        with:
-          version: 3.x
-          repo-token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Install Rust toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -76,7 +57,7 @@ jobs:
           override: true
 
       - name: Setup dependencies
-        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
+        run: bun i --frozen-lockfile
 
       - name: Check formatting
         uses: actions-rs/cargo@v1
