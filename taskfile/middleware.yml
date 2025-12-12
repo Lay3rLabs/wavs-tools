@@ -23,7 +23,7 @@ tasks:
     vars:
       CHAIN_NUMBER: "{{.CHAIN_NUMBER | default 1}}"
       CHAIN_DIRNAME: "chain-{{.CHAIN_NUMBER}}"
-      OUTPUT_DIR: '{{joinPath .REPO_ROOT "projects" .PROJECT .PROJECT_OUTPUT_DIRNAME .CHAIN_DIRNAME .SERVICE_NAME}}'
+      OUTPUT_DIR: '{{joinPath .PACKAGES_DIR .PROJECT .PROJECT_OUTPUT_DIRNAME .CHAIN_DIRNAME .SERVICE_NAME}}'
     requires:
       vars: [PROJECT, SERVICE_NAME]
     cmds:

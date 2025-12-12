@@ -6,7 +6,7 @@ tasks:
     desc: "Build all WASI components across all projects"
     vars:
       PROJECTS:
-        sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
+        sh: find {{.PACKAGES_DIR}} -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
     cmds:
       - for: { var: PROJECTS, split: "\n" }
         task: build-component
@@ -18,7 +18,7 @@ tasks:
     deps: ["build-all-components"]
     vars:
       PROJECTS:
-        sh: find {{.REPO_ROOT}}/projects -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
+        sh: find {{.PACKAGES_DIR}} -mindepth 1 -maxdepth 1 -type d -printf '%f\n'
     cmds:
       - for: { var: PROJECTS, split: "\n" }
         task: publish-component
@@ -33,11 +33,11 @@ tasks:
     requires:
       vars: [PROJECT]
     preconditions:
-      - test -d "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
+      - test -f "{{.PACKAGES_DIR}}/{{.PROJECT}}/Cargo.toml"
     vars:
       COMPONENT_NAME:
         sh: task get-component-name PROJECT="{{.PROJECT}}"
-      COMPONENT_SOURCE_DIR: "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
+      COMPONENT_SOURCE_DIR: "{{.PACKAGES_DIR}}/{{.PROJECT}}"
     cmds:
       - echo "Building {{.COMPONENT_NAME}} for {{.PROJECT}}"
       - task: component:build
@@ -52,7 +52,7 @@ tasks:
     requires:
       vars: [PROJECT]
     preconditions:
-      - test -d "{{.REPO_ROOT}}/projects/{{.PROJECT}}/component"
+      - test -f "{{.PACKAGES_DIR}}/{{.PROJECT}}/Cargo.toml"
     vars:
       COMPONENT_NAME:
         sh: task get-component-name PROJECT="{{.PROJECT}}"
@@ -71,9 +71,9 @@ tasks:
       vars: [PROJECT]
     cmds:
       - >
-        if [ -f "/projects/{{.PROJECT}}/Taskfile.yml" ] &&
-          grep -q 'COMPONENT_NAME:' "/projects/{{.PROJECT}}/Taskfile.yml"; then
-          grep "COMPONENT_NAME:" "/projects/{{.PROJECT}}/Taskfile.yml" |
+        if [ -f "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml" ] &&
+          grep -q 'COMPONENT_NAME:' "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml"; then
+          grep "COMPONENT_NAME:" "{{.REPO_ROOT}}/projects/{{.PROJECT}}/Taskfile.yml" |
           sed 's/.*: *"\(.*\)".*/\1/' |
           tr -d '"'
         else
