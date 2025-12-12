@@ -14,13 +14,12 @@ tasks:
           PROJECT,
           COMPONENT_NAME,
           REPO_ROOT,
-          ROOT_DIR,
           AGGREGATOR_PROJECT,
           AGGREGATOR_COMPONENT_NAME,
         ]
     vars:
-      COMPONENT_SOURCE_DIR: '{{joinPath .ROOT_DIR "component"}}'
-      AGGREGATOR_COMPONENT_SOURCE_DIR: '{{ joinPath .REPO_ROOT "projects" .AGGREGATOR_PROJECT "component" }}'
+      COMPONENT_SOURCE_DIR: '{{joinPath .PACKAGES_DIR .PROJECT}}'
+      AGGREGATOR_COMPONENT_SOURCE_DIR: '{{joinPath .PACKAGES_DIR .AGGREGATOR_PROJECT}}'
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.AGGREGATOR_COMPONENT_SOURCE_DIR}}"

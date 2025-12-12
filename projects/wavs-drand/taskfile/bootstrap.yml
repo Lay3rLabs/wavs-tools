@@ -11,8 +11,8 @@ includes:
 tasks:
   contracts-deploy:
     desc: "Deploys the solidity contracts"
-    dir: contracts
     vars:
+      PROJECT_CONTRACTS_DIR: "{{joinPath .CONTRACTS_DIR .PROJECT}}"
       CHAIN_NUMBER: '{{.CHAIN_NUMBER | default "1"}}'
       SCRIPT_NAME: "DeployRandomnessContracts"
       EVM_RPC_URL:
@@ -22,6 +22,7 @@ tasks:
         sh: task get-service-manager-address CHAIN_NUMBER={{.CHAIN_NUMBER}}
     cmds:
       - |
+        cd "{{.PROJECT_CONTRACTS_DIR}}"
         case "{{.DEPLOY_ENV}}" in
           "TESTNET")
             forge script script/{{.SUBMISSION_DEPLOY_SCRIPT}}:{{.SCRIPT_NAME}} --broadcast --rpc-url "{{.EVM_RPC_URL}}" --verify

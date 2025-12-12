@@ -5,6 +5,8 @@ vars:
     # find the root directory of the repository by looking for the `.git` directory.
     sh: git rev-parse --show-toplevel
   PROJECT_OUTPUT_DIRNAME: ".project-output"
+  PACKAGES_DIR: '{{joinPath .REPO_ROOT "packages"}}'
+  CONTRACTS_DIR: '{{joinPath .REPO_ROOT "contracts"}}'
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_FORK_CHAIN_ID: 31337
   # Network Configuration

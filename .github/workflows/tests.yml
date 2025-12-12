@@ -42,13 +42,6 @@ jobs:
         if: steps.cache-submodules.outputs.cache-hit != 'true'
         run: git submodule update --init --recursive
 
-      - name: Cache Forge build
-        id: cache-forge
-        uses: actions/cache@v4
-        with:
-          path: abi
-          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock') }}
-
       - name: Cache Cargo
         uses: actions/cache@v4
         with:
@@ -137,7 +130,7 @@ jobs:
 
       # Dependencies and environment
       - name: Setup dependencies
-        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
+        run: bun i --frozen-lockfile
 
       - name: Setup environment
         run: cp .env.example .env

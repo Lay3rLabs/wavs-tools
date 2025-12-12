@@ -1,11 +1,5 @@
 [workspace]
-members = [
-    "projects/operator-updater/component",
-    "projects/multi-chain-operator-sync/component",
-    "projects/multi-chain-quorum-sync/component",
-    "projects/wavs-drand/component",
-    "projects/aggregator-simple/component",
-]
+members = ["packages/*"]
 resolver = "2"
 
 [workspace.package]
@@ -25,18 +19,55 @@ wavs-wasi-utils = "=2.2.0"
 wavs-types = { version = "2.0.0-rc.5", features = ["full"] }
 wasip2 = "1.0.1"
 
+# WAVS Packages
+wavs-llm = { path = "./packages/llm" }
+wavs-eas = { path = "./packages/eas" }
+wavs-indexer-api = { path = "./packages/indexer-api" }
+wavs-merkle-sources = { path = "./packages/merkle-sources" }
+wavs-ipfs = { path = "./packages/ipfs" }
+
 # Other
+schemars = "1.0.4"
 serde = { version = "1.0.219", features = ["derive"] }
 serde_json = "1.0.140"
 anyhow = "1.0.98"
+async-trait = "0.1.88"
+inventory = "0.3"
+futures = "0.3.31"
+merkle-tree-rs = "0.1.0"
 bincode = { version = "2.0.1", features = ["serde"] }
 
 ## Alloy
 alloy-sol-macro = { version = "1.4.1", features = ["json"] }
 alloy-sol-types = "1.4.1"
+alloy-dyn-abi = "1.1.1"
+alloy-json-abi = "1.1.1"
 alloy-primitives = { version = "1.4.1", features = ["serde"] }
 alloy-network = "1.1.1"
 alloy-provider = "1.1.1"
 alloy-rpc-types = "1.1.1"
 alloy-contract = "1.1.1"
 alloy-transport-http = "1.1.1"
+
+## IPFS
+cid = "0.7"
+multibase = "0.9"
+multihash = "0.18"
+bs58 = "0.5"
+
+## Common dependencies
+hex = "0.4.3"
+ethabi = "18.0.0"
+primitive-types = "0.13.1"
+base64 = "0.22.1"
+mockall = "0.11"
+thiserror = "1.0.47"
+tiny-keccak = { version = "2.0", features = ["keccak"] }
+tokio = { version = "1.47.1", features = ["full"] }
+
+[profile.release]
+codegen-units = 1
+opt-level = "s"
+debug = false
+strip = true
+lto = true

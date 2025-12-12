@@ -19,7 +19,6 @@ wavs:worker*.wasm
 tests/.test-reports
 infra/
 .claude
-abi/
 .project-output/
 .DS_Store
 .task/
