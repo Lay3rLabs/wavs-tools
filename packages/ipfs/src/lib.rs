@@ -1,4 +1,5 @@
 use anyhow::Result;
+use rand::{distributions::Alphanumeric, Rng};
 use serde::Deserialize;
 use std::{
     fs::File,
@@ -151,7 +152,15 @@ pub async fn upload_json_to_ipfs(
     api_key: Option<&str>,
 ) -> Result<Cid> {
     // Create a temporary file to store the JSON data
-    let temp_path = "/tmp/ipfs_data.json";
+    let temp_path = &format!(
+        "/tmp/ipfs_data_{}.json",
+        // randomize the file name to avoid collisions
+        rand::thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(6)
+            .map(char::from)
+            .collect::<String>()
+    );
 
     eprintln!("Temp path {}", temp_path);
 

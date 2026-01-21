@@ -7338,6 +7338,7 @@ dependencies = [
  "cid",
  "multibase",
  "multihash 0.18.1",
+ "rand 0.8.5",
  "serde",
  "serde_json",
  "wstd",
