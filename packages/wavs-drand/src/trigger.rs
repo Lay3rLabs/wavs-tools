@@ -106,6 +106,12 @@ impl TriggerInfo {
             TriggerData::Raw(_raw_data) => {
                 unimplemented!()
             }
+            TriggerData::AtprotoEvent(_event) => {
+                unimplemented!()
+            }
+            TriggerData::HypercoreAppend(_event) => {
+                unimplemented!()
+            }
         }
     }
 

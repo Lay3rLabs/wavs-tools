@@ -40,7 +40,7 @@ sol!(
 struct Component;
 
 impl Guest for Component {
-    fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
+    fn run(action: TriggerAction) -> std::result::Result<Vec<WasmResponse>, String> {
         match action.data {
             TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { log, .. }) => {
                 block_on(async move {
@@ -55,11 +55,11 @@ impl Guest for Component {
                         denominator,
                     };
 
-                    Ok(Some(WasmResponse {
+                    Ok(vec![WasmResponse {
                         payload: result.abi_encode(),
                         ordering: None,
                         event_id_salt: None,
-                    }))
+                    }])
                 })
             }
             _ => Err(format!(

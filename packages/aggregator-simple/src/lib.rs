@@ -1,13 +1,12 @@
 mod gas_oracle;
 mod utils;
 
+use wavs_wasi_utils::impl_u128_conversions;
+
 use crate::wavs::{
-    aggregator::aggregator::{
-        Duration, EvmAddress, EvmSubmitAction, SubmitAction, TimerAction, U128,
-    },
+    aggregator::output::{Duration, EvmAddress, EvmSubmitAction, SubmitAction, TimerAction, U128},
     types::service::Submit,
 };
-use wavs_wasi_utils::impl_u128_conversions;
 impl_u128_conversions!(U128);
 
 wit_bindgen::generate!({
@@ -23,7 +22,7 @@ wit_bindgen::generate!({
 struct Component;
 
 impl Guest for Component {
-    fn process_packet(packet: Packet) -> Result<Vec<AggregatorAction>, String> {
+    fn process_input(input: AggregatorInput) -> Result<Vec<AggregatorAction>, String> {
         let timer_delay_secs = host::config_var("timer_delay_secs")
             .map(|delay_str| {
                 delay_str
@@ -42,17 +41,17 @@ impl Guest for Component {
             }
             None => {
                 // No timer delay - process immediately (skip tx validation)
-                process_submission(packet, false)
+                process_submission(input, false)
             }
         }
     }
 
-    fn handle_timer_callback(packet: Packet) -> Result<Vec<AggregatorAction>, String> {
+    fn handle_timer_callback(packet: AggregatorInput) -> Result<Vec<AggregatorAction>, String> {
         process_submission(packet, true)
     }
 
     fn handle_submit_callback(
-        _packet: Packet,
+        _packet: AggregatorInput,
         tx_result: Result<AnyTxHash, String>,
     ) -> Result<(), String> {
         match tx_result {
@@ -62,7 +61,10 @@ impl Guest for Component {
     }
 }
 
-fn process_submission(packet: Packet, validate_tx: bool) -> Result<Vec<AggregatorAction>, String> {
+fn process_submission(
+    input: AggregatorInput,
+    validate_tx: bool,
+) -> Result<Vec<AggregatorAction>, String> {
     let workflow = host::get_workflow().workflow;
 
     let submit_config = match workflow.submit {
@@ -76,7 +78,7 @@ fn process_submission(packet: Packet, validate_tx: bool) -> Result<Vec<Aggregato
 
     let mut actions = Vec::new();
 
-    if validate_tx && !utils::is_valid_tx(packet.trigger_data)? {
+    if validate_tx && !utils::is_valid_tx(input.trigger_action)? {
         return Ok(actions);
     }
 

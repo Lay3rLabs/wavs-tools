@@ -5,11 +5,14 @@ use wstd::runtime::block_on;
 
 use crate::{
     host,
-    wavs::{aggregator::aggregator::TriggerData, types::events::TriggerDataEvmContractEvent},
+    wavs::{
+        aggregator::input::TriggerAction,
+        types::events::{TriggerData, TriggerDataEvmContractEvent},
+    },
 };
 
-pub fn is_valid_tx(trigger_data: TriggerData) -> Result<bool, String> {
-    match trigger_data {
+pub fn is_valid_tx(trigger_action: TriggerAction) -> Result<bool, String> {
+    match trigger_action.data {
         TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
             let chain_config = host::get_evm_chain_config(&chain)
                 .ok_or(format!("Could not get evm chain config for {chain}"))?;
