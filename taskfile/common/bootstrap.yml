@@ -38,10 +38,9 @@ tasks:
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     requires:
-      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT, AGGREGATOR_COMPONENT_NAME]
+      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
-      - cd "{{.REPO_ROOT}}" && task component:upload-aggregator PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
     desc: "Deploys the middleware (mock, ecdsa, or poa based on MIDDLEWARE_MODE setting)"
@@ -106,7 +105,7 @@ tasks:
         WEIGHTS_JSON="[]"
 
         for WAVS_INSTANCE in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
-          OPERATOR_MNEMONIC=$(cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-$WAVS_INSTANCE)
+          OPERATOR_MNEMONIC=$(cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-$WAVS_INSTANCE)
           OPERATOR_ADDRESS=$(cast wallet address --mnemonic "$OPERATOR_MNEMONIC" --mnemonic-index 0)
           SIGNING_KEY=$(task get-service-signing-address WAVS_INSTANCE=$WAVS_INSTANCE)
 
@@ -200,29 +199,6 @@ tasks:
       SERVICE_URI: "{{.WAVS_ENDPOINT}}/dev/services/{{.TEMP_SERVICE_HASH}}"
     cmds:
       - cd "{{.REPO_ROOT}}" && task middleware:set-service-uri CHAIN_NUMBER="{{.CHAIN_NUMBER}}" PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}" SERVICE_URI="{{.SERVICE_URI}}"
-
-  register-service:
-    vars:
-      WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_ENDPOINT:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
-      SERVICE_MANAGER_ADDRESS:
-        sh: task get-service-manager-address
-      SOURCE_CHAIN_NUMBER: "{{.SOURCE_CHAIN_NUMBER | default 1}}"
-      CHAIN_NAME:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-chain-name-{{.SOURCE_CHAIN_NUMBER}}
-    cmds:
-      - >
-        curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/services" 
-        -H "Content-Type: application/json" 
-        -d "{
-          \"service_manager\": {
-            \"evm\": {
-              \"chain\": \"{{.CHAIN_NAME}}\",
-              \"address\": \"{{.SERVICE_MANAGER_ADDRESS}}\"
-            }
-          }
-        }"
 
   deploy-service:
     vars:

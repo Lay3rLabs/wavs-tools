@@ -71,7 +71,7 @@ tasks:
       HD_INDEX:
         sh: task get-service-hd-index WAVS_INSTANCE={{.WAVS_INSTANCE}}
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
       AVS_SIGNING_ADDRESS:
         sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index {{.HD_INDEX}}
     requires:
@@ -86,7 +86,7 @@ tasks:
       HD_INDEX:
         sh: task get-service-hd-index WAVS_INSTANCE={{.WAVS_INSTANCE}}
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
       AVS_SIGNING_KEY:
         sh: cast wallet private-key "{{.OPERATOR_MNEMONIC}}" --mnemonic-index {{.HD_INDEX}}
     requires:
@@ -99,7 +99,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
       OPERATOR_ADDRESS:
         sh: cast wallet address --mnemonic "{{.OPERATOR_MNEMONIC}}"
     requires:
@@ -112,7 +112,7 @@ tasks:
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
       OPERATOR_PRIVATE_KEY:
         sh: cast wallet private-key --mnemonic "{{.OPERATOR_MNEMONIC}}" --mnemonic-index 0
     requires:

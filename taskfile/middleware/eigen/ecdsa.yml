@@ -50,7 +50,7 @@ tasks:
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
     requires:
       vars: [PROJECT, SERVICE_NAME, WAVS_SIGNING_KEY, AMOUNT]
     env:
@@ -86,7 +86,7 @@ tasks:
       NODES_DIR:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-output-dir CHAIN_NUMBER={{.CHAIN_NUMBER}} PROJECT={{.PROJECT}} SERVICE_NAME={{.SERVICE_NAME}}
       OPERATOR_MNEMONIC:
-        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
     requires:
       vars: [PROJECT, SERVICE_NAME]
     env:

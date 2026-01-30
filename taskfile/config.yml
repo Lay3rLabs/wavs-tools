@@ -10,15 +10,13 @@ vars:
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_FORK_CHAIN_ID: 31337
   # Network Configuration
-  ANVIL_HOLESKY_FORK_URL: "https://eth-holesky.g.alchemy.com/v2/Hr83A86i2pYH_ABCxFveDMBmKvhIo_Gi"
+  ANVIL_SEPOLIA_FORK_URL: "https://ethereum-sepolia-rpc.publicnode.com"
   ANVIL_BASE_PORT: 8548 # Base port for Anvil, subsequent ports will be incremented by 1 for each instance
   WAVS_BASE_PORT: 8123 # Base port for WAVS, subsequent ports will be incremented by 1 for each instance
-  WAVS_AGGREGATOR_PORT: 8200
 
   # Timeout Configuration
   HEALTH_CHECK_TIMEOUT: 5 # seconds to wait for service health checks
   WAVS_HOME_DIR: '{{joinPath .BACKEND_DIR "wavs-home"}}'
-  WAVS_AGGREGATOR_ENDPOINT: "http://localhost:{{.WAVS_AGGREGATOR_PORT}}"
   MIDDLEWARE_CHAIN_ID: 17000
   MIDDLEWARE_METADATA_URI: "https://raw.githubusercontent.com/Lay3rLabs/wavs-foundry-template/refs/heads/main/metadata.json"
   MIDDLEWARE_LST_CONTRACT_ADDRESS: "0x3F1c547b21f65e10480dE3ad8E19fAAC46C95034"
