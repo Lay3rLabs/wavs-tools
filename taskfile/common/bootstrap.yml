@@ -18,8 +18,8 @@ tasks:
           AGGREGATOR_COMPONENT_NAME,
         ]
     vars:
-      COMPONENT_SOURCE_DIR: '{{joinPath .PACKAGES_DIR .PROJECT}}'
-      AGGREGATOR_COMPONENT_SOURCE_DIR: '{{joinPath .PACKAGES_DIR .AGGREGATOR_PROJECT}}'
+      COMPONENT_SOURCE_DIR: "{{joinPath .PACKAGES_DIR .PROJECT}}"
+      AGGREGATOR_COMPONENT_SOURCE_DIR: "{{joinPath .PACKAGES_DIR .AGGREGATOR_PROJECT}}"
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.COMPONENT_SOURCE_DIR}}"
       - cd "{{.REPO_ROOT}}" && task component:build PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" COMPONENT_SOURCE_DIR="{{.AGGREGATOR_COMPONENT_SOURCE_DIR}}"
@@ -38,9 +38,10 @@ tasks:
       WAVS_ENDPOINT:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-wavs-endpoint-{{.WAVS_INSTANCE}}
     requires:
-      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT]
+      vars: [PROJECT, COMPONENT_NAME, REPO_ROOT, AGGREGATOR_COMPONENT_NAME]
     cmds:
       - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
+      - cd "{{.REPO_ROOT}}" && task component:upload PROJECT="{{.PROJECT}}" COMPONENT_NAME="{{.AGGREGATOR_COMPONENT_NAME}}" WAVS_ENDPOINT="{{.WAVS_ENDPOINT}}"
 
   middleware-deploy:
     desc: "Deploys the middleware (mock, ecdsa, or poa based on MIDDLEWARE_MODE setting)"
