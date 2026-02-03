@@ -30,6 +30,10 @@ cors_allowed_origins = [
 
 dev_endpoints_enabled = true
 
+# P2P networking for multi-operator setups
+[wavs.p2p.local]
+listen_port = 9000
+
 
 # ----------------------------
 # CLI specific settings
