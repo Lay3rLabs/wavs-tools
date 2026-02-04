@@ -55,7 +55,6 @@ tasks:
         task bootstrap:build-service
         task bootstrap:upload-service
         task bootstrap:set-service-uri
-        task bootstrap:register-service
         task bootstrap:deploy-service
         task bootstrap:wavs-all
         task bootstrap:register-operator
@@ -64,10 +63,12 @@ tasks:
   clean:
     desc: "Cleans up the tool"
     deps: [clean-output]
+    vars:
+      PROJECT_CONTRACTS_DIR: "{{joinPath .CONTRACTS_DIR .PROJECT}}"
     cmds:
-      - rm -rf "contracts/broadcast"
-      - rm -rf "contracts/cache"
-      - rm -rf "contracts/out"
+      - rm -rf "{{.PROJECT_CONTRACTS_DIR}}/broadcast"
+      - rm -rf "{{.PROJECT_CONTRACTS_DIR}}/cache"
+      - rm -rf "{{.PROJECT_CONTRACTS_DIR}}/out"
       - cd "{{.REPO_ROOT}}" && cargo clean -p {{.PROJECT}}
 
   clean-output:

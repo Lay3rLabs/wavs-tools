@@ -43,6 +43,7 @@ tasks:
     desc: "Initialize project dependencies and build ABI files"
     cmds:
       - bun install
+      - git submodule update --init --recursive
       - cd tests && bun install
       - cd submodules/poa-middleware && npm i
       - task: cli:build-abi

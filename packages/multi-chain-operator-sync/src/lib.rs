@@ -1,0 +1,355 @@
+mod utils;
+
+use alloy_network::Ethereum;
+use alloy_primitives::{Address, Uint};
+use alloy_provider::RootProvider;
+use alloy_sol_macro::sol;
+use alloy_sol_types::SolValue;
+use anyhow::anyhow;
+use wavs_wasi_utils::{decode_event_log_data, evm::new_evm_provider};
+use wstd::runtime::block_on;
+
+use crate::{
+    AllocationManager::{AllocationManagerInstance, OperatorSet},
+    ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
+    IMirrorOperatorSyncHandler::UpdateWithId,
+    POAStakeRegistry::POAStakeRegistryInstance,
+    host::{LogLevel, get_evm_chain_config},
+    wavs::{
+        operator::input::TriggerData,
+        types::events::{TriggerDataBlockInterval, TriggerDataEvmContractEvent},
+    },
+    wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
+};
+
+wit_bindgen::generate!({
+    path: "../../wit-definitions/operator/wit",
+    world: "wavs-world",
+    generate_all,
+    with: {
+        "wasi:io/poll@0.2.0": wasip2::io::poll
+    },
+    features: ["tls"]
+});
+
+sol!(
+    "../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IMirrorOperatorSyncHandler.sol"
+);
+
+mod wavs_service_manager {
+    use alloy_sol_macro::sol;
+
+    sol!(
+        #[sol(rpc)]
+        IWavsServiceManager,
+        "../../abi/wavs-middleware/IWavsServiceManager.sol/IWavsServiceManager.json"
+    );
+}
+
+sol!(
+    #[sol(rpc)]
+    ECDSAStakeRegistry,
+    "../../abi/eigenlayer-middleware/ECDSAStakeRegistry.sol/ECDSAStakeRegistry.json"
+);
+
+sol!(
+    #[sol(rpc)]
+    AllocationManager,
+    "../../abi/eigenlayer-middleware/AllocationManager.sol/AllocationManager.json"
+);
+
+sol!(
+    #[sol(rpc)]
+    POAStakeRegistry,
+    "../../abi/poa-middleware/POAStakeRegistry.sol/POAStakeRegistry.json"
+);
+
+struct Component;
+
+impl Guest for Component {
+    fn run(action: TriggerAction) -> std::result::Result<Vec<WasmResponse>, String> {
+        match action.data {
+            TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
+                let chain_config = get_evm_chain_config(&chain)
+                    .ok_or(format!("Could not get chain config for {chain}"))?;
+                let endpoint = chain_config
+                    .http_endpoint
+                    .ok_or(format!("No http endpoint configured for {chain}"))?;
+
+                let provider = new_evm_provider::<Ethereum>(endpoint);
+
+                let maybe_operator_weight_updated_event: anyhow::Result<
+                    POAStakeRegistry::OperatorWeightUpdated,
+                > = decode_event_log_data!(log.data.clone());
+                // If Ok, then we are targeting POA middleware
+                if let Ok(POAStakeRegistry::OperatorWeightUpdated {
+                    operator,
+                    newWeight,
+                    ..
+                }) = maybe_operator_weight_updated_event
+                {
+                    // OperatorWeightUpdated
+                    let stake_registry =
+                        POAStakeRegistryInstance::new(log.address.clone().into(), provider);
+
+                    block_on(async move {
+                        let threshold_weight = stake_registry
+                            .getLastCheckpointThresholdWeight()
+                            .call()
+                            .await
+                            .map_err(|e| {
+                                format!("Could not get last checkpoint threshold weight: {e}")
+                            })?;
+
+                        let signing_key_address = stake_registry
+                            .getLatestOperatorSigningKey(operator)
+                            .call()
+                            .await
+                            .map_err(|e| {
+                                format!("Could not get latest operator for signing key: {e}")
+                            })?;
+
+                        // TODO: How do we handle multiple operator weight updated events per block if we use the block number as the trigger id?
+                        // Same goes below in register + deregister
+                        let result = UpdateWithId {
+                            triggerId: log.block_number,
+                            thresholdWeight: threshold_weight,
+                            operators: vec![operator],
+                            weights: vec![newWeight],
+                            signingKeyAddresses: vec![signing_key_address],
+                        };
+
+                        Ok(vec![WasmResponse {
+                            payload: result.abi_encode(),
+                            ordering: None,
+                            event_id_salt: None,
+                        }])
+                    })
+                } else {
+                    // Register + Deregister
+                    let stake_registry =
+                        ECDSAStakeRegistryInstance::new(log.address.clone().into(), provider);
+
+                    block_on(async move {
+                        let maybe_register_event: anyhow::Result<
+                            ECDSAStakeRegistry::OperatorRegistered,
+                        > = decode_event_log_data!(log.data.clone());
+                        let maybe_deregister_event: anyhow::Result<
+                            ECDSAStakeRegistry::OperatorDeregistered,
+                        > = decode_event_log_data!(log.data.clone());
+                        if let Ok(ECDSAStakeRegistry::OperatorRegistered { operator, avs: _ }) =
+                            maybe_register_event
+                        {
+                            let result =
+                                handle_register_event(stake_registry, operator, log.block_number)
+                                    .await
+                                    .map_err(|e: anyhow::Error| e.to_string())?;
+
+                            Ok(vec![WasmResponse {
+                                payload: result.abi_encode(),
+                                ordering: None,
+                                event_id_salt: None,
+                            }])
+                        } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
+                            operator,
+                            avs: _,
+                        }) = maybe_deregister_event
+                        {
+                            let result =
+                                handle_deregister_event(stake_registry, operator, log.block_number)
+                                    .await
+                                    .map_err(|e| e.to_string())?;
+
+                            Ok(vec![WasmResponse {
+                                payload: result.abi_encode(),
+                                ordering: None,
+                                event_id_salt: None,
+                            }])
+                        } else {
+                            Err(format!("Could not decode the event {log:?}"))
+                        }
+                    })
+                }
+            }
+            // Update
+            TriggerData::BlockInterval(TriggerDataBlockInterval {
+                chain,
+                block_height,
+            }) => {
+                let service_manager_address: Address = host::config_var("service_manager_address")
+                    .ok_or("service_manager_address not configured")?
+                    .parse()
+                    .map_err(|e: alloy_primitives::hex::FromHexError| e.to_string())?;
+
+                block_on(async move {
+                    let result = handle_update_event(chain, block_height, service_manager_address)
+                        .await
+                        .map_err(|e| e.to_string())?;
+
+                    Ok(vec![WasmResponse {
+                        payload: result.abi_encode(),
+                        ordering: None,
+                        event_id_salt: None,
+                    }])
+                })
+            }
+            _ => Err(format!(
+                "Component did not expect trigger action {action:?}"
+            )),
+        }
+    }
+}
+
+async fn handle_register_event(
+    stake_registry: ECDSAStakeRegistryInstance<RootProvider>,
+    operator: Address,
+    block_height: u64,
+) -> anyhow::Result<UpdateWithId> {
+    host::log(
+        LogLevel::Info,
+        &format!("Querying register info for operator {operator} at block {block_height}"),
+    );
+
+    // Query the current signing key for operator
+    let signing_key_address = stake_registry
+        .getLatestOperatorSigningKey(operator)
+        .call()
+        .await?;
+
+    host::log(
+        LogLevel::Info,
+        &format!("Signing key address: {signing_key_address}"),
+    );
+
+    // Get operator's stake
+    let weight = stake_registry.getOperatorWeight(operator).call().await?;
+
+    host::log(LogLevel::Info, &format!("Weight: {weight}"));
+
+    // Get the threshold weight
+    let threshold_weight = stake_registry
+        .getLastCheckpointThresholdWeight()
+        .call()
+        .await?;
+
+    host::log(
+        LogLevel::Info,
+        &format!("Threshold weight: {threshold_weight}"),
+    );
+
+    Ok(UpdateWithId {
+        operators: vec![operator],
+        signingKeyAddresses: vec![signing_key_address],
+        weights: vec![weight],
+        triggerId: block_height,
+        thresholdWeight: threshold_weight,
+    })
+}
+
+async fn handle_deregister_event(
+    stake_registry: ECDSAStakeRegistryInstance<RootProvider>,
+    operator: Address,
+    block_height: u64,
+) -> anyhow::Result<UpdateWithId> {
+    host::log(
+        LogLevel::Info,
+        &format!("Querying deregister info for operator {operator} at block {block_height}"),
+    );
+
+    // Get the threshold weight
+    let threshold_weight = stake_registry
+        .getLastCheckpointThresholdWeight()
+        .call()
+        .await?;
+
+    host::log(
+        LogLevel::Info,
+        &format!("Threshold weight: {threshold_weight}"),
+    );
+
+    Ok(UpdateWithId {
+        triggerId: block_height,
+        thresholdWeight: threshold_weight,
+        operators: vec![operator],
+        signingKeyAddresses: vec![Address::ZERO],
+        weights: vec![Uint::ZERO],
+    })
+}
+
+async fn handle_update_event(
+    chain_name: String,
+    block_height: u64,
+    service_manager_address: Address,
+) -> anyhow::Result<UpdateWithId> {
+    let chain_config = get_evm_chain_config(&chain_name)
+        .ok_or(anyhow!("Failed to get chain config for: {chain_name}"))?;
+
+    let provider = new_evm_provider::<Ethereum>(
+        chain_config
+            .http_endpoint
+            .ok_or(anyhow!("No HTTP endpoint configured"))?,
+    );
+
+    let service_manager =
+        IWavsServiceManagerInstance::new(service_manager_address, provider.clone());
+
+    let stake_registry_address = service_manager.getStakeRegistry().call().await?;
+    host::log(
+        LogLevel::Info,
+        &format!("Stake registry address: {stake_registry_address}"),
+    );
+    let allocation_manager_address = service_manager.getAllocationManager().call().await?;
+    host::log(
+        LogLevel::Info,
+        &format!("Allocation manager address: {allocation_manager_address}"),
+    );
+
+    let stake_registry = ECDSAStakeRegistryInstance::new(stake_registry_address, provider.clone());
+    let allocation_manager =
+        AllocationManagerInstance::new(allocation_manager_address, provider.clone());
+
+    let threshold_weight = stake_registry
+        .getLastCheckpointThresholdWeight()
+        .call()
+        .await?;
+    host::log(
+        LogLevel::Info,
+        &format!("Threshold weight: {threshold_weight}"),
+    );
+
+    let operator_set = OperatorSet {
+        avs: service_manager_address,
+        id: 1,
+    };
+    let operators = allocation_manager.getMembers(operator_set).call().await?;
+
+    let mut weights = vec![];
+    let mut signing_key_addresses = vec![];
+    for operator in operators.iter() {
+        let weight = stake_registry.getOperatorWeight(*operator).call().await?;
+        let signing_key_address = stake_registry
+            .getLatestOperatorSigningKey(*operator)
+            .call()
+            .await?;
+
+        host::log(
+            LogLevel::Info,
+            &format!(
+                "Operator: {operator}, Weight: {weight}, Signing key address: {signing_key_address}"
+            ),
+        );
+
+        weights.push(weight);
+        signing_key_addresses.push(signing_key_address);
+    }
+
+    Ok(UpdateWithId {
+        triggerId: block_height,
+        thresholdWeight: threshold_weight,
+        operators,
+        signingKeyAddresses: signing_key_addresses,
+        weights,
+    })
+}
+
+export!(Component);
