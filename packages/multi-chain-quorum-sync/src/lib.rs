@@ -21,7 +21,7 @@ wit_bindgen::generate!({
 });
 
 sol!(
-    "../../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IMirrorQuorumSyncHandler.sol"
+    "../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IMirrorQuorumSyncHandler.sol"
 );
 
 sol!(
