@@ -41,11 +41,11 @@ merkle-tree-rs = "0.1.0"
 bincode = { version = "2.0.1", features = ["serde"] }
 
 ## Alloy
-alloy-sol-macro = { version = "1.0.42", features = ["json"] }
-alloy-sol-types = "1.0.42"
+alloy-sol-macro = { version = "1.4.1", features = ["json"] }
+alloy-sol-types = "1.4.1"
 alloy-dyn-abi = "1.0.42"
-alloy-json-abi = "1.0.42"
-alloy-primitives = { version = "1.0.42", features = ["serde"] }
+alloy-json-abi = "1.4.1"
+alloy-primitives = { version = "1.4.1", features = ["serde"] }
 alloy-network = "1.0.42"
 alloy-provider = "1.0.42"
 alloy-rpc-types = "1.0.42"
