@@ -10,16 +10,16 @@ use wavs_wasi_utils::{decode_event_log_data, evm::new_evm_provider};
 use wstd::runtime::block_on;
 
 use crate::{
-    AllocationManager::{AllocationManagerInstance, OperatorSet},
-    ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
-    IMirrorOperatorSyncHandler::UpdateWithId,
-    POAStakeRegistry::POAStakeRegistryInstance,
-    host::{LogLevel, get_evm_chain_config},
+    host::{get_evm_chain_config, LogLevel},
     wavs::{
         operator::input::TriggerData,
         types::events::{TriggerDataBlockInterval, TriggerDataEvmContractEvent},
     },
     wavs_service_manager::IWavsServiceManager::IWavsServiceManagerInstance,
+    AllocationManager::{AllocationManagerInstance, OperatorSet},
+    ECDSAStakeRegistry::ECDSAStakeRegistryInstance,
+    IMirrorOperatorSyncHandler::UpdateWithId,
+    POAStakeRegistry::POAStakeRegistryInstance,
 };
 
 wit_bindgen::generate!({
