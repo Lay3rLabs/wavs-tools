@@ -34,10 +34,10 @@ sol!("../../contracts/wavs-drand/src/Types.sol");
 struct Component;
 
 impl Guest for Component {
-    fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
+    fn run(action: TriggerAction) -> std::result::Result<Vec<WasmResponse>, String> {
         block_on(async move {
             match process_trigger(action).await {
-                Ok(response) => Ok(Some(response)),
+                Ok(response) => Ok(vec![response]),
                 Err(e) => Err(e.to_string()),
             }
         })

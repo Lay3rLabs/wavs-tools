@@ -50,7 +50,7 @@ pub struct ComponentInput {
 struct Component;
 
 impl Guest for Component {
-    fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
+    fn run(action: TriggerAction) -> std::result::Result<Vec<WasmResponse>, String> {
         // Decode the trigger event
         let ComponentInput {
             service_manager_address,
@@ -90,15 +90,15 @@ impl Guest for Component {
                 .iter()
                 .all(|x| x.is_empty())
             {
-                return Ok(None);
+                return Ok(vec![]);
             }
 
             // Return the data needed for updateOperatorsForQuorum
-            Ok(Some(WasmResponse {
+            Ok(vec![WasmResponse {
                 payload: avs_writer_payload.abi_encode(),
                 ordering: None,
                 event_id_salt: None,
-            }))
+            }])
         })
     }
 }

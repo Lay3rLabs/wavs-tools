@@ -18,10 +18,6 @@ prometheus = "http://localhost:9090"
 ws_endpoints = ["wss://ethereum-sepolia-rpc.publicnode.com"]
 http_endpoint = "https://ethereum-sepolia-rpc.publicnode.com"
 
-[default.chains.evm.17000]
-ws_endpoints = ["wss://ethereum-holesky-rpc.publicnode.com"]
-http_endpoint = "https://ethereum-holesky-rpc.publicnode.com"
-
 # ----------------------------
 # WAVS specific settings
 # ----------------------------
@@ -33,6 +29,10 @@ cors_allowed_origins = [
 ]
 
 dev_endpoints_enabled = true
+
+# P2P networking for multi-operator setups
+[wavs.p2p.local]
+listen_port = 9000
 
 
 # ----------------------------

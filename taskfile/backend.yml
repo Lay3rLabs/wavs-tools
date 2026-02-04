@@ -127,11 +127,11 @@ tasks:
       CHAIN_NUMBER: "{{index .MATCH 0}}"
     env:
       COMPOSE_ANVIL_FORK_CMD:
-        # For right now, the setup is that chain #1 is the Holesky fork, and all others are local Anvil instances.
+        # For right now, the setup is that chain #1 is the Sepolia fork, and all others are local Anvil instances.
         # We can add more fork URLs here as needed or move this to a map, json, or other structure in the future.
         sh: |
           case {{.CHAIN_NUMBER}} in
-            1) echo "--fork-url {{.ANVIL_HOLESKY_FORK_URL}}" ;;
+            1) echo "--fork-url {{.ANVIL_SEPOLIA_FORK_URL}}" ;;
             *) echo "" ;;
           esac
       COMPOSE_PROJECT_NAME: "anvil-{{.CHAIN_NUMBER}}"
@@ -243,9 +243,8 @@ tasks:
   ######################## WAVS #####################################
   ###################################################################
   start-wavs:
-    desc: "Start WAVS operator instances and aggregator"
+    desc: "Start WAVS operator instances"
     preconditions:
-      - test -f "{{.BACKEND_DIR}}/docker-compose-wavs-aggregator.yml"
       - test -f "{{.BACKEND_DIR}}/docker-compose-wavs-instance.yml"
       - sh: "command -v docker"
         msg: "Docker is required but not installed"
@@ -260,7 +259,6 @@ tasks:
   docker-pull-wavs:
     internal: true
     cmds:
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml pull
       - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml pull
 
   start-wavs-inner:
@@ -271,29 +269,8 @@ tasks:
     requires:
       vars: [OPERATORS]
     deps:
-      - task: start-wavs-aggregator
       - for: { var: OPERATORS_RANGE }
         task: start-wavs-{{.ITEM}}
-
-  start-wavs-aggregator:
-    internal: true
-    deps:
-      - task: docker-start-wavs-aggregator
-    cmds:
-      # Wait for WAVS Aggregator to be up and running
-      - |
-        for ((i=0; i<{{.HEALTH_CHECK_TIMEOUT}}; i++)); do
-          if nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
-            break
-          fi
-          echo "Waiting for Aggregator to start on port {{.WAVS_AGGREGATOR_PORT}}..."
-          sleep 1
-        done
-        if ! nc -z 127.0.0.1 {{.WAVS_AGGREGATOR_PORT}}; then
-          echo "Aggregator did not start after {{.HEALTH_CHECK_TIMEOUT}} seconds"
-          exit 1
-        fi
-      - echo "Aggregator is up!"
 
   start-wavs-*:
     internal: true
@@ -320,14 +297,6 @@ tasks:
       - |
         echo "WAVS #{{.WAVS_INSTANCE}} is up!"
 
-  docker-start-wavs-aggregator:
-    internal: true
-    env:
-      COMPOSE_WAVS_AGGREGATOR_PORT: "{{.WAVS_AGGREGATOR_PORT}}"
-    cmds:
-      - echo "Starting WAVS Aggregator on port {{.WAVS_AGGREGATOR_PORT}}"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml up --force-recreate -d
-
   docker-start-wavs-*:
     internal: true
     vars:
@@ -336,24 +305,21 @@ tasks:
       COMPOSE_PROJECT_NAME: "wavs-operator-{{.WAVS_INSTANCE}}"
       COMPOSE_WAVS_PORT:
         sh: task backend:get-wavs-port-{{.WAVS_INSTANCE}}
-      WAVS_SUBMISSION_MNEMONIC:
-        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      WAVS_SIGNING_MNEMONIC:
+        sh: task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
+      WAVS_AGGREGATOR_EVM_CREDENTIAL:
+        sh: task backend:get-wavs-aggregator-evm-credential-{{.WAVS_INSTANCE}}
+      WAVS_AGGREGATOR_COSMOS_CREDENTIAL:
+        sh: task backend:get-wavs-aggregator-cosmos-credential-{{.WAVS_INSTANCE}}
     cmds:
       - |
         echo "Starting WAVS #{{.WAVS_INSTANCE}} on port $COMPOSE_WAVS_PORT"
       - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-instance.yml up --force-recreate -d
 
   stop-wavs:
-    desc: "Stop all WAVS instances and aggregator"
+    desc: "Stop all WAVS instances"
     cmds:
       - task: stop-wavs-instances
-      - task: stop-wavs-aggregator
-
-  stop-wavs-aggregator:
-    desc: "Stop WAVS aggregator service"
-    cmds:
-      - echo "Stopping WAVS Aggregator"
-      - cd "{{.BACKEND_DIR}}" && {{.DOCKER_SUDO}} docker compose --file docker-compose-wavs-aggregator.yml down --remove-orphans --volumes
 
   stop-wavs-instances:
     desc: "Stop all WAVS operator instances"
@@ -381,11 +347,27 @@ tasks:
     cmds:
       - echo "{{.WAVS_PORT}}"
 
-  get-wavs-submission-mnemonic-*:
-    desc: "Get the WAVS submission mnemonic for a wavs instance number"
+  get-wavs-signing-mnemonic-*:
+    desc: "Get the WAVS signing mnemonic for a wavs instance number"
     vars:
       WAVS_INSTANCE: "{{index .MATCH 0}}"
-      ENV_VAR_NAME: "WAVS_SUBMISSION_MNEMONIC_{{.WAVS_INSTANCE}}"
+      ENV_VAR_NAME: "WAVS_SIGNING_MNEMONIC_{{.WAVS_INSTANCE}}"
+    cmds:
+      - echo "${{.ENV_VAR_NAME}}"
+
+  get-wavs-aggregator-evm-credential-*:
+    desc: "Get the WAVS aggregator EVM credential for a wavs instance number"
+    vars:
+      WAVS_INSTANCE: "{{index .MATCH 0}}"
+      ENV_VAR_NAME: "WAVS_AGGREGATOR_EVM_CREDENTIAL_{{.WAVS_INSTANCE}}"
+    cmds:
+      - echo "${{.ENV_VAR_NAME}}"
+
+  get-wavs-aggregator-cosmos-credential-*:
+    desc: "Get the WAVS aggregator Cosmos credential for a wavs instance number"
+    vars:
+      WAVS_INSTANCE: "{{index .MATCH 0}}"
+      ENV_VAR_NAME: "WAVS_AGGREGATOR_COSMOS_CREDENTIAL_{{.WAVS_INSTANCE}}"
     cmds:
       - echo "${{.ENV_VAR_NAME}}"
 
@@ -431,13 +413,6 @@ tasks:
         vars:
           ENDPOINT:
             sh: task backend:get-wavs-endpoint-{{.ITEM}}
-          CHAIN_NAME: "{{.CHAIN_NAME}}"
-          HTTP_ENDPOINT: "{{.RPC_URL}}"
-          WS_ENDPOINT: "{{.WS_ENDPOINT}}"
-          POLL_INTERVAL_MS: "{{.POLL_INTERVAL_MS}}"
-      - task: add-evm-chain
-        vars:
-          ENDPOINT: "{{.WAVS_AGGREGATOR_ENDPOINT}}"
           CHAIN_NAME: "{{.CHAIN_NAME}}"
           HTTP_ENDPOINT: "{{.RPC_URL}}"
           WS_ENDPOINT: "{{.WS_ENDPOINT}}"

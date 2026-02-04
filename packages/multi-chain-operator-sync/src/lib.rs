@@ -69,7 +69,7 @@ sol!(
 struct Component;
 
 impl Guest for Component {
-    fn run(action: TriggerAction) -> std::result::Result<Option<WasmResponse>, String> {
+    fn run(action: TriggerAction) -> std::result::Result<Vec<WasmResponse>, String> {
         match action.data {
             // Register + Deregister
             TriggerData::EvmContractEvent(TriggerDataEvmContractEvent { chain, log }) => {
@@ -98,11 +98,11 @@ impl Guest for Component {
                                 .await
                                 .map_err(|e: anyhow::Error| e.to_string())?;
 
-                        Ok(Some(WasmResponse {
+                        Ok(vec![WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
                             event_id_salt: None,
-                        }))
+                        }])
                     } else if let Ok(ECDSAStakeRegistry::OperatorDeregistered {
                         operator,
                         avs: _,
@@ -113,11 +113,11 @@ impl Guest for Component {
                                 .await
                                 .map_err(|e| e.to_string())?;
 
-                        Ok(Some(WasmResponse {
+                        Ok(vec![WasmResponse {
                             payload: result.abi_encode(),
                             ordering: None,
                             event_id_salt: None,
-                        }))
+                        }])
                     } else {
                         Err(format!("Could not decode the event {log:?}"))
                     }
@@ -138,11 +138,11 @@ impl Guest for Component {
                         .await
                         .map_err(|e| e.to_string())?;
 
-                    Ok(Some(WasmResponse {
+                    Ok(vec![WasmResponse {
                         payload: result.abi_encode(),
                         ordering: None,
                         event_id_salt: None,
-                    }))
+                    }])
                 })
             }
             _ => Err(format!(

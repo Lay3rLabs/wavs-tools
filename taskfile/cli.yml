@@ -13,14 +13,14 @@ tasks:
     desc: "Run WAVS CLI commands in Docker container"
     vars:
       WAVS_INSTANCE: "{{.WAVS_INSTANCE | default 1}}"
-      WAVS_SUBMISSION_MNEMONIC:
-        sh: task backend:get-wavs-submission-mnemonic-{{.WAVS_INSTANCE}}
+      WAVS_SIGNING_MNEMONIC:
+        sh: task backend:get-wavs-signing-mnemonic-{{.WAVS_INSTANCE}}
     cmds:
       - >
         {{.DOCKER_SUDO}} docker run --rm --network host
-        -e WAVS_SUBMISSION_MNEMONIC="{{.WAVS_SUBMISSION_MNEMONIC}}"
+        -e WAVS_SIGNING_MNEMONIC="{{.WAVS_SIGNING_MNEMONIC}}"
         -v {{.REPO_ROOT}}:/wavs-tools
-        -v {{.WAVS_HOME_DIR}}:/wavs-home 
+        -v {{.WAVS_HOME_DIR}}:/wavs-home
         {{.WAVS_DOCKER_IMAGE}}
         wavs-cli {{.CLI_ARGS}}
 

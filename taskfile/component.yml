@@ -105,38 +105,6 @@ tasks:
           exit 1
         fi
 
-  upload-aggregator:
-    desc: "Upload a WASI component to the WAVS aggregator endpoint"
-    requires:
-      vars: [PROJECT, COMPONENT_NAME, WAVS_AGGREGATOR_ENDPOINT]
-    vars:
-      COMPONENT_BINARY: "{{.REPO_ROOT}}/projects/{{.PROJECT}}/{{.PROJECT_OUTPUT_DIRNAME}}/components/{{.COMPONENT_NAME}}.wasm"
-      COMPONENT_DIGEST_FILE:
-        sh: task component:get-digest-filepath PROJECT={{.PROJECT}} COMPONENT_NAME={{.COMPONENT_NAME}}
-    cmds:
-      - |
-        echo "Uploading component {{.COMPONENT_NAME}} to {{.WAVS_AGGREGATOR_ENDPOINT}}/dev/components"
-
-        RESPONSE=$(curl --fail-with-body -X POST "{{.WAVS_AGGREGATOR_ENDPOINT}}/dev/components" \
-          -H "Content-Type: application/octet-stream" \
-          --data-binary "@{{.COMPONENT_BINARY}}" \
-          2>/dev/null)
-
-        if [ $? -eq 0 ]; then
-          DIGEST=$(echo "$RESPONSE" | jq -r '.digest')
-          if [ "$DIGEST" != "null" ] && [ -n "$DIGEST" ]; then
-            echo "Component uploaded successfully, digest is $DIGEST"
-            echo "$DIGEST" > "{{.COMPONENT_DIGEST_FILE}}"
-          else
-            echo "Error: Failed to parse digest from response: $RESPONSE"
-            exit 1
-          fi
-        else
-          echo "Error: Failed to upload component"
-          echo "Response: $RESPONSE"
-          exit 1
-        fi
-
   docker-upload:
     desc: "Upload component via Docker container"
     requires:

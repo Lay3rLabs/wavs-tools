@@ -52,7 +52,6 @@ tasks:
         task bootstrap:build-empty-service
         task bootstrap:upload-service
         task bootstrap:set-service-uri
-        task bootstrap:register-service
         task bootstrap:deploy-service
         task bootstrap:register-operator
         task bootstrap:mirror-deploy
