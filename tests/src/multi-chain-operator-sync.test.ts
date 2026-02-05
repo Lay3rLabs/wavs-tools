@@ -25,7 +25,7 @@ describe(PROJECT_NAME.toUpperCase(), function () {
     test(PROJECT_NAME + " run-tests", async () => {
       backendManager.assertRunning();
 
-      await execAsync("task", ["run-tests"], {
+      await execAsync("task", ["run-tests-poa"], {
         cwd: projectPath(PROJECT_NAME),
       });
     });

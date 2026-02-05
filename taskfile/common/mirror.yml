@@ -28,14 +28,17 @@ tasks:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
       MIRROR_RPC_URL:
         sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.CHAIN_NUMBER}}
+      IS_POA:
+        sh: if [ "{{.MIDDLEWARE_MODE}}" = "POA" ]; then echo "true"; else echo "false"; fi
     requires:
       vars: [REPO_ROOT, PROJECT, SOURCE_CHAIN_NUMBER, MIDDLEWARE_MODE]
     cmds:
       - >
         cd "{{.REPO_ROOT}}" && task middleware:eigen:mirror:deploy-mirror
         CHAIN_NUMBER="{{.CHAIN_NUMBER}}"
-        PROJECT="{{.PROJECT}}" 
-        SERVICE_NAME="{{.PROJECT}}" 
-        SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}" 
+        PROJECT="{{.PROJECT}}"
+        SERVICE_NAME="{{.PROJECT}}"
+        SOURCE_RPC_URL="{{.SOURCE_RPC_URL}}"
         MIRROR_RPC_URL="{{.MIRROR_RPC_URL}}"
         MIDDLEWARE_MODE="{{.MIDDLEWARE_MODE}}"
+        IS_POA="{{.IS_POA}}"

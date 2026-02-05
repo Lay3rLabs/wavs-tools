@@ -166,32 +166,20 @@ tasks:
       - |
         for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
           if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
-            task test:trigger-register-poa-$OPERATOR
+            task test:trigger-poa-register-$OPERATOR
           fi
         done
 
-  trigger-register-poa-*:
+  trigger-poa-register-*:
     desc: "Registers a new operator on POAStakeRegistry and validates it was synced"
     vars:
       OPERATOR: "{{index .MATCH 0}}"
       OPERATOR_ADDRESS:
         sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
-      OPERATOR_KEY:
-        sh: task get-operator-private-key WAVS_INSTANCE="{{.OPERATOR}}"
-      SIGNING_KEY:
-        sh: task get-service-signing-key WAVS_INSTANCE="{{.OPERATOR}}"
-      OPERATOR_WEIGHT: "{{.OPERATOR_WEIGHT | default 100}}"
     cmds:
-      - >
-        cd "{{.REPO_ROOT}}" &&
-        task middleware:poa:register-operator
-        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-        OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}" WEIGHT="{{.OPERATOR_WEIGHT}}"
-      - >
-        cd "{{.REPO_ROOT}}" &&
-        task middleware:poa:update-signing-key
-        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
-        OPERATOR_KEY="{{.OPERATOR_KEY}}" SIGNING_KEY="{{.SIGNING_KEY}}"
+      - |
+        cd {{.ROOT_DIR}}
+        task bootstrap:wavs-{{.OPERATOR}}
       - task: validate-operator-weight-updated-event
         vars:
           OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
@@ -204,11 +192,11 @@ tasks:
       - |
         for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
           if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
-            task test:trigger-deregister-poa-$OPERATOR
+            task test:trigger-poa-deregister-$OPERATOR
           fi
         done
 
-  trigger-deregister-poa-*:
+  trigger-poa-deregister-*:
     desc: "Deregisters an operator from POAStakeRegistry and validates it was synced"
     vars:
       OPERATOR: "{{index .MATCH 0}}"

@@ -26,6 +26,7 @@ tasks:
       WAVS_SERVICE_MANAGER_ADDRESS:
         sh: cd "{{.REPO_ROOT}}" && task middleware:get-service-manager-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.SERVICE_NAME}}" MIDDLEWARE_MODE="{{.MIDDLEWARE_MODE}}"
       FUNDED_KEY: "{{.DEPLOYER_PRIVATE_KEY}}"
+      IS_POA: '{{.IS_POA | default "false"}}'
     cmds:
       - mkdir -p {{.NODES_DIR}}
       - >
@@ -35,6 +36,7 @@ tasks:
         -e MIRROR_RPC_URL
         -e WAVS_SERVICE_MANAGER_ADDRESS
         -e FUNDED_KEY
+        -e IS_POA
         -v {{.NODES_DIR}}:/root/.nodes
         {{.MIDDLEWARE_DOCKER_IMAGE}} -m mirror deploy
 
