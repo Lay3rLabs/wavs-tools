@@ -3,8 +3,9 @@ import { BackendManager } from "./helpers/backend";
 import { projectPath, execAsync } from "./helpers/utils";
 
 const PROJECT_NAME = "multi-chain-operator-sync";
+const MIDDLEWARE_MODE = "EIGEN_ECDSA";
 
-describe(PROJECT_NAME.toUpperCase(), function () {
+describe(`${PROJECT_NAME.toUpperCase()} (ECDSA)`, function () {
   let backendManager: BackendManager;
 
   beforeAll(async () => {
@@ -14,6 +15,7 @@ describe(PROJECT_NAME.toUpperCase(), function () {
 
     await execAsync("task", ["bootstrap"], {
       cwd: projectPath(PROJECT_NAME),
+      env: { ...process.env, MIDDLEWARE_MODE },
     });
   });
 
@@ -22,11 +24,12 @@ describe(PROJECT_NAME.toUpperCase(), function () {
   });
 
   describe("All tests", function () {
-    test(PROJECT_NAME + " run-tests", async () => {
+    test(PROJECT_NAME + " run-tests (ECDSA)", async () => {
       backendManager.assertRunning();
 
-      await execAsync("task", ["run-tests-poa"], {
+      await execAsync("task", ["run-tests"], {
         cwd: projectPath(PROJECT_NAME),
+        env: { ...process.env, MIDDLEWARE_MODE },
       });
     });
   });
