@@ -33,7 +33,12 @@ tasks:
       CURRENT_BLOCK:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
-        sh: echo $(( {{.CURRENT_BLOCK}} - 1 ))
+        sh: |
+          if [ {{.CURRENT_BLOCK}} -ge 10 ]; then
+            echo $(( {{.CURRENT_BLOCK}} - 10 ))
+          else
+            echo 0
+          fi
       TOPIC_0:
         sh: cast keccak "RandomnessReceived(address,bytes32)"
       DEPLOYER_ADDRESS:
