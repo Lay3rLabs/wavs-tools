@@ -10,7 +10,7 @@ vars:
   BACKEND_DIR: '{{joinPath .REPO_ROOT "backend"}}'
   ANVIL_FORK_CHAIN_ID: 31337
   # Network Configuration
-  ANVIL_SEPOLIA_FORK_URL: "https://ethereum-sepolia-rpc.publicnode.com"
+  ANVIL_SEPOLIA_FORK_URL: "https://sepolia.drpc.org"
   ANVIL_BASE_PORT: 8548 # Base port for Anvil, subsequent ports will be incremented by 1 for each instance
   WAVS_BASE_PORT: 8123 # Base port for WAVS, subsequent ports will be incremented by 1 for each instance
 
