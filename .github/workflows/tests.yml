@@ -56,7 +56,7 @@ jobs:
         with:
           path: |
             target/
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'packages/*/Cargo.toml', 'packages/*/src/**/*.rs') }}
 
       - name: Install Task
         uses: arduino/setup-task@v2

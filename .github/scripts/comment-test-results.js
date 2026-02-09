@@ -22,7 +22,6 @@ async function commentTestResults({ github, context }) {
 
     const passing = report.tests - report.failures - report.errors - report.skipped;
     const failing = report.failures + report.errors;
-    const pending = 0;
     const skipped = report.skipped || 0;
     const total = report.tests;
     const duration = Math.round(report.time * 1000); // Convert to ms
@@ -35,8 +34,8 @@ async function commentTestResults({ github, context }) {
       comment += ` (${failing} failed)`;
     }
 
-    if (pending > 0 || skipped > 0) {
-      comment += ` (${pending + skipped} skipped/pending)`;
+    if (skipped > 0) {
+      comment += ` (${skipped} skipped)`;
     }
 
     comment += `\n**Duration:** ${duration}ms\n\n`;
@@ -72,15 +71,19 @@ async function commentTestResults({ github, context }) {
   } catch (error) {
     console.error('Error processing test report:', error);
 
-    // Post a fallback comment
-    await github.rest.issues.createComment({
-      issue_number: prNumber,
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      body: `## 🧪 Test Results\n\n❌ Failed to generate test report. Check the [workflow logs](${workflowLogsLink}) for details.`
-    });
+    // Post a fallback comment — don't let this mask the original error
+    try {
+      await github.rest.issues.createComment({
+        issue_number: prNumber,
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        body: `## 🧪 Test Results\n\n❌ Failed to generate test report. Check the [workflow logs](${workflowLogsLink}) for details.`
+      });
+    } catch (commentError) {
+      console.error('Failed to post fallback comment:', commentError);
+    }
 
-    // Re-throw the error so the workflow shows as failed
+    // Re-throw the original error so the workflow shows as failed
     throw error;
   }
 }

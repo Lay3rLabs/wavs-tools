@@ -38,7 +38,7 @@ jobs:
         with:
           path: |
             target/
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'packages/*/Cargo.toml', 'packages/*/src/**/*.rs') }}
 
       - name: Install Foundry
         if: steps.cache-forge.outputs.cache-hit != 'true'

@@ -65,8 +65,8 @@ tasks:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
         sh: |
-          if [ {{.CURRENT_BLOCK}} -ge 10 ]; then
-            echo $(( {{.CURRENT_BLOCK}} - 10 ))
+          if [ {{.CURRENT_BLOCK}} -ge 20 ]; then
+            echo $(( {{.CURRENT_BLOCK}} - 20 ))
           else
             echo 0
           fi
