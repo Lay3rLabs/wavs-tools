@@ -12,18 +12,16 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       # Caches
-      - name: Cache Git submodules
-        id: cache-submodules
+      - name: Cache Forge build
+        id: cache-forge
         uses: actions/cache@v4
         with:
-          path: submodules
-          key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
-
-      - name: Checkout submodules
-        if: steps.cache-submodules.outputs.cache-hit != 'true'
-        run: git submodule update --init --recursive
+          path: abi
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock', 'submodules/poa-middleware/package-lock.json') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -40,18 +38,16 @@ jobs:
         with:
           path: |
             target/
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'packages/*/Cargo.toml', 'packages/*/src/**/*.rs') }}
 
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
+      - name: Install Foundry
+        if: steps.cache-forge.outputs.cache-hit != 'true'
+        uses: foundry-rs/foundry-toolchain@v1
         with:
-          path: |
-            ~/.bun/install/cache
-            ~/.bun/install/global
-            node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          version: stable
 
       - name: Install Bun
+        if: steps.cache-forge.outputs.cache-hit != 'true'
         uses: oven-sh/setup-bun@v2
         with:
           bun-version: latest
@@ -80,7 +76,7 @@ jobs:
         run: wkg config --default-registry wa.dev
 
       - name: Setup dependencies
-        run: bun i --frozen-lockfile
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env

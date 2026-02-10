@@ -2,7 +2,7 @@ mod utils;
 
 use crate::{
     wavs::{operator::input::TriggerData, types::events::TriggerDataEvmContractEvent},
-    IManagerUpdateTypes::UpdateWithId,
+    IMirrorQuorumSyncHandler::UpdateWithId,
     IWavsServiceManager::QuorumThresholdUpdated,
 };
 use alloy_sol_macro::sol;
@@ -20,16 +20,9 @@ wit_bindgen::generate!({
     features: ["tls"]
 });
 
-sol!(interface IManagerUpdateTypes {
-    error InvalidTriggerId(uint64 expectedTriggerId);
-
-    /// @notice DataWithId is a struct containing a trigger ID and updated operator info
-    struct UpdateWithId {
-        uint64 triggerId;
-        uint256 numerator;
-        uint256 denominator;
-    }
-});
+sol!(
+    "../../node_modules/@wavs/solidity/contracts/src/eigenlayer/ecdsa/interfaces/IMirrorQuorumSyncHandler.sol"
+);
 
 sol!(
     #[sol(rpc)]

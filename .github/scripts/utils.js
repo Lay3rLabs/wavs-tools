@@ -1,38 +1,43 @@
-function countFail(xmlString) {
-    // Count failures in JUnit XML by counting <failure> and <error> tags
-    const failureMatches = xmlString.match(/<failure[^>]*>/g) || [];
-    const errorMatches = xmlString.match(/<error[^>]*>/g) || [];
-
-    return failureMatches.length + errorMatches.length;
-}
-
 function parseJUnitXML(xmlString) {
     // Prefer top-level <testsuites ...> if present (as in jest-junit/bun test)
     const testsuitesMatch = xmlString.match(/<testsuites[^>]*>/);
     if (testsuitesMatch) {
         const attributes = testsuitesMatch[0];
-        const tests = parseInt(attributes.match(/tests=\"(\d+)\"/)?.[1] || '0');
-        const failures = parseInt(attributes.match(/failures=\"(\d+)\"/)?.[1] || '0');
-        const errors = parseInt(attributes.match(/errors=\"(\d+)\"/)?.[1] || '0');
-        const skipped = parseInt(attributes.match(/skipped=\"(\d+)\"/)?.[1] || '0');
-        const time = parseFloat(attributes.match(/time=\"([^\"]+)\"/)?.[1] || '0');
+        const tests = parseInt(attributes.match(/tests="(\d+)"/)?.[1] || '0');
+        const failures = parseInt(attributes.match(/failures="(\d+)"/)?.[1] || '0');
+        const errors = parseInt(attributes.match(/errors="(\d+)"/)?.[1] || '0');
+        const skipped = parseInt(attributes.match(/skipped="(\d+)"/)?.[1] || '0');
+        const time = parseFloat(attributes.match(/time="([^"]+)"/)?.[1] || '0');
         return { tests, failures, errors, skipped, time };
     }
 
-    // Fallback: first <testsuite ...> element
-    const testsuiteMatch = xmlString.match(/<testsuite[^>]*>/);
-    if (!testsuiteMatch) {
+    // Fallback: aggregate across all <testsuite> elements
+    const testsuiteRegex = /<testsuite\b([^>]*)>/g;
+    let match;
+    let totals = { tests: 0, failures: 0, errors: 0, skipped: 0, time: 0 };
+    let found = false;
+
+    while ((match = testsuiteRegex.exec(xmlString)) !== null) {
+        found = true;
+        const attrs = match[1];
+        totals.tests += parseInt(attrs.match(/tests="(\d+)"/)?.[1] || '0');
+        totals.failures += parseInt(attrs.match(/failures="(\d+)"/)?.[1] || '0');
+        totals.errors += parseInt(attrs.match(/errors="(\d+)"/)?.[1] || '0');
+        totals.skipped += parseInt(attrs.match(/skipped="(\d+)"/)?.[1] || '0');
+        totals.time += parseFloat(attrs.match(/time="([^"]+)"/)?.[1] || '0');
+    }
+
+    if (!found) {
         return { tests: 0, failures: 0, errors: 0, skipped: 0, time: 0 };
     }
 
-    const attributes = testsuiteMatch[0];
-    const tests = parseInt(attributes.match(/tests=\"(\d+)\"/)?.[1] || '0');
-    const failures = parseInt(attributes.match(/failures=\"(\d+)\"/)?.[1] || '0');
-    const errors = parseInt(attributes.match(/errors=\"(\d+)\"/)?.[1] || '0');
-    const skipped = parseInt(attributes.match(/skipped=\"(\d+)\"/)?.[1] || '0');
-    const time = parseFloat(attributes.match(/time=\"([^\"]+)\"/)?.[1] || '0');
+    return totals;
+}
 
-    return { tests, failures, errors, skipped, time };
+function countFail(xmlString) {
+    // Use parseJUnitXML to stay consistent with comment reporting
+    const report = parseJUnitXML(xmlString);
+    return report.failures + report.errors;
 }
 
 function parseFailureDetails(xmlString) {
@@ -47,7 +52,7 @@ function parseFailureDetails(xmlString) {
         const attrs = m[1] || '';
         const body = m[2] || '';
 
-        const nameMatch = attrs.match(/\bname=\"([^\"]*)\"/);
+        const nameMatch = attrs.match(/\bname="([^"]*)"/);
         const testName = nameMatch ? nameMatch[1] : 'Unknown test';
 
         // Try self-closing first, then paired form
@@ -59,12 +64,12 @@ function parseFailureDetails(xmlString) {
         let message = '';
 
         // Prefer explicit message attribute
-        const msgMatch = failureAttrs.match(/\bmessage=\"([^\"]*)\"/);
+        const msgMatch = failureAttrs.match(/\bmessage="([^"]*)"/);
         if (msgMatch) message = msgMatch[1];
 
         // Fallbacks: type attribute, then inner text (for paired form)
         if (!message) {
-            const typeMatch = failureAttrs.match(/\btype=\"([^\"]*)\"/);
+            const typeMatch = failureAttrs.match(/\btype="([^"]*)"/);
             if (typeMatch) message = typeMatch[1];
         }
 
@@ -91,4 +96,3 @@ module.exports = {
     parseJUnitXML,
     parseFailureDetails,
 };
-

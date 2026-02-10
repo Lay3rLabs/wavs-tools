@@ -65,8 +65,8 @@ tasks:
         sh: cast block-number --rpc-url {{.EVM_RPC_URL}}
       BLOCK_START:
         sh: |
-          if [ {{.CURRENT_BLOCK}} -ge 10 ]; then
-            echo $(( {{.CURRENT_BLOCK}} - 10 ))
+          if [ {{.CURRENT_BLOCK}} -ge 20 ]; then
+            echo $(( {{.CURRENT_BLOCK}} - 20 ))
           else
             echo 0
           fi
@@ -124,6 +124,90 @@ tasks:
         SERVICE_MANAGER_ADDRESS="{{.SERVICE_MANAGER_ADDRESS}}"
         DELEGATE_AMOUNT="{{.DELEGATE_AMOUNT}}"
       - cast rpc anvil_mine {{.UPDATE_INTERVAL_BLOCKS}} --rpc-url {{.SOURCE_RPC_URL}}
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+
+  trigger-poa-update-*:
+    desc: "Updates operator weight on POAStakeRegistry and validates it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+      STAKE_REGISTRY_ADDRESS:
+        sh: task middleware:get-stake-registry-address PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}" MIDDLEWARE_MODE="POA"
+      SOURCE_RPC_URL:
+        sh: cd "{{.REPO_ROOT}}" && task backend:get-evm-rpc-url-{{.SOURCE_CHAIN_NUMBER}}
+      CURRENT_WEIGHT:
+        sh: cast call "{{.STAKE_REGISTRY_ADDRESS}}" "getOperatorWeight(address)(uint256)" "{{.OPERATOR_ADDRESS}}" --rpc-url {{.SOURCE_RPC_URL}}
+      NEW_WEIGHT:
+        sh: |
+          CURRENT=$(echo "{{.CURRENT_WEIGHT}}" | tr -dc '0-9')
+          if [ -z "$CURRENT" ]; then
+            CURRENT=0
+          fi
+          echo $(( CURRENT + 50 ))
+    cmds:
+      - >
+        cd "{{.REPO_ROOT}}" &&
+        task middleware:poa:update-operator-weight
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
+        WEIGHT="{{.NEW_WEIGHT}}"
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+
+  trigger-register-poa:
+    desc: "Registers all available operators on POAStakeRegistry and verifies they were synced"
+    vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
+    cmds:
+      - |
+        for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
+            task test:trigger-poa-register-$OPERATOR
+          fi
+        done
+
+  trigger-poa-register-*:
+    desc: "Registers a new operator on POAStakeRegistry and validates it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+    cmds:
+      - |
+        cd {{.ROOT_DIR}}
+        task bootstrap:wavs-{{.OPERATOR}}
+      - task: validate-operator-weight-updated-event
+        vars:
+          OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"
+
+  trigger-deregister-poa:
+    desc: "Deregisters all available operators on POAStakeRegistry and verifies they were synced"
+    vars:
+      FIRST_OPERATOR: "{{.FIRST_OPERATOR | default 1}}"
+    cmds:
+      - |
+        for OPERATOR in $(seq 1 {{.ACTIVE_WAVS_COUNT}}); do
+          if [ "$OPERATOR" -ne {{.FIRST_OPERATOR}} ]; then
+            task test:trigger-poa-deregister-$OPERATOR
+          fi
+        done
+
+  trigger-poa-deregister-*:
+    desc: "Deregisters an operator from POAStakeRegistry and validates it was synced"
+    vars:
+      OPERATOR: "{{index .MATCH 0}}"
+      OPERATOR_ADDRESS:
+        sh: task get-operator-address WAVS_INSTANCE="{{.OPERATOR}}"
+    cmds:
+      - >
+        cd "{{.REPO_ROOT}}" &&
+        task middleware:poa:deregister-operator
+        PROJECT="{{.PROJECT}}" SERVICE_NAME="{{.PROJECT}}"
+        OPERATOR_ADDRESS="{{.OPERATOR_ADDRESS}}"
       - task: validate-operator-weight-updated-event
         vars:
           OPERATOR_ADDRESS: "{{.OPERATOR_ADDRESS}}"

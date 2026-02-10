@@ -25,22 +25,21 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           ref: refs/pull/${{ github.event.issue.number }}/head
+          submodules: recursive
 
       - name: Checkout (Push/PR)
         if: github.event_name != 'issue_comment'
         uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       # Caches
-      - name: Cache Git submodules
-        id: cache-submodules
+      - name: Cache Forge build
+        id: cache-forge
         uses: actions/cache@v4
         with:
-          path: submodules
-          key: ${{ runner.os }}-submodules-${{ hashFiles('.gitmodules') }}
-
-      - name: Checkout submodules
-        if: steps.cache-submodules.outputs.cache-hit != 'true'
-        run: git submodule update --init --recursive
+          path: abi
+          key: ${{ runner.os }}-forge-${{ hashFiles('.gitmodules', 'bun.lock', 'submodules/poa-middleware/package-lock.json') }}
 
       - name: Cache Cargo
         uses: actions/cache@v4
@@ -57,16 +56,7 @@ jobs:
         with:
           path: |
             target/
-          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'projects/*/component/Cargo.toml','projects/*/component/src/**/*.rs') }}
-
-      - name: Cache Bun dependencies
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.bun/install/cache
-            ~/.bun/install/global
-            node_modules
-          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lock') }}
+          key: ${{ runner.os }}-target-${{ hashFiles('**/Cargo.lock', 'packages/*/Cargo.toml', 'packages/*/src/**/*.rs') }}
 
       - name: Install Task
         uses: arduino/setup-task@v2
@@ -130,7 +120,7 @@ jobs:
 
       # Dependencies and environment
       - name: Setup dependencies
-        run: bun i --frozen-lockfile
+        run: task setup-ci BUILD_ABI=${{ steps.cache-forge.outputs.cache-hit != 'true' }}
 
       - name: Setup environment
         run: cp .env.example .env
