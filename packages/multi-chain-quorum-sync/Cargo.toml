@@ -22,7 +22,6 @@ alloy-sol-macro = { workspace = true }
 alloy-sol-types = { workspace = true }
 alloy-contract = { workspace = true }
 
-wit-bindgen-rt = { workspace = true }
 wit-bindgen = { workspace = true }
 wasip2 = { workspace = true }
 
