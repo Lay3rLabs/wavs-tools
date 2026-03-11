@@ -36,7 +36,6 @@ dependencies = [
  "wavs-types",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -3953,7 +3952,6 @@ dependencies = [
  "wasip2",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -3975,7 +3973,6 @@ dependencies = [
  "wasip2",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -4260,7 +4257,6 @@ dependencies = [
  "wasip2",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -6817,7 +6813,6 @@ dependencies = [
  "wasip2",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -6843,7 +6838,6 @@ dependencies = [
  "wavs-indexer-api",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -6868,7 +6862,6 @@ dependencies = [
  "thiserror 1.0.69",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -6908,7 +6901,6 @@ dependencies = [
  "tiny-keccak",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -6935,7 +6927,6 @@ dependencies = [
  "wavs-indexer-api",
  "wavs-wasi-utils",
  "wit-bindgen 0.48.1",
- "wit-bindgen-rt",
  "wstd",
 ]
 
@@ -7393,15 +7384,6 @@ dependencies = [
  "anyhow",
  "heck 0.5.0",
  "wit-parser",
-]
-
-[[package]]
-name = "wit-bindgen-rt"
-version = "0.44.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "653c85dd7aee6fe6f4bded0d242406deadae9819029ce6f7d258c920c384358a"
-dependencies = [
- "bitflags 2.10.0",
 ]
 
 [[package]]

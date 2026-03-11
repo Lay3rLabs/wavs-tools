@@ -16,7 +16,6 @@ wstd = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-wit-bindgen-rt = { workspace = true, features = ["bitflags"] }
 alloy-sol-macro = { workspace = true }
 alloy-sol-types = { workspace = true }
 alloy-primitives = { workspace = true, features = ["serde"] }
